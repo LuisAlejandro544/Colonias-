@@ -66,6 +66,9 @@ cp "$RUST_DIR/target/armv7-linux-androideabi/${TARGET_SUBDIR}/libcolonia_core.so
 
 if command -v godot >/dev/null 2>&1; then
   mkdir -p "$ROOT_DIR/build"
+  echo "Importando recursos SVG y GDExtension en Godot..."
+  godot --headless --path "$GODOT_DIR" --import || true
+
   echo "Exportando APK Debug para arm64-v8a (64 bits)..."
   godot --headless --path "$GODOT_DIR" "$GODOT_EXPORT_FLAG" "Android-arm64-v8a" "$ROOT_DIR/build/colonia_centinela-arm64-v8a-${BUILD_MODE}.apk"
 
