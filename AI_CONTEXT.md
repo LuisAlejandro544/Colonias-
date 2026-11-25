@@ -23,7 +23,7 @@ Este documento resume las decisiones arquitectónicas, versiones fijadas, restri
 - La versión `=0.5.5` incluye soporte completo de `api-4-7` y compila limpiamente en **64 bits (`aarch64-linux-android`)**, **32 bits (`armv7-linux-androideabi`)** y **Linux x86_64**.
 
 ### B. Interoperabilidad JSON (Godot 4) ↔ Rust (`gdext`)
-- `JSON.parse()` en GDScript interpreta los números JSON como `float`. Al pasar diccionarios restaurados a `ColonySimulation.restore_colony`, `colony_world.gd` normaliza explícitamente los campos enteros con `int(...)` y arreglos a `PackedInt32Array` para evitar fallos de conversión estricta (`try_to::<i32>()`) en `gdext`.
+- `JSON.parse()` en GDScript interpreta los números JSON como `float`. Al pasar diccionarios restaurados a `ColonySimulation.restore_colony`, `colony_world.gd` normaliza explícitamente los campos enteros con `int(...)` (incluyendo `role_levels`), decimales con `float(...)` (`role_xp`, `tend_cooldown`), listas de códigos (`assigned_roles`) y arreglos a `PackedInt32Array` para evitar fallos de conversión estricta (`try_to::<i32>()`) en `gdext`.
 
 ### C. Godot `4.7.2-stable` y exportación Android
 - `godot/project.godot` exige `textures/vram_compression/import_etc2_astc=true` para exportar texturas en Android.
@@ -42,3 +42,8 @@ Este documento resume las decisiones arquitectónicas, versiones fijadas, restri
 
 ### F. Inventario de colonos y sueño en el suelo
 - Cada colono usa `ColonistInventory` (`rust/src/colony_types.rs`) con `helmet_slot`, `armor_slot`, `back_tool` y `main_hand` (con intercambio automático al equipar o guardar herramientas) además de energía (`energy`) para acostarse en el suelo (`ColonistActivity::Sleeping`) con partículas `.svg` `sleep_zzz.svg`.
+
+### G. Sistema de 8 Roles (máx. 5 por colono) y Niveles `1..=10`
+- `rust/src/roles.rs` define los 8 roles independientes (`Leñador`, `Minero`, `Transportador`, `Constructor`, `Agricultor`, `Botánico`, `Explorador`, `Líder de Colonia`), limitados a un máximo de `5` roles asignados simultáneamente por colono (`MAX_ASSIGNED_ROLES = 5`).
+- **Agricultor vs Botánico:** Se mantienen como oficios distintos; el **Agricultor** ara tierra nueva (`CropStage::None -> Tilled`) y cosecha zanahorias maduras (`CropStage::Ready`, con mayor rendimiento por nivel), mientras el **Botánico** siembra semillas (`CropStage::Tilled -> Seeded`) y cuida cultivos en crecimiento (impulsando `crop.progress` según su nivel).
+- **Progresión de Nivel 1 a 10:** La experiencia requerida aumenta progresivamente (`25 -> 800` XP) con desaceleración por nivel alto y fatiga (`energy < 35`), escalando velocidades reales de trabajo/caminata, capacidad de carga de `Transportador` (`2` a `16` uds/viaje), rendimiento de recursos, radio de `Explorador` y rapidez de reuniones del `Líder de Colonia`. La colonia conserva siempre 1 líder activo al transferir o quitar roles.

@@ -23,16 +23,16 @@ use crate::colony_types::{
 };
 use crate::noise::SeededRng;
 use crate::pathfinding::find_path;
+use crate::roles::{
+    effect_summary_es, xp_required_for_next_level, ColonistRoleProfile, ColonyRole,
+    MAX_ASSIGNED_ROLES, MAX_ROLE_LEVEL,
+};
 use crate::tools::CopperTool;
 
 const FIRST_NAMES: &[&str] = &[
     "Mateo", "Lucía", "Valentina", "Santiago", "Camila", "Diego",
     "Elena", "Andrés", "Sofía", "Tomás", "Valeria", "Nicolás",
     "Clara", "Gabriel", "Paula", "Hugo",
-];
-
-const ROLES: &[&str] = &[
-    "Leñador", "Minero", "Constructor", "Botánico", "Explorador", "Médico",
 ];
 
 const SKIN_HEX: &[&str] = &[
@@ -166,8 +166,8 @@ impl SimulationCore {
 
             let is_leader = i as usize == leader_idx;
             let name_idx = (self.rng.next_usize(FIRST_NAMES.len()) + i as usize) % FIRST_NAMES.len();
-            let role_idx = i as usize % ROLES.len();
-            let role_str = ROLES[role_idx].to_string();
+            let role_profile = ColonistRoleProfile::new_for_colonist(i as usize, is_leader);
+            let role_str = role_profile.primary_label(is_leader).to_string();
             let skin_idx = self.rng.next_usize(SKIN_HEX.len());
             let hair_idx = self.rng.next_usize(HAIR_HEX.len());
             let outfit_idx = self.rng.next_usize(OUTFIT_HEX.len());
@@ -199,6 +199,7 @@ impl SimulationCore {
                 hair_color: HAIR_HEX[hair_idx].to_string(),
                 outfit_color: OUTFIT_HEX[outfit_idx].to_string(),
                 activity: ColonistActivity::Resting,
+                role_profile,
                 inventory,
                 carrying_kind: None,
                 carrying_amount: 0,
@@ -219,8 +220,21 @@ impl SimulationCore {
             return;
         }
         if !self.colonists.iter().any(|c| c.is_leader) {
-            let idx = self.rng.next_usize(self.colonists.len());
+            let existing_role_holder = self
+                .colonists
+                .iter()
+                .position(|c| c.role_profile.has_role(ColonyRole::ColonyLeader));
+            let idx = existing_role_holder.unwrap_or_else(|| self.rng.next_usize(self.colonists.len()));
             self.colonists[idx].is_leader = true;
+            if !self.colonists[idx].role_profile.has_role(ColonyRole::ColonyLeader) {
+                if self.colonists[idx].role_profile.assigned.len() >= MAX_ASSIGNED_ROLES {
+                    self.colonists[idx].role_profile.assigned.pop();
+                }
+                let _ = self.colonists[idx]
+                    .role_profile
+                    .assign_role(ColonyRole::ColonyLeader);
+            }
+            self.colonists[idx].role = self.colonists[idx].role_profile.primary_label(true).to_string();
             self.colonists[idx].inventory.equip_main_hand(CopperTool::CopperSword);
         }
     }
@@ -434,6 +448,7 @@ impl SimulationCore {
                                     y,
                                     stage: CropStage::None,
                                     progress: 0.0,
+                                    tend_cooldown: 0.0,
                                 });
                             }
                             self.farm_approved = false;
@@ -547,13 +562,17 @@ impl SimulationCore {
             return;
         };
 
+        let leader_speed_mult = self.colonists[l_idx]
+            .role_profile
+            .leader_meeting_speed_mult();
+
         // Caso colonia de 1 solo colono: el líder planifica brevemente en el sitio.
         if self.colonists.len() <= 1 {
             self.meeting_active = true;
             self.colonists[l_idx].activity = ColonistActivity::ConveningMeeting;
             self.colonists[l_idx].inventory.equip_main_hand(CopperTool::CopperSword);
             self.colonists[l_idx].path.clear();
-            self.meeting_timer += dt;
+            self.meeting_timer += dt * leader_speed_mult;
             if self.meeting_timer >= 0.7 {
                 self.approve_all_pending();
             }
@@ -590,7 +609,7 @@ impl SimulationCore {
         let py = self.colonists[p_idx].y;
         self.meeting_target_id = partner_id;
 
-        if best_dist <= 2.3 || self.meeting_approach_timer >= 6.5 {
+        if best_dist <= 2.3 || self.meeting_approach_timer >= (6.5 / leader_speed_mult) {
             // Ya están reunidos cara a cara (o cerca): el líder transmite las órdenes.
             self.colonists[l_idx].activity = ColonistActivity::ConveningMeeting;
             self.colonists[l_idx].inventory.equip_main_hand(CopperTool::CopperSword);
@@ -611,7 +630,7 @@ impl SimulationCore {
                 }
             }
 
-            self.meeting_timer += dt;
+            self.meeting_timer += dt * leader_speed_mult;
             if self.meeting_timer >= 1.35 {
                 self.approve_all_pending();
             }
@@ -673,8 +692,19 @@ impl SimulationCore {
     }
 
     fn approve_all_pending(&mut self) {
+        let mut approved_count = 0usize;
         for o in &mut self.orders {
+            if o.status == OrderStatus::PendingBriefing {
+                approved_count += 1;
+            }
             o.status = OrderStatus::Approved;
+        }
+        if let Some(l_idx) = self.leader_index() {
+            let xp = 7.0 + (approved_count.min(10) as f32) * 2.5;
+            let energy = self.colonists[l_idx].energy;
+            self.colonists[l_idx]
+                .role_profile
+                .grant_xp(ColonyRole::ColonyLeader, xp, energy);
         }
         self.briefing_pending = false;
         self.storage_approved = true;
@@ -732,7 +762,7 @@ impl SimulationCore {
         let cy = self.colonists[c_idx].y.floor() as i32;
         let cid = self.colonists[c_idx].id;
 
-        // 1. Si el colono ya carga un recurso, llevarlo a una zona de almacenamiento.
+        // 1. Si el colono ya carga un recurso, entregarlo en el almacén primero.
         if self.colonists[c_idx].carrying_kind.is_some() {
             if let Some((sx, sy)) = self.find_storage_tile(cx, cy) {
                 if let Some(path) =
@@ -763,156 +793,264 @@ impl SimulationCore {
             }
         }
 
-        // 2. Buscar la mejor orden aprobada disponible (Construir, Talar, Minar).
+        // 2. Evaluar los roles asignados al colono (máximo 5) en orden de prioridad.
+        let assigned_roles = self.colonists[c_idx].role_profile.assigned.clone();
+        if assigned_roles.is_empty() {
+            return;
+        }
         let (total_inv, _) = self.compute_inventory();
-        let mut chosen_order_idx: Option<usize> = None;
-        let mut best_dist = i32::MAX;
 
-        for (oi, order) in self.orders.iter().enumerate() {
-            if order.status != OrderStatus::Approved || order.assigned_colonist_id != 0 {
-                continue;
-            }
-            if order.kind == OrderKind::BuildWoodWall && total_inv.wood < WOOD_PER_WALL {
-                continue;
-            }
-            let d = (order.x - cx).abs() + (order.y - cy).abs();
-            if d < best_dist {
-                best_dist = d;
-                chosen_order_idx = Some(oi);
-            }
-        }
+        for role in assigned_roles {
+            match role {
+                ColonyRole::Constructor | ColonyRole::Lumberjack | ColonyRole::Miner => {
+                    let target_kind = match role {
+                        ColonyRole::Constructor => OrderKind::BuildWoodWall,
+                        ColonyRole::Lumberjack => OrderKind::ChopTree,
+                        _ => OrderKind::MineRock,
+                    };
+                    let mut chosen_order_idx: Option<usize> = None;
+                    let mut best_dist = i32::MAX;
 
-        if let Some(oi) = chosen_order_idx {
-            let order_id = self.orders[oi].id;
-            let order_kind = self.orders[oi].kind;
-            let tx = self.orders[oi].x;
-            let ty = self.orders[oi].y;
+                    for (oi, order) in self.orders.iter().enumerate() {
+                        if order.status != OrderStatus::Approved
+                            || order.assigned_colonist_id != 0
+                            || order.kind != target_kind
+                        {
+                            continue;
+                        }
+                        if order.kind == OrderKind::BuildWoodWall && total_inv.wood < WOOD_PER_WALL
+                        {
+                            continue;
+                        }
+                        let d = (order.x - cx).abs() + (order.y - cy).abs();
+                        if d < best_dist {
+                            best_dist = d;
+                            chosen_order_idx = Some(oi);
+                        }
+                    }
 
-            if let Some(path) =
-                find_path(self.map_width, self.map_height, &self.blocked, cx, cy, tx, ty, true)
-            {
-                self.orders[oi].assigned_colonist_id = cid;
-                self.colonists[c_idx].active_task = Some(ActiveTask {
-                    order_id,
-                    kind: order_kind,
-                    target_x: tx,
-                    target_y: ty,
-                    item_id: 0,
-                    work_timer: 0.0,
-                    phase: 0,
-                });
-                self.colonists[c_idx].path = path;
-                self.colonists[c_idx].activity = ColonistActivity::MovingToTask;
-                let task_tool = match order_kind {
-                    OrderKind::ChopTree => CopperTool::CopperAxe,
-                    OrderKind::MineRock => CopperTool::CopperPickaxe,
-                    OrderKind::BuildWoodWall => CopperTool::CopperShovel,
-                    OrderKind::FarmCell => CopperTool::CopperHoe,
-                    OrderKind::HaulItem => CopperTool::CopperShovel,
-                };
-                self.colonists[c_idx].inventory.equip_main_hand(task_tool);
-                return;
-            }
-        }
+                    if let Some(oi) = chosen_order_idx {
+                        let order_id = self.orders[oi].id;
+                        let order_kind = self.orders[oi].kind;
+                        let tx = self.orders[oi].x;
+                        let ty = self.orders[oi].y;
 
-        // 3. Zona de cultivo de zanahorias (si fue aprobada por el líder).
-        if self.farm_approved {
-            let mut best_crop: Option<(i32, i32)> = None;
-            let mut best_crop_score = i32::MAX;
-            for crop in &self.crops {
-                let already_taken = self.colonists.iter().any(|col| {
-                    col.active_task
-                        .as_ref()
-                        .is_some_and(|t| t.kind == OrderKind::FarmCell && t.target_x == crop.x && t.target_y == crop.y)
-                });
-                if already_taken {
-                    continue;
+                        if let Some(path) = find_path(
+                            self.map_width,
+                            self.map_height,
+                            &self.blocked,
+                            cx,
+                            cy,
+                            tx,
+                            ty,
+                            true,
+                        ) {
+                            self.orders[oi].assigned_colonist_id = cid;
+                            self.colonists[c_idx].active_task = Some(ActiveTask {
+                                order_id,
+                                kind: order_kind,
+                                target_x: tx,
+                                target_y: ty,
+                                item_id: 0,
+                                work_timer: 0.0,
+                                phase: 0,
+                            });
+                            self.colonists[c_idx].path = path;
+                            self.colonists[c_idx].activity = ColonistActivity::MovingToTask;
+                            self.colonists[c_idx]
+                                .inventory
+                                .equip_main_hand(role.default_tool());
+                            return;
+                        }
+                    }
                 }
-                let needs_action = match crop.stage {
-                    CropStage::None => true,
-                    CropStage::Tilled => total_inv.carrot_seeds > 0,
-                    CropStage::Ready => true,
-                    _ => false,
-                };
-                if !needs_action {
-                    continue;
-                }
-                let priority_bonus = if crop.stage == CropStage::Ready { -50 } else { 0 };
-                let score = (crop.x - cx).abs() + (crop.y - cy).abs() + priority_bonus;
-                if score < best_crop_score {
-                    best_crop_score = score;
-                    best_crop = Some((crop.x, crop.y));
-                }
-            }
+                ColonyRole::Farmer => {
+                    if !self.farm_approved {
+                        continue;
+                    }
+                    let mut best_crop: Option<(i32, i32)> = None;
+                    let mut best_crop_score = i32::MAX;
+                    for crop in &self.crops {
+                        let already_taken = self.colonists.iter().any(|col| {
+                            col.active_task.as_ref().is_some_and(|t| {
+                                t.kind == OrderKind::FarmCell
+                                    && t.target_x == crop.x
+                                    && t.target_y == crop.y
+                            })
+                        });
+                        if already_taken {
+                            continue;
+                        }
+                        let needs_action =
+                            matches!(crop.stage, CropStage::None | CropStage::Ready);
+                        if !needs_action {
+                            continue;
+                        }
+                        let priority_bonus = if crop.stage == CropStage::Ready { -50 } else { 0 };
+                        let score = (crop.x - cx).abs() + (crop.y - cy).abs() + priority_bonus;
+                        if score < best_crop_score {
+                            best_crop_score = score;
+                            best_crop = Some((crop.x, crop.y));
+                        }
+                    }
 
-            if let Some((fx, fy)) = best_crop {
-                if let Some(path) =
-                    find_path(self.map_width, self.map_height, &self.blocked, cx, cy, fx, fy, false)
-                {
-                    self.colonists[c_idx].active_task = Some(ActiveTask {
-                        order_id: 0,
-                        kind: OrderKind::FarmCell,
-                        target_x: fx,
-                        target_y: fy,
-                        item_id: 0,
-                        work_timer: 0.0,
-                        phase: 0,
-                    });
-                    self.colonists[c_idx].path = path;
-                    self.colonists[c_idx].activity = ColonistActivity::MovingToTask;
-                    self.colonists[c_idx].inventory.equip_main_hand(CopperTool::CopperHoe);
-                    return;
+                    if let Some((fx, fy)) = best_crop {
+                        if let Some(path) = find_path(
+                            self.map_width,
+                            self.map_height,
+                            &self.blocked,
+                            cx,
+                            cy,
+                            fx,
+                            fy,
+                            false,
+                        ) {
+                            self.colonists[c_idx].active_task = Some(ActiveTask {
+                                order_id: 0,
+                                kind: OrderKind::FarmCell,
+                                target_x: fx,
+                                target_y: fy,
+                                item_id: 0,
+                                work_timer: 0.0,
+                                phase: 0, // 0 = Agricultor (arar / cosechar)
+                            });
+                            self.colonists[c_idx].path = path;
+                            self.colonists[c_idx].activity = ColonistActivity::MovingToTask;
+                            self.colonists[c_idx]
+                                .inventory
+                                .equip_main_hand(CopperTool::CopperHoe);
+                            return;
+                        }
+                    }
                 }
-            }
-        }
+                ColonyRole::Botanist => {
+                    if !self.farm_approved {
+                        continue;
+                    }
+                    let mut best_crop: Option<(i32, i32)> = None;
+                    let mut best_crop_score = i32::MAX;
+                    for crop in &self.crops {
+                        let already_taken = self.colonists.iter().any(|col| {
+                            col.active_task.as_ref().is_some_and(|t| {
+                                t.kind == OrderKind::FarmCell
+                                    && t.target_x == crop.x
+                                    && t.target_y == crop.y
+                            })
+                        });
+                        if already_taken {
+                            continue;
+                        }
+                        let can_seed =
+                            crop.stage == CropStage::Tilled && total_inv.carrot_seeds > 0;
+                        let can_tend = matches!(
+                            crop.stage,
+                            CropStage::Seeded | CropStage::Sprout | CropStage::Growing
+                        ) && crop.tend_cooldown <= 0.0;
+                        if !can_seed && !can_tend {
+                            continue;
+                        }
+                        let priority_bonus = if can_seed { -35 } else { 0 };
+                        let score = (crop.x - cx).abs() + (crop.y - cy).abs() + priority_bonus;
+                        if score < best_crop_score {
+                            best_crop_score = score;
+                            best_crop = Some((crop.x, crop.y));
+                        }
+                    }
 
-        // 4. Recoger ítems sueltos y llevarlos a la zona de almacenamiento (si existe almacén).
-        if self.storage_approved && self.find_storage_tile(cx, cy).is_some() {
-            let mut best_item: Option<(i32, i32, i32)> = None;
-            let mut best_item_dist = i32::MAX;
-            for it in &self.items {
-                if it.stored {
-                    continue;
+                    if let Some((fx, fy)) = best_crop {
+                        if let Some(path) = find_path(
+                            self.map_width,
+                            self.map_height,
+                            &self.blocked,
+                            cx,
+                            cy,
+                            fx,
+                            fy,
+                            false,
+                        ) {
+                            self.colonists[c_idx].active_task = Some(ActiveTask {
+                                order_id: 0,
+                                kind: OrderKind::FarmCell,
+                                target_x: fx,
+                                target_y: fy,
+                                item_id: 0,
+                                work_timer: 0.0,
+                                phase: 1, // 1 = Botánico (sembrar / cuidar crecimiento)
+                            });
+                            self.colonists[c_idx].path = path;
+                            self.colonists[c_idx].activity = ColonistActivity::MovingToTask;
+                            self.colonists[c_idx]
+                                .inventory
+                                .equip_main_hand(CopperTool::CopperHoe);
+                            return;
+                        }
+                    }
                 }
-                let reserved = self.colonists.iter().any(|col| {
-                    col.active_task
-                        .as_ref()
-                        .is_some_and(|t| t.kind == OrderKind::HaulItem && t.item_id == it.id)
-                });
-                if reserved {
-                    continue;
-                }
-                let d = (it.x - cx).abs() + (it.y - cy).abs();
-                if d < best_item_dist {
-                    best_item_dist = d;
-                    best_item = Some((it.id, it.x, it.y));
-                }
-            }
+                ColonyRole::Hauler => {
+                    if !self.storage_approved || self.find_storage_tile(cx, cy).is_none() {
+                        continue;
+                    }
+                    let mut best_item: Option<(i32, i32, i32)> = None;
+                    let mut best_item_dist = i32::MAX;
+                    for it in &self.items {
+                        if it.stored {
+                            continue;
+                        }
+                        let reserved = self.colonists.iter().any(|col| {
+                            col.active_task
+                                .as_ref()
+                                .is_some_and(|t| t.kind == OrderKind::HaulItem && t.item_id == it.id)
+                        });
+                        if reserved {
+                            continue;
+                        }
+                        let d = (it.x - cx).abs() + (it.y - cy).abs();
+                        if d < best_item_dist {
+                            best_item_dist = d;
+                            best_item = Some((it.id, it.x, it.y));
+                        }
+                    }
 
-            if let Some((item_id, ix, iy)) = best_item {
-                if let Some(path) =
-                    find_path(self.map_width, self.map_height, &self.blocked, cx, cy, ix, iy, false)
-                {
-                    self.colonists[c_idx].active_task = Some(ActiveTask {
-                        order_id: 0,
-                        kind: OrderKind::HaulItem,
-                        target_x: ix,
-                        target_y: iy,
-                        item_id,
-                        work_timer: 0.0,
-                        phase: 0,
-                    });
-                    self.colonists[c_idx].path = path;
-                    self.colonists[c_idx].activity = ColonistActivity::Hauling;
-                    self.colonists[c_idx].inventory.stow_main_hand();
-                    return;
+                    if let Some((item_id, ix, iy)) = best_item {
+                        if let Some(path) = find_path(
+                            self.map_width,
+                            self.map_height,
+                            &self.blocked,
+                            cx,
+                            cy,
+                            ix,
+                            iy,
+                            false,
+                        ) {
+                            self.colonists[c_idx].active_task = Some(ActiveTask {
+                                order_id: 0,
+                                kind: OrderKind::HaulItem,
+                                target_x: ix,
+                                target_y: iy,
+                                item_id,
+                                work_timer: 0.0,
+                                phase: 0,
+                            });
+                            self.colonists[c_idx].path = path;
+                            self.colonists[c_idx].activity = ColonistActivity::Hauling;
+                            self.colonists[c_idx].inventory.stow_main_hand();
+                            return;
+                        }
+                    }
                 }
+                ColonyRole::Scout | ColonyRole::ColonyLeader => {}
             }
         }
     }
 
     fn step_colonist_movement(&mut self, c_idx: usize, dt: f32) -> bool {
         let c = &mut self.colonists[c_idx];
+        let role_speed_mult = match c.activity {
+            ColonistActivity::Hauling => c.role_profile.haul_speed_mult(),
+            ColonistActivity::ConveningMeeting => c.role_profile.leader_meeting_speed_mult(),
+            ColonistActivity::Scouting => c.role_profile.scout_speed_mult(),
+            _ => 1.0,
+        };
         if let Some(&(nx_tile, ny_tile)) = c.path.first() {
             let tx = nx_tile as f32 + 0.5;
             let ty = ny_tile as f32 + 0.5;
@@ -925,14 +1063,15 @@ impl SimulationCore {
                 c.path.remove(0);
                 return false;
             }
-            let step = (c.speed * dt).min(dist);
+            let effective_speed = c.speed * role_speed_mult;
+            let step = (effective_speed * dt).min(dist);
             let ux = dx / dist;
             let uy = dy / dist;
             c.x += ux * step;
             c.y += uy * step;
             c.facing_x = ux;
             c.facing_y = uy;
-            c.walk_phase += dt * c.speed * 4.8;
+            c.walk_phase += dt * effective_speed * 4.8;
             return true;
         }
         false
@@ -958,13 +1097,14 @@ impl SimulationCore {
 
         match task.kind {
             OrderKind::ChopTree => {
+                let speed_mult = self.colonists[c_idx].role_profile.chop_speed_mult();
                 self.colonists[c_idx].activity = ColonistActivity::Chopping;
                 self.colonists[c_idx].inventory.equip_main_hand(CopperTool::CopperAxe);
-                self.colonists[c_idx].work_swing_phase += dt * 11.0;
+                self.colonists[c_idx].work_swing_phase += dt * 11.0 * speed_mult;
 
                 let mut t = task;
                 let prev_t = t.work_timer;
-                t.work_timer += dt;
+                t.work_timer += dt * speed_mult;
                 for beat in [0.25f32, 0.95, 1.65] {
                     if prev_t < beat && t.work_timer >= beat {
                         self.pending_sfx.push("chop");
@@ -975,13 +1115,18 @@ impl SimulationCore {
                     return;
                 }
 
-                // Tala completada: quitar árbol y soltar troncos de madera al suelo.
+                // Tala completada: quitar árbol y soltar troncos según nivel de Leñador.
+                let wood_yield = self.colonists[c_idx].role_profile.chop_wood_yield();
                 if let Some(idx) = self.idx(t.target_x, t.target_y) {
                     if self.props[idx] == 1 || self.props[idx] == 2 {
                         self.props[idx] = 0;
                         self.blocked[idx] = 0;
-                        self.spawn_item(ItemKind::WoodLogs, t.target_x, t.target_y, 4, false);
+                        self.spawn_item(ItemKind::WoodLogs, t.target_x, t.target_y, wood_yield, false);
                         self.pending_sfx.push("chop");
+                        let energy = self.colonists[c_idx].energy;
+                        self.colonists[c_idx]
+                            .role_profile
+                            .grant_xp(ColonyRole::Lumberjack, 14.0, energy);
                     }
                 }
                 self.orders.retain(|o| o.id != t.order_id);
@@ -991,13 +1136,14 @@ impl SimulationCore {
                 self.world_dirty = true;
             }
             OrderKind::MineRock => {
+                let speed_mult = self.colonists[c_idx].role_profile.mine_speed_mult();
                 self.colonists[c_idx].activity = ColonistActivity::Mining;
                 self.colonists[c_idx].inventory.equip_main_hand(CopperTool::CopperPickaxe);
-                self.colonists[c_idx].work_swing_phase += dt * 12.0;
+                self.colonists[c_idx].work_swing_phase += dt * 12.0 * speed_mult;
 
                 let mut t = task;
                 let prev_t = t.work_timer;
-                t.work_timer += dt;
+                t.work_timer += dt * speed_mult;
                 for beat in [0.25f32, 1.05, 1.85] {
                     if prev_t < beat && t.work_timer >= beat {
                         self.pending_sfx.push("mine");
@@ -1008,21 +1154,36 @@ impl SimulationCore {
                     return;
                 }
 
-                // Minería completada: soltar piedra / hierro / cobre según el tipo de roca.
+                // Minería completada: soltar piedra / hierro / cobre + bono según nivel de Minero.
+                let bonus = self.colonists[c_idx].role_profile.mine_bonus_yield();
                 if let Some(idx) = self.idx(t.target_x, t.target_y) {
                     let prop = self.props[idx];
                     if prop == 4 {
                         self.props[idx] = 0;
                         self.blocked[idx] = 0;
-                        self.spawn_item(ItemKind::StoneChunk, t.target_x, t.target_y, 3, false);
-                        self.spawn_item(ItemKind::CopperOre, t.target_x, t.target_y, 1, false);
+                        self.spawn_item(ItemKind::StoneChunk, t.target_x, t.target_y, 3 + bonus, false);
+                        self.spawn_item(
+                            ItemKind::CopperOre,
+                            t.target_x,
+                            t.target_y,
+                            1 + if bonus >= 2 { 1 } else { 0 },
+                            false,
+                        );
                         self.pending_sfx.push("mine");
+                        let energy = self.colonists[c_idx].energy;
+                        self.colonists[c_idx]
+                            .role_profile
+                            .grant_xp(ColonyRole::Miner, 16.0, energy);
                     } else if prop == 5 {
                         self.props[idx] = 0;
                         self.blocked[idx] = 0;
-                        self.spawn_item(ItemKind::IronOre, t.target_x, t.target_y, 3, false);
-                        self.spawn_item(ItemKind::StoneChunk, t.target_x, t.target_y, 1, false);
+                        self.spawn_item(ItemKind::IronOre, t.target_x, t.target_y, 3 + bonus, false);
+                        self.spawn_item(ItemKind::StoneChunk, t.target_x, t.target_y, 1 + bonus, false);
                         self.pending_sfx.push("mine");
+                        let energy = self.colonists[c_idx].energy;
+                        self.colonists[c_idx]
+                            .role_profile
+                            .grant_xp(ColonyRole::Miner, 18.0, energy);
                     }
                 }
                 self.orders.retain(|o| o.id != t.order_id);
@@ -1032,13 +1193,14 @@ impl SimulationCore {
                 self.world_dirty = true;
             }
             OrderKind::BuildWoodWall => {
+                let speed_mult = self.colonists[c_idx].role_profile.build_speed_mult();
                 self.colonists[c_idx].activity = ColonistActivity::Building;
                 self.colonists[c_idx].inventory.equip_main_hand(CopperTool::CopperShovel);
-                self.colonists[c_idx].work_swing_phase += dt * 10.0;
+                self.colonists[c_idx].work_swing_phase += dt * 10.0 * speed_mult;
 
                 let mut t = task;
                 let prev_t = t.work_timer;
-                t.work_timer += dt;
+                t.work_timer += dt * speed_mult;
                 for beat in [0.25f32, 0.90, 1.50] {
                     if prev_t < beat && t.work_timer >= beat {
                         self.pending_sfx.push("build");
@@ -1057,6 +1219,10 @@ impl SimulationCore {
                         self.blocked[idx] = 1;
                         self.orders.retain(|o| o.id != t.order_id);
                         self.pending_sfx.push("build");
+                        let energy = self.colonists[c_idx].energy;
+                        self.colonists[c_idx]
+                            .role_profile
+                            .grant_xp(ColonyRole::Constructor, 15.0, energy);
                     } else if self.structures[idx] != StructureKind::WoodWallBlueprint as i32 {
                         self.orders.retain(|o| o.id != t.order_id);
                     } else {
@@ -1074,12 +1240,22 @@ impl SimulationCore {
                 self.world_dirty = true;
             }
             OrderKind::FarmCell => {
-                self.colonists[c_idx].activity = ColonistActivity::Farming;
+                let is_botanist_task = task.phase == 1;
+                let speed_mult = if is_botanist_task {
+                    self.colonists[c_idx].role_profile.botany_speed_mult()
+                } else {
+                    self.colonists[c_idx].role_profile.farm_speed_mult()
+                };
+                self.colonists[c_idx].activity = if is_botanist_task {
+                    ColonistActivity::Botanizing
+                } else {
+                    ColonistActivity::Farming
+                };
                 self.colonists[c_idx].inventory.equip_main_hand(CopperTool::CopperHoe);
-                self.colonists[c_idx].work_swing_phase += dt * 9.5;
+                self.colonists[c_idx].work_swing_phase += dt * 9.5 * speed_mult;
 
                 let mut t = task;
-                t.work_timer += dt;
+                t.work_timer += dt * speed_mult;
                 if t.work_timer < 1.15 {
                     self.colonists[c_idx].active_task = Some(t);
                     return;
@@ -1087,26 +1263,60 @@ impl SimulationCore {
 
                 let mut harvested_drop = false;
                 let mut need_seed = false;
+                let mut tilled_xp = false;
+                let mut tended_xp = false;
+                let botany_boost = self.colonists[c_idx].role_profile.botany_growth_boost();
+
                 if let Some(crop) = self
                     .crops
                     .iter_mut()
                     .find(|c| c.x == t.target_x && c.y == t.target_y)
                 {
                     match crop.stage {
-                        CropStage::None => {
+                        CropStage::None if !is_botanist_task => {
                             crop.stage = CropStage::Tilled;
                             crop.progress = 0.0;
+                            tilled_xp = true;
                         }
-                        CropStage::Tilled => {
+                        CropStage::Tilled if is_botanist_task => {
                             need_seed = true;
                         }
-                        CropStage::Ready => {
+                        CropStage::Seeded | CropStage::Sprout | CropStage::Growing
+                            if is_botanist_task && crop.tend_cooldown <= 0.0 =>
+                        {
+                            crop.progress = (crop.progress + botany_boost).min(1.0);
+                            crop.tend_cooldown = 10.0;
+                            crop.stage = if crop.progress >= 1.0 {
+                                CropStage::Ready
+                            } else if crop.progress >= 0.66 {
+                                CropStage::Growing
+                            } else if crop.progress >= 0.33 {
+                                CropStage::Sprout
+                            } else {
+                                CropStage::Seeded
+                            };
+                            tended_xp = true;
+                        }
+                        CropStage::Ready if !is_botanist_task => {
                             crop.stage = CropStage::Tilled;
                             crop.progress = 0.0;
+                            crop.tend_cooldown = 0.0;
                             harvested_drop = true;
                         }
                         _ => {}
                     }
+                }
+
+                let energy = self.colonists[c_idx].energy;
+                if tilled_xp {
+                    self.colonists[c_idx]
+                        .role_profile
+                        .grant_xp(ColonyRole::Farmer, 10.0, energy);
+                }
+                if tended_xp {
+                    self.colonists[c_idx]
+                        .role_profile
+                        .grant_xp(ColonyRole::Botanist, 13.0, energy);
                 }
 
                 if need_seed && self.consume_item_from_world(ItemKind::CarrotSeed, 1) {
@@ -1117,12 +1327,27 @@ impl SimulationCore {
                     {
                         crop.stage = CropStage::Seeded;
                         crop.progress = 0.0;
+                        crop.tend_cooldown = 4.0;
                     }
+                    self.colonists[c_idx]
+                        .role_profile
+                        .grant_xp(ColonyRole::Botanist, 11.0, energy);
                 }
 
                 if harvested_drop {
-                    self.spawn_item(ItemKind::Carrot, t.target_x, t.target_y, 3, false);
-                    self.spawn_item(ItemKind::CarrotSeed, t.target_x, t.target_y, 2, false);
+                    let (carrots_yield, seeds_yield) =
+                        self.colonists[c_idx].role_profile.farm_harvest_yield();
+                    self.spawn_item(ItemKind::Carrot, t.target_x, t.target_y, carrots_yield, false);
+                    self.spawn_item(
+                        ItemKind::CarrotSeed,
+                        t.target_x,
+                        t.target_y,
+                        seeds_yield,
+                        false,
+                    );
+                    self.colonists[c_idx]
+                        .role_profile
+                        .grant_xp(ColonyRole::Farmer, 16.0, energy);
                 }
 
                 self.colonists[c_idx].active_task = None;
@@ -1134,11 +1359,19 @@ impl SimulationCore {
                 self.colonists[c_idx].activity = ColonistActivity::Hauling;
                 self.colonists[c_idx].inventory.stow_main_hand();
                 if task.phase == 0 {
-                    // Recoger el ítem del piso
+                    // Recoger el ítem del piso según la capacidad de carga del Transportador.
+                    let carry_cap = self.colonists[c_idx].role_profile.haul_capacity();
                     if let Some(pos) = self.items.iter().position(|it| it.id == task.item_id) {
-                        let it = self.items.remove(pos);
-                        self.colonists[c_idx].carrying_kind = Some(it.kind);
-                        self.colonists[c_idx].carrying_amount = it.amount;
+                        let taken_kind = self.items[pos].kind;
+                        let taken_amt = if self.items[pos].amount <= carry_cap {
+                            let it = self.items.remove(pos);
+                            it.amount
+                        } else {
+                            self.items[pos].amount -= carry_cap;
+                            carry_cap
+                        };
+                        self.colonists[c_idx].carrying_kind = Some(taken_kind);
+                        self.colonists[c_idx].carrying_amount = taken_amt;
                         self.world_dirty = true;
 
                         let cur_x = self.colonists[c_idx].x.floor() as i32;
@@ -1178,12 +1411,18 @@ impl SimulationCore {
                     self.colonists[c_idx].active_task = None;
                     self.colonists[c_idx].activity = ColonistActivity::Resting;
                 } else {
-                    // Depositar ítem en la casilla de almacén destino
+                    // Depositar ítem en la casilla de almacén destino y ganar experiencia de Transportador.
                     let kind = self.colonists[c_idx].carrying_kind.take();
                     let amt = self.colonists[c_idx].carrying_amount;
                     self.colonists[c_idx].carrying_amount = 0;
                     if let Some(k) = kind {
                         self.spawn_item(k, task.target_x, task.target_y, amt, true);
+                        let energy = self.colonists[c_idx].energy;
+                        self.colonists[c_idx].role_profile.grant_xp(
+                            ColonyRole::Hauler,
+                            8.0 + (amt as f32) * 1.2,
+                            energy,
+                        );
                     }
                     self.colonists[c_idx].active_task = None;
                     self.colonists[c_idx].activity = ColonistActivity::Resting;
@@ -1206,9 +1445,12 @@ impl SimulationCore {
             self.day_count += 1;
         }
 
-        // 1. Crecimiento progresivo de las zanahorias sembradas.
+        // 1. Crecimiento progresivo de las zanahorias sembradas y enfriamiento de cuidado botánico.
         let mut crop_stage_changed = false;
         for crop in &mut self.crops {
+            if crop.tend_cooldown > 0.0 {
+                crop.tend_cooldown = (crop.tend_cooldown - dt).max(0.0);
+            }
             if matches!(
                 crop.stage,
                 CropStage::Seeded | CropStage::Sprout | CropStage::Growing
@@ -1242,7 +1484,7 @@ impl SimulationCore {
         // 2. Actualizar reunión del Líder de Colonia si hay órdenes nuevas pendientes.
         self.update_leader_briefing(dt);
 
-        // 3. Actualizar cada colono (energía, sueño en el suelo, reuniones y tareas).
+        // 3. Actualizar cada colono (energía, sueño en el suelo, reuniones, patrulla y tareas).
         for c_idx in 0..self.colonists.len() {
             if self.colonists[c_idx].activity == ColonistActivity::ConveningMeeting
                 || self.colonists[c_idx].activity == ColonistActivity::AttendingMeeting
@@ -1259,11 +1501,9 @@ impl SimulationCore {
                 if self.colonists[c_idx].energy >= 96.0 {
                     self.colonists[c_idx].activity = ColonistActivity::Resting;
                     self.colonists[c_idx].wait_timer = 0.2;
-                    let role = self.colonists[c_idx].role.clone();
                     let is_leader = self.colonists[c_idx].is_leader;
-                    self.colonists[c_idx]
-                        .inventory
-                        .equip_main_hand(CopperTool::default_for_role(&role, is_leader));
+                    let default_tool = self.colonists[c_idx].role_profile.default_tool(is_leader);
+                    self.colonists[c_idx].inventory.equip_main_hand(default_tool);
                 }
                 continue;
             }
@@ -1272,7 +1512,8 @@ impl SimulationCore {
                 ColonistActivity::Chopping
                 | ColonistActivity::Mining
                 | ColonistActivity::Building
-                | ColonistActivity::Farming => 2.0,
+                | ColonistActivity::Farming
+                | ColonistActivity::Botanizing => 2.0,
                 ColonistActivity::MovingToTask
                 | ColonistActivity::Hauling
                 | ColonistActivity::Wandering
@@ -1296,18 +1537,17 @@ impl SimulationCore {
                 continue;
             }
 
-            // Buscar nueva tarea aprobada antes de pasear sin rumbo.
+            // Buscar nueva tarea aprobada según los roles asignados al colono.
             self.assign_task_to_colonist(c_idx);
             if self.colonists[c_idx].active_task.is_some() {
                 continue;
             }
 
-            // Sin tareas: patrullar/explorar el claro usando su herramienta de rol en mano.
-            let role = self.colonists[c_idx].role.clone();
+            // Sin tareas activas: patrullar/explorar si tiene rol Explorador, o pasear cerca.
             let is_leader = self.colonists[c_idx].is_leader;
-            self.colonists[c_idx]
-                .inventory
-                .equip_main_hand(CopperTool::default_for_role(&role, is_leader));
+            let has_scout = self.colonists[c_idx].role_profile.has_role(ColonyRole::Scout);
+            let default_tool = self.colonists[c_idx].role_profile.default_tool(is_leader);
+            self.colonists[c_idx].inventory.equip_main_hand(default_tool);
 
             if self.colonists[c_idx].wait_timer > 0.0 {
                 self.colonists[c_idx].wait_timer -= dt;
@@ -1321,9 +1561,14 @@ impl SimulationCore {
 
             if dist < 0.12 {
                 let mut picked = false;
+                let radius = if has_scout {
+                    self.colonists[c_idx].role_profile.scout_radius()
+                } else {
+                    6
+                };
                 for _ in 0..8 {
-                    let ox = self.rng.range_i32(-6, 6);
-                    let oy = self.rng.range_i32(-6, 6);
+                    let ox = self.rng.range_i32(-radius, radius);
+                    let oy = self.rng.range_i32(-radius, radius);
                     let nx = (self.colonists[c_idx].x.round() as i32 + ox)
                         .clamp(2, self.map_width - 3);
                     let ny = (self.colonists[c_idx].y.round() as i32 + oy)
@@ -1331,11 +1576,14 @@ impl SimulationCore {
                     if !Self::tile_blocked(self.map_width, self.map_height, &self.blocked, nx, ny) {
                         self.colonists[c_idx].target_x = nx as f32 + 0.5;
                         self.colonists[c_idx].target_y = ny as f32 + 0.5;
-                        self.colonists[c_idx].activity = if self.rng.next_f32() < 0.35 {
-                            ColonistActivity::Scouting
-                        } else {
-                            ColonistActivity::Wandering
-                        };
+                        self.colonists[c_idx].activity =
+                            if has_scout && self.rng.next_f32() < 0.78 {
+                                ColonistActivity::Scouting
+                            } else if self.rng.next_f32() < 0.30 {
+                                ColonistActivity::Scouting
+                            } else {
+                                ColonistActivity::Wandering
+                            };
                         picked = true;
                         break;
                     }
@@ -1352,7 +1600,13 @@ impl SimulationCore {
 
             let nx = dx / dist;
             let ny = dy / dist;
-            let step_dist = (self.colonists[c_idx].speed * dt).min(dist);
+            let patrol_mult = if self.colonists[c_idx].activity == ColonistActivity::Scouting && has_scout {
+                self.colonists[c_idx].role_profile.scout_speed_mult()
+            } else {
+                1.0
+            };
+            let effective_speed = self.colonists[c_idx].speed * patrol_mult;
+            let step_dist = (effective_speed * dt).min(dist);
             let next_x = self.colonists[c_idx].x + nx * step_dist;
             let next_y = self.colonists[c_idx].y + ny * step_dist;
             let tile_x = next_x.floor() as i32;
@@ -1368,8 +1622,136 @@ impl SimulationCore {
                 self.colonists[c_idx].y = next_y;
                 self.colonists[c_idx].facing_x = nx;
                 self.colonists[c_idx].facing_y = ny;
-                self.colonists[c_idx].walk_phase += dt * self.colonists[c_idx].speed * 4.5;
+                self.colonists[c_idx].walk_phase += dt * effective_speed * 4.5;
+                if self.colonists[c_idx].activity == ColonistActivity::Scouting && has_scout {
+                    let energy = self.colonists[c_idx].energy;
+                    self.colonists[c_idx]
+                        .role_profile
+                        .grant_xp(ColonyRole::Scout, dt * 3.5, energy);
+                }
             }
+        }
+    }
+
+    /// Asigna o quita uno de los 8 roles a un colono respetando el límite de 5 roles
+    /// y manteniendo siempre un Líder de Colonia activo.
+    pub fn set_colonist_role_enabled(
+        &mut self,
+        colonist_id: i32,
+        role: ColonyRole,
+        enabled: bool,
+    ) -> Result<&'static str, &'static str> {
+        let Some(c_idx) = self.colonists.iter().position(|c| c.id == colonist_id) else {
+            return Err("Colono no encontrado.");
+        };
+
+        if role == ColonyRole::ColonyLeader {
+            if enabled {
+                if !self.colonists[c_idx]
+                    .role_profile
+                    .has_role(ColonyRole::ColonyLeader)
+                    && self.colonists[c_idx].role_profile.assigned.len() >= MAX_ASSIGNED_ROLES
+                {
+                    return Err("Máximo 5 roles por colono. Quita un rol antes.");
+                }
+                for (i, other) in self.colonists.iter_mut().enumerate() {
+                    if i != c_idx {
+                        other.is_leader = false;
+                        other.role_profile.unassign_role(ColonyRole::ColonyLeader);
+                        other.role = other.role_profile.primary_label(false).to_string();
+                        if other.activity == ColonistActivity::ConveningMeeting {
+                            other.activity = ColonistActivity::Resting;
+                            other.path.clear();
+                        }
+                    }
+                }
+                self.colonists[c_idx].is_leader = true;
+                self.colonists[c_idx]
+                    .role_profile
+                    .assign_role(ColonyRole::ColonyLeader)?;
+                self.colonists[c_idx].role = self.colonists[c_idx]
+                    .role_profile
+                    .primary_label(true)
+                    .to_string();
+                if self.colonists[c_idx].active_task.is_none()
+                    && self.colonists[c_idx].activity != ColonistActivity::Sleeping
+                {
+                    self.colonists[c_idx]
+                        .inventory
+                        .equip_main_hand(CopperTool::CopperSword);
+                }
+                self.world_dirty = true;
+                return Ok("Líder de Colonia asignado.");
+            } else {
+                let other_leader = self
+                    .colonists
+                    .iter()
+                    .enumerate()
+                    .any(|(i, c)| i != c_idx && (c.is_leader || c.role_profile.has_role(ColonyRole::ColonyLeader)));
+                if self.colonists[c_idx].is_leader || !other_leader {
+                    return Err("La colonia necesita un Líder. Asígnalo primero a otro colono.");
+                }
+                self.colonists[c_idx]
+                    .role_profile
+                    .unassign_role(ColonyRole::ColonyLeader);
+                self.world_dirty = true;
+                return Ok("Rol actualizado.");
+            }
+        }
+
+        if enabled {
+            self.colonists[c_idx].role_profile.assign_role(role)?;
+            let is_leader = self.colonists[c_idx].is_leader;
+            self.colonists[c_idx].role = self.colonists[c_idx]
+                .role_profile
+                .primary_label(is_leader)
+                .to_string();
+            Ok("Rol asignado.")
+        } else {
+            self.colonists[c_idx].role_profile.unassign_role(role);
+            let is_leader = self.colonists[c_idx].is_leader;
+            self.colonists[c_idx].role = self.colonists[c_idx]
+                .role_profile
+                .primary_label(is_leader)
+                .to_string();
+
+            let should_release = if let Some(task) = &self.colonists[c_idx].active_task {
+                match task.kind {
+                    OrderKind::ChopTree => !self.colonists[c_idx]
+                        .role_profile
+                        .has_role(ColonyRole::Lumberjack),
+                    OrderKind::MineRock => {
+                        !self.colonists[c_idx].role_profile.has_role(ColonyRole::Miner)
+                    }
+                    OrderKind::BuildWoodWall => !self.colonists[c_idx]
+                        .role_profile
+                        .has_role(ColonyRole::Constructor),
+                    OrderKind::FarmCell => {
+                        if task.phase == 1 {
+                            !self.colonists[c_idx]
+                                .role_profile
+                                .has_role(ColonyRole::Botanist)
+                        } else {
+                            !self.colonists[c_idx]
+                                .role_profile
+                                .has_role(ColonyRole::Farmer)
+                        }
+                    }
+                    OrderKind::HaulItem => {
+                        task.phase == 0
+                            && self.colonists[c_idx].carrying_kind.is_none()
+                            && !self.colonists[c_idx].role_profile.has_role(ColonyRole::Hauler)
+                    }
+                }
+            } else {
+                false
+            };
+
+            if should_release {
+                self.release_colonist_task(c_idx);
+                self.colonists[c_idx].activity = ColonistActivity::Resting;
+            }
+            Ok("Rol quitado.")
         }
     }
 }
@@ -1474,6 +1856,11 @@ impl ColonySimulation {
                     let y = d.get("y").and_then(|v| v.try_to::<i32>().ok()).unwrap_or(0);
                     let stage_i = d.get("stage").and_then(|v| v.try_to::<i32>().ok()).unwrap_or(0);
                     let progress = d.get("progress").and_then(|v| v.try_to::<f32>().ok()).unwrap_or(0.0);
+                    let tend_cooldown = d
+                        .get("tend_cooldown")
+                        .and_then(|v| v.try_to::<f32>().ok())
+                        .unwrap_or(0.0)
+                        .max(0.0);
                     let stage = match stage_i {
                         1 => CropStage::Tilled,
                         2 => CropStage::Seeded,
@@ -1482,7 +1869,13 @@ impl ColonySimulation {
                         5 => CropStage::Ready,
                         _ => CropStage::None,
                     };
-                    core.crops.push(CropCell { x, y, stage, progress });
+                    core.crops.push(CropCell {
+                        x,
+                        y,
+                        stage,
+                        progress,
+                        tend_cooldown,
+                    });
                 }
             }
         }
@@ -1611,6 +2004,53 @@ impl ColonySimulation {
                         .map(|g| g.to_string())
                         .unwrap_or_default();
 
+                    let mut role_profile = ColonistRoleProfile::new_for_colonist(
+                        core.colonists.len(),
+                        is_leader,
+                    );
+                    if let Some(roles_arr) = dict.get("assigned_roles").and_then(|v| v.try_to::<VarArray>().ok()) {
+                        let mut parsed_roles: Vec<ColonyRole> = Vec::new();
+                        for rv in roles_arr.iter_shared() {
+                            if let Ok(gs) = rv.try_to::<GString>() {
+                                if let Some(r) = ColonyRole::from_code(&gs.to_string()) {
+                                    if !parsed_roles.contains(&r) && parsed_roles.len() < MAX_ASSIGNED_ROLES {
+                                        parsed_roles.push(r);
+                                    }
+                                }
+                            }
+                        }
+                        role_profile.assigned = parsed_roles;
+                    } else if let Some(legacy_role) = ColonyRole::from_label_es(&role) {
+                        if !role_profile.has_role(legacy_role)
+                            && role_profile.assigned.len() < MAX_ASSIGNED_ROLES
+                        {
+                            let _ = role_profile.assign_role(legacy_role);
+                        }
+                    }
+
+                    if is_leader && !role_profile.has_role(ColonyRole::ColonyLeader) {
+                        if role_profile.assigned.len() >= MAX_ASSIGNED_ROLES {
+                            role_profile.assigned.pop();
+                        }
+                        let _ = role_profile.assign_role(ColonyRole::ColonyLeader);
+                    }
+
+                    if let Some(levels_dict) = dict.get("role_levels").and_then(|v| v.try_to::<VarDictionary>().ok()) {
+                        let xp_dict = dict.get("role_xp").and_then(|v| v.try_to::<VarDictionary>().ok());
+                        for r in ColonyRole::ALL {
+                            let lv = levels_dict
+                                .get(r.code())
+                                .and_then(|v| v.try_to::<i32>().ok())
+                                .unwrap_or(1);
+                            let xp = xp_dict
+                                .as_ref()
+                                .and_then(|xd| xd.get(r.code()))
+                                .and_then(|v| v.try_to::<f32>().ok())
+                                .unwrap_or(0.0);
+                            role_profile.set_skill(r, lv, xp);
+                        }
+                    }
+
                     let mut inventory = ColonistInventory::default_for_role(&role, is_leader);
                     inventory.helmet_slot = helmet_slot;
                     inventory.armor_slot = armor_slot;
@@ -1621,10 +2061,12 @@ impl ColonySimulation {
                         inventory.main_hand = CopperTool::from_code(&main_code);
                     }
 
+                    let display_role = role_profile.primary_label(is_leader).to_string();
+
                     core.colonists.push(Colonist {
                         id,
                         name,
-                        role,
+                        role: display_role,
                         is_leader,
                         x,
                         y,
@@ -1646,6 +2088,7 @@ impl ColonySimulation {
                         hair_color,
                         outfit_color,
                         activity: ColonistActivity::Resting,
+                        role_profile,
                         inventory,
                         carrying_kind: None,
                         carrying_amount: 0,
@@ -1711,6 +2154,7 @@ impl ColonySimulation {
                     | ColonistActivity::Mining
                     | ColonistActivity::Building
                     | ColonistActivity::Farming
+                    | ColonistActivity::Botanizing
             );
             d.set("is_moving", &is_moving.to_variant());
             d.set("is_working", &is_working.to_variant());
@@ -1769,10 +2213,100 @@ impl ColonySimulation {
             d.set("skin_color", &GString::from(&c.skin_color).to_variant());
             d.set("hair_color", &GString::from(&c.hair_color).to_variant());
             d.set("outfit_color", &GString::from(&c.outfit_color).to_variant());
+
+            let mut roles_codes = VarArray::new();
+            let mut roles_labels = VarArray::new();
+            for &r in &c.role_profile.assigned {
+                roles_codes.push(&GString::from(r.code()).to_variant());
+                roles_labels.push(&GString::from(r.label_es()).to_variant());
+            }
+            let mut levels_dict = VarDictionary::new();
+            let mut xp_dict = VarDictionary::new();
+            for r in ColonyRole::ALL {
+                levels_dict.set(r.code(), &c.role_profile.level_of(r).to_variant());
+                xp_dict.set(r.code(), &c.role_profile.xp_of(r).to_variant());
+            }
+            d.set("assigned_roles", &roles_codes.to_variant());
+            d.set("assigned_roles_labels", &roles_labels.to_variant());
+            d.set("role_levels", &levels_dict.to_variant());
+            d.set("role_xp", &xp_dict.to_variant());
+            d.set("max_roles", &(MAX_ASSIGNED_ROLES as i32).to_variant());
             out.push(&d.to_variant());
         }
 
         out
+    }
+
+    /// Devuelve el detalle completo de los 8 roles y niveles (1..=10) de un colono para el panel de Trabajos.
+    #[func]
+    pub fn get_colonist_roles_detail(&self, colonist_id: i32) -> VarArray {
+        let mut out = VarArray::new();
+        let Some(core) = &self.core else {
+            return out;
+        };
+        let Some(c) = core.colonists.iter().find(|col| col.id == colonist_id) else {
+            return out;
+        };
+        for r in ColonyRole::ALL {
+            let mut rd = VarDictionary::new();
+            let lv = c.role_profile.level_of(r);
+            let xp = c.role_profile.xp_of(r);
+            let xp_next = xp_required_for_next_level(lv);
+            let order_pos = c
+                .role_profile
+                .assigned
+                .iter()
+                .position(|&ar| ar == r)
+                .map_or(0, |idx| (idx + 1) as i32);
+
+            rd.set("code", &GString::from(r.code()).to_variant());
+            rd.set("label", &GString::from(r.label_es()).to_variant());
+            rd.set("description", &GString::from(r.description_es()).to_variant());
+            rd.set("assigned", &(order_pos > 0).to_variant());
+            rd.set("order", &order_pos.to_variant());
+            rd.set("level", &lv.to_variant());
+            rd.set("max_level", &MAX_ROLE_LEVEL.to_variant());
+            rd.set("xp", &xp.to_variant());
+            rd.set("xp_next", &xp_next.to_variant());
+            rd.set(
+                "effect_summary",
+                &GString::from(effect_summary_es(r, lv)).to_variant(),
+            );
+            out.push(&rd.to_variant());
+        }
+        out
+    }
+
+    /// Asigna o quita un rol a un colono desde la interfaz táctil (máximo 5 roles por colono).
+    #[func]
+    pub fn set_colonist_role_enabled(
+        &mut self,
+        colonist_id: i32,
+        role_code: GString,
+        enabled: bool,
+    ) -> VarDictionary {
+        let mut res = VarDictionary::new();
+        let Some(core) = &mut self.core else {
+            res.set("ok", &false.to_variant());
+            res.set("message", &GString::from("Simulación no iniciada.").to_variant());
+            return res;
+        };
+        let Some(role) = ColonyRole::from_code(&role_code.to_string()) else {
+            res.set("ok", &false.to_variant());
+            res.set("message", &GString::from("Rol desconocido.").to_variant());
+            return res;
+        };
+        match core.set_colonist_role_enabled(colonist_id, role, enabled) {
+            Ok(msg) => {
+                res.set("ok", &true.to_variant());
+                res.set("message", &GString::from(msg).to_variant());
+            }
+            Err(err) => {
+                res.set("ok", &false.to_variant());
+                res.set("message", &GString::from(err).to_variant());
+            }
+        }
+        res
     }
 
     /// Devuelve el estado del mundo (zonas, cultivos, construcciones, ítems en el piso,
@@ -1836,6 +2370,7 @@ impl ColonySimulation {
                 cd.set("y", &crop.y.to_variant());
                 cd.set("stage", &(crop.stage as i32).to_variant());
                 cd.set("progress", &crop.progress.to_variant());
+                cd.set("tend_cooldown", &crop.tend_cooldown.to_variant());
                 crops_arr.push(&cd.to_variant());
             }
             out.set("crops", &crops_arr.to_variant());
@@ -2015,5 +2550,61 @@ mod tests {
         inv.stow_main_hand();
         assert_eq!(inv.main_hand, CopperTool::None);
         assert_eq!(inv.back_tool, CopperTool::CopperPickaxe);
+    }
+
+    #[test]
+    fn role_assignment_enforces_five_role_cap_and_leader_transfer() {
+        let mut core = empty_core(202, 24, 24);
+        core.spawn_initial(3);
+        let c_id = core.colonists[0].id;
+        core.colonists[0].role_profile.assigned.clear();
+
+        for r in [
+            ColonyRole::Lumberjack,
+            ColonyRole::Miner,
+            ColonyRole::Hauler,
+            ColonyRole::Constructor,
+            ColonyRole::Farmer,
+        ] {
+            assert!(core.set_colonist_role_enabled(c_id, r, true).is_ok());
+        }
+        assert_eq!(core.colonists[0].role_profile.assigned.len(), 5);
+        assert!(core
+            .set_colonist_role_enabled(c_id, ColonyRole::Botanist, true)
+            .is_err());
+
+        // Transferir Líder de Colonia a otro colono que tenga espacio
+        let target_idx = core.colonists.iter().position(|c| !c.is_leader).unwrap();
+        let target_id = core.colonists[target_idx].id;
+        let first_role = core.colonists[target_idx].role_profile.assigned[0];
+        let _ = core.set_colonist_role_enabled(target_id, first_role, false);
+        assert!(core
+            .set_colonist_role_enabled(target_id, ColonyRole::ColonyLeader, true)
+            .is_ok());
+        assert!(core.colonists[target_idx].is_leader);
+        assert_eq!(core.colonists.iter().filter(|c| c.is_leader).count(), 1);
+    }
+
+    #[test]
+    fn hauler_level_controls_carry_amount_per_trip() {
+        let mut core = empty_core(303, 24, 24);
+        core.spawn_initial(2);
+        // Dejar solo al colono 0 como Transportador nivel 1 y quitar otros roles para aislar prueba
+        core.colonists[0].role_profile.assigned = vec![ColonyRole::Hauler];
+        core.colonists[0].role_profile.set_skill(ColonyRole::Hauler, 1, 0.0);
+        core.colonists[1].role_profile.assigned = vec![ColonyRole::ColonyLeader];
+
+        core.designate_area("storage", 8, 12, 9, 12);
+        core.approve_all_pending();
+        core.spawn_item(ItemKind::StoneChunk, 14, 12, 6, false);
+
+        // Avanzar lo justo para que recoja el primer viaje (capacidad nivel 1 = 2 uds)
+        for _ in 0..80 {
+            core.step(0.05);
+            if core.colonists[0].carrying_amount > 0 {
+                break;
+            }
+        }
+        assert_eq!(core.colonists[0].carrying_amount, 2);
     }
 }

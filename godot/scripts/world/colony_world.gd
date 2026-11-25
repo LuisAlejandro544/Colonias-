@@ -4,7 +4,8 @@
 # `ColonySimulation`), renderiza el terreno, zonas, cultivos de zanahoria,
 # planos/paredes de madera, recursos sueltos en el piso y colonos con
 # herramientas de cobre. Gestiona la cámara táctil, la selección por arrastre
-# de áreas (talar, minar, almacén, cultivo, construir) y el guardado completo.
+# de áreas (talar, minar, almacén, cultivo, construir), la asignación de hasta
+# 5 roles por colono con niveles 1 a 10 y el guardado completo en JSON.
 
 extends Node2D
 
@@ -118,6 +119,8 @@ func start_colony_world() -> void:
 	_hud.connect("save_requested", _save_current_colony)
 	_hud.connect("follow_toggled", func(enabled: bool): _follow_selected = enabled)
 	_hud.connect("tool_mode_changed", _on_tool_mode_changed)
+	_hud.connect("jobs_opened", _on_jobs_opened)
+	_hud.connect("role_toggle_requested", _on_role_toggle_requested)
 	_setup_sfx_pool()
 
 	call_deferred("_initialize_world_async")
@@ -202,6 +205,28 @@ func _on_tool_mode_changed(mode_code: String) -> void:
 	_area_selecting = false
 	if _world_overlay:
 		_world_overlay.call("set_drag_preview", false, _tool_mode, Vector2i.ZERO, Vector2i.ZERO)
+
+
+func _on_jobs_opened() -> void:
+	if _hud == null or _colony_sim == null:
+		return
+	_hud.call("open_jobs_popup", _colonist_nodes.values(), _selected_colonist_id, _colony_sim)
+
+
+func _on_role_toggle_requested(colonist_id: int, role_code: String, enabled: bool) -> void:
+	if _colony_sim == null or _hud == null:
+		return
+	var res_var: Variant = _colony_sim.call("set_colonist_role_enabled", colonist_id, role_code, enabled)
+	var ok := true
+	var msg := ""
+	if res_var is Dictionary:
+		var res: Dictionary = res_var
+		ok = bool(res.get("ok", false))
+		msg = str(res.get("message", ""))
+	if ok:
+		_sync_world_snapshot(false)
+		_sync_colonist_visuals()
+	_hud.call("refresh_jobs_popup", _colonist_nodes.values(), _colony_sim, msg, not ok)
 
 
 func _build_loading_overlay() -> void:
@@ -390,6 +415,7 @@ func _convert_save_dict_for_rust(raw: Dictionary) -> Dictionary:
 					"y": int(entry.get("y", 0)),
 					"stage": int(entry.get("stage", 0)),
 					"progress": float(entry.get("progress", 0.0)),
+					"tend_cooldown": float(entry.get("tend_cooldown", 0.0)),
 				})
 		out["crops"] = crops_clean
 
@@ -425,7 +451,7 @@ func _convert_save_dict_for_rust(raw: Dictionary) -> Dictionary:
 		var cols_clean: Array = []
 		for entry in cols_raw:
 			if entry is Dictionary:
-				cols_clean.append({
+				var col_dict := {
 					"id": int(entry.get("id", 1)),
 					"name": str(entry.get("name", "Colono")),
 					"role": str(entry.get("role", "Explorador")),
@@ -445,7 +471,25 @@ func _convert_save_dict_for_rust(raw: Dictionary) -> Dictionary:
 					"back_tool": str(entry.get("back_tool", "")),
 					"main_hand_tool": str(entry.get("main_hand_tool", entry.get("equipped_tool", ""))),
 					"equipped_tool": str(entry.get("equipped_tool", "")),
-				})
+				}
+				if entry.has("assigned_roles") and entry.get("assigned_roles") is Array:
+					var roles_clean: Array = []
+					for r_code in entry.get("assigned_roles"):
+						roles_clean.append(str(r_code))
+					col_dict["assigned_roles"] = roles_clean
+				if entry.has("role_levels") and entry.get("role_levels") is Dictionary:
+					var lv_clean: Dictionary = {}
+					var raw_lv: Dictionary = entry.get("role_levels")
+					for k in raw_lv.keys():
+						lv_clean[str(k)] = int(raw_lv[k])
+					col_dict["role_levels"] = lv_clean
+				if entry.has("role_xp") and entry.get("role_xp") is Dictionary:
+					var xp_clean: Dictionary = {}
+					var raw_xp: Dictionary = entry.get("role_xp")
+					for k in raw_xp.keys():
+						xp_clean[str(k)] = float(raw_xp[k])
+					col_dict["role_xp"] = xp_clean
+				cols_clean.append(col_dict)
 		out["colonists"] = cols_clean
 
 	return out

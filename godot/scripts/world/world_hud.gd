@@ -2,10 +2,10 @@
 #
 # Lógica: Muestra la barra superior (colonia, día, estado del Líder de Colonia,
 # inventario de recursos, velocidad y zoom), la barra inferior de acciones
-# (Observar, Talar, Minar, Construir y Cancelar), el popup dedicado del Menú de
-# Construcción (Almacén, Cultivo de Zanahorias y Pared de Madera), el inspector
-# del colono tocado con su popup de Inventario y Equipo (Casco, Armadura,
-# Espalda, Mano principal y Carga) y el popup modal del menú en partida.
+# (Observar, Talar, Minar, Construir, Trabajos y Cancelar), el popup dedicado del
+# Menú de Construcción (Almacén, Cultivo de Zanahorias y Pared de Madera), el
+# popup modular de Trabajos (8 roles, máx. 5 por colono, niveles 1 a 10), el
+# inspector del colono tocado con su popup de Inventario/Equipo y el menú modal.
 
 class_name WorldHud
 extends CanvasLayer
@@ -15,6 +15,10 @@ signal zoom_step_requested(delta_zoom: float)
 signal save_requested
 signal follow_toggled(enabled: bool)
 signal tool_mode_changed(mode_code: String)
+signal jobs_opened
+signal role_toggle_requested(colonist_id: int, role_code: String, enabled: bool)
+
+const JobsPopupScript := preload("res://scripts/world/jobs_popup.gd")
 
 var _colony_label: Label
 var _stats_label: Label
@@ -38,8 +42,10 @@ var _inspector_name: Label
 var _inspector_meta: Label
 var _follow_btn: Button
 var _inv_open_btn: Button
+var _jobs_open_btn: Button
 var _following: bool = false
 var _inspected_colonist: Node = null
+var _jobs_popup: ColorRect
 
 # Popup de Inventario y Ranuras de Equipo del colono
 var _inv_backdrop: ColorRect
@@ -269,6 +275,15 @@ func _build_hud() -> void:
 	)
 	tool_row.add_child(_build_menu_btn)
 
+	var jobs_btn := Button.new()
+	jobs_btn.text = "Trabajos"
+	UiTheme.style_button(jobs_btn, "secondary", 48, 17)
+	jobs_btn.pressed.connect(func():
+		UiTheme.trigger_touch_feedback()
+		jobs_opened.emit()
+	)
+	tool_row.add_child(jobs_btn)
+
 	var cancel_btn := Button.new()
 	cancel_btn.text = "Cancelar"
 	cancel_btn.pressed.connect(func():
@@ -284,8 +299,8 @@ func _build_hud() -> void:
 	_inspector_panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
 	_inspector_panel.offset_left = 18
 	_inspector_panel.offset_bottom = -96
-	_inspector_panel.offset_right = 560
-	_inspector_panel.offset_top = -278
+	_inspector_panel.offset_right = 590
+	_inspector_panel.offset_top = -304
 	UiTheme.apply_panel_style(_inspector_panel, Color(0.16, 0.13, 0.10, 0.95), UiTheme.BORDER_LIGHT, 14, 18, 14)
 	root.add_child(_inspector_panel)
 
@@ -323,6 +338,15 @@ func _build_hud() -> void:
 	)
 	insp_btns.add_child(_inv_open_btn)
 
+	_jobs_open_btn = Button.new()
+	_jobs_open_btn.text = "Trabajos"
+	UiTheme.style_button(_jobs_open_btn, "amber", 46, 17)
+	_jobs_open_btn.pressed.connect(func():
+		UiTheme.trigger_touch_feedback()
+		jobs_opened.emit()
+	)
+	insp_btns.add_child(_jobs_open_btn)
+
 	_follow_btn = Button.new()
 	_follow_btn.text = "Seguir"
 	UiTheme.style_button(_follow_btn, "secondary", 46, 17)
@@ -345,6 +369,11 @@ func _build_hud() -> void:
 
 	_build_construction_menu_popup(root)
 	_build_colonist_inventory_popup(root)
+	_jobs_popup = JobsPopupScript.new() as ColorRect
+	root.add_child(_jobs_popup)
+	_jobs_popup.connect("role_toggled", func(cid: int, r_code: String, enabled: bool):
+		role_toggle_requested.emit(cid, r_code, enabled)
+	)
 	_build_pause_menu_popup(root)
 	_set_active_tool_mode("observe")
 
@@ -468,7 +497,7 @@ func _build_construction_menu_popup(root: Control) -> void:
 		var code: String = item["code"]
 		var pick_btn := Button.new()
 		pick_btn.text = "Seleccionar"
-		pick_btn.size_flags_vertical = Control.SIZE_CENTER
+		pick_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		pick_btn.pressed.connect(func():
 			UiTheme.trigger_touch_feedback()
 			_set_active_tool_mode(code)
@@ -669,13 +698,14 @@ func _set_active_tool_mode(mode_code: String) -> void:
 			variant = "danger" if code == "cancel" else "amber"
 		UiTheme.style_button(_tool_buttons[code], variant, 48, 17)
 
-	var is_build_mode := mode_code in ["storage", "farm", "build_wall"]
+	var is_build_mode: bool = mode_code in ["storage", "farm", "build_wall"]
 	if _build_menu_btn:
 		UiTheme.style_button(_build_menu_btn, "amber" if is_build_mode else "primary", 48, 17)
 
 	for b_code in _build_option_buttons.keys():
+		var b_code_str: String = str(b_code)
 		var b_btn: Button = _build_option_buttons[b_code]
-		var selected := (b_code == mode_code)
+		var selected: bool = (b_code_str == mode_code)
 		b_btn.text = "Activo" if selected else "Seleccionar"
 		UiTheme.style_button(b_btn, "amber" if selected else "primary", 46, 17)
 
@@ -781,7 +811,21 @@ func show_colonist_info(colonist: Node) -> void:
 	if not carry_kind.is_empty() and carry_amt > 0:
 		carry_line = "  •  Carga: x%d" % carry_amt
 
-	_inspector_meta.text = "Actividad: %s\nMano: %s  •  Espalda: %s%s\nEnergía: %d%%  •  Salud: %d%%  •  Ánimo: %d%%" % [
+	var roles_var = colonist.get("assigned_roles_labels")
+	var roles_txt := "Sin roles"
+	var roles_count := 0
+	if roles_var is Array and not roles_var.is_empty():
+		roles_count = roles_var.size()
+		var joined := ""
+		for i in range(roles_count):
+			if i > 0:
+				joined += ", "
+			joined += str(roles_var[i])
+		roles_txt = joined
+
+	_inspector_meta.text = "Roles (%d/5): %s\nActividad: %s\nMano: %s  •  Espalda: %s%s\nEnergía: %d%%  •  Salud: %d%%  •  Ánimo: %d%%" % [
+		roles_count,
+		roles_txt,
 		str(colonist.get("current_activity")),
 		hand_txt,
 		back_txt,
@@ -826,6 +870,18 @@ func _refresh_inventory_popup(colonist: Node) -> void:
 	else:
 		_inv_carry_val.text = "Mochila vacía"
 		_inv_carry_icon.texture = null
+
+
+func open_jobs_popup(colonists: Array, focus_colonist_id: int, colony_sim: Node) -> void:
+	if _jobs_popup:
+		_jobs_popup.call("open_for_colonists", colonists, focus_colonist_id, colony_sim)
+
+
+func refresh_jobs_popup(colonists: Array, colony_sim: Node, feedback_msg: String = "", is_error: bool = false) -> void:
+	if _jobs_popup:
+		_jobs_popup.call("refresh_from_sim", colonists, colony_sim)
+		if not feedback_msg.is_empty():
+			_jobs_popup.call("show_feedback", feedback_msg, is_error)
 
 
 func show_toast(msg: String) -> void:

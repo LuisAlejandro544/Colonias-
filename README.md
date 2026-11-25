@@ -6,13 +6,14 @@ Juego 2D móvil en vista centinela sobre gestión y supervivencia de colonias hu
 
 ---
 
-## Características implementadas (v0.3.0)
+## Características implementadas (v0.4.0)
 
 - **Líder de Colonia y reuniones de órdenes:** Al fundar una colonia se elige aleatoriamente a un **Líder de Colonia** (distinguido con corona dorada y espada de cobre). Las órdenes marcadas por el jugador no se ejecutan de forma mágica: el líder reúne o se acerca personalmente a los colonos para comunicar las instrucciones antes de que trabajen.
+- **Sistema de 8 Roles (máx. 5 por colono) y Niveles 1 al 10:** Popup modular de **Trabajos** accesible desde la barra inferior e inspector del colono para asignar hasta **5 roles** simultáneos entre **Leñador**, **Minero**, **Transportador**, **Constructor**, **Agricultor**, **Botánico**, **Explorador** y **Líder de Colonia** (con transferencia segura del liderazgo). Cada rol sube gradualmente del **Nivel 1 al 10** (siendo progresivamente más exigente en niveles altos y al estar fatigado), modificando de forma real la velocidad de trabajo, capacidad y velocidad de carga del transportador, rendimiento de tala/minería/cosecha, impulso botánico a los cultivos, radio de patrulla y agilidad en reuniones.
 - **Menú de Construcción y Zonas:** Panel dedicado accesible desde el botón **Construir** en el HUD inferior para elegir entre **Zona de Almacenamiento**, **Zona de Cultivo (Zanahorias)** y planos de **Pared de Madera** (`2` troncos por bloque, bloqueando el paso y obligando al pathfinding A* a rodearlas).
 - **Inventario personal y ranuras de colono:** Cada colono tiene ranuras propias en Rust y un panel visual de **Inventario** en el HUD con espacios reservados para **Casco (futuro)** y **Armadura (futura)**, ranura visible en la **Espalda** (pico, azada, hacha, pala o espada), **Mano principal** activa y **Mochila / carga actual**.
 - **Sueño en el suelo y animación `Zzz` (`.svg`):** Los colonos gastan energía al trabajar o caminar y se acuestan en el suelo al agotarse, mostrando partículas vectoriales `.svg` animadas de `Zzz` hasta recuperar energía.
-- **Tala, minería, cultivo de zanahorias y recursos en el piso:** Selección táctil por área para talar árboles, minar rocas de granito o hierro, arar tierra fértil, sembrar semillas de zanahoria (4 etapas visuales `.svg`), cosechar y almacenar automáticamente.
+- **Tala, minería, cultivo separado entre Agricultor y Botánico, y recursos en el piso:** Selección táctil por área para talar árboles, minar rocas de granito o hierro, arar tierra fértil y cosechar (**Agricultor**), sembrar semillas y acelerar el crecimiento (**Botánico**), y acarrear al almacén (**Transportador**).
 - **Generación aleatoria oculta del mundo:** La semilla, el bioma terrestre y las dimensiones del terreno se generan de forma aleatoria e invisible al crear una colonia, sin mostrarse en menús, pantalla de carga, ranuras ni HUD.
 - **Efectos de sonido de trabajo (CC0):** Sonidos `.ogg` reales para talar, picar y construir sincronizados con cada golpe de herramienta en Rust y regulados por los ajustes de volumen.
 - **Menú principal, multipantalla y guardado completo:** Portada con diorama vivo, pantallas independientes para **Nueva Partida**, **Ranuras de Partidas Guardadas** (3 ranuras JSON) y **Ajustes del Juego** persistentes en `user://settings.cfg`.

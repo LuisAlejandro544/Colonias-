@@ -6,6 +6,7 @@
 //! órdenes pendientes de reunión con el líder e inventario) manteniendo tipos
 //! deterministas compatibles con 32 y 64 bits.
 
+use crate::roles::ColonistRoleProfile;
 use crate::tools::CopperTool;
 
 /// Recursos físicos que pueden caer al piso y transportarse al almacén.
@@ -104,6 +105,7 @@ pub struct CropCell {
     pub y: i32,
     pub stage: CropStage,
     pub progress: f32,
+    pub tend_cooldown: f32,
 }
 
 /// Tipo de orden solicitada por el jugador para que el líder la transmita.
@@ -152,6 +154,7 @@ pub enum ColonistActivity {
     Mining,
     Building,
     Farming,
+    Botanizing,
     Hauling,
 }
 
@@ -160,7 +163,7 @@ impl ColonistActivity {
         match self {
             Self::Resting => "Observando el claro",
             Self::Wandering => "Recorriendo la colonia",
-            Self::Scouting => "Inspeccionando el entorno",
+            Self::Scouting => "Explorando e inspeccionando",
             Self::Sleeping => "Durmiendo en el suelo",
             Self::ConveningMeeting => "Reuniendo colonos para dar órdenes",
             Self::AttendingMeeting => "Escuchando instrucciones del líder",
@@ -168,7 +171,8 @@ impl ColonistActivity {
             Self::Chopping => "Talando madera con hacha de cobre",
             Self::Mining => "Picando roca con pico de cobre",
             Self::Building => "Construyendo pared de madera",
-            Self::Farming => "Trabajando cultivo de zanahorias",
+            Self::Farming => "Labrando o cosechando zanahorias",
+            Self::Botanizing => "Sembrando y cuidando cultivos",
             Self::Hauling => "Transportando recursos al almacén",
         }
     }
@@ -276,6 +280,7 @@ pub struct Colonist {
     pub hair_color: String,
     pub outfit_color: String,
     pub activity: ColonistActivity,
+    pub role_profile: ColonistRoleProfile,
     pub inventory: ColonistInventory,
     pub carrying_kind: Option<ItemKind>,
     pub carrying_amount: i32,

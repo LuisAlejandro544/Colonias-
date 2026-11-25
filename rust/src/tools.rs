@@ -62,9 +62,9 @@ impl CopperTool {
         match role {
             "Leñador" => Self::CopperAxe,
             "Minero" => Self::CopperPickaxe,
-            "Constructor" => Self::CopperShovel,
-            "Botánico" => Self::CopperHoe,
-            "Explorador" => Self::CopperSword,
+            "Constructor" | "Transportador" => Self::CopperShovel,
+            "Agricultor" | "Botánico" => Self::CopperHoe,
+            "Explorador" | "Líder de Colonia" => Self::CopperSword,
             _ => Self::CopperShovel,
         }
     }

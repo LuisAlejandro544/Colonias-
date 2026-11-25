@@ -13,6 +13,7 @@ const TILE_PX := 64.0
 var colonist_id: int = 0
 var colonist_name: String = "Colono"
 var colonist_role: String = ""
+var assigned_roles_labels: Array = []
 var is_leader: bool = false
 var current_activity: String = ""
 var equipped_tool_code: String = "copper_shovel"
@@ -237,8 +238,15 @@ func apply_snapshot(data: Dictionary) -> void:
 	position = Vector2(tx * TILE_PX, ty * TILE_PX)
 
 	is_leader = bool(data.get("is_leader", is_leader))
+	colonist_role = str(data.get("role", colonist_role))
+	var roles_var = data.get("assigned_roles_labels", [])
+	if roles_var is Array:
+		assigned_roles_labels = roles_var
 	if _leader_crown:
 		_leader_crown.visible = is_leader
+	if _name_label:
+		_name_label.text = ("★ " + colonist_name) if is_leader else colonist_name
+		_name_label.add_theme_color_override("font_color", Color("#ffe39a") if is_leader else Color("#f5ebd6"))
 
 	health_value = int(data.get("health", 100))
 	mood_value = int(data.get("mood", 80))

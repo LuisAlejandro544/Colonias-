@@ -32,6 +32,7 @@ Hoja de ruta modular para llevar **Colonia Centinela** desde la base técnica ac
 - [x] **Inventario personal por ranuras en colonos:** Espacios para futuro casco, futura armadura, herramienta en la **espalda** (visible detrás del colono), **mano principal** y carga en mochila, con popup de inspección en el HUD.
 - [x] **Energía y sueño en el suelo:** Gasto de energía al trabajar o caminar y descanso en el suelo al fatigarse, con postura acostada y partículas `.svg` `Zzz` animadas.
 - [x] **Navegación inteligente (*pathfinding* A* en Rust)** sobre la grilla dinámica al construir muros o despejar árboles/rocas.
+- [x] **Sistema de 8 Roles (máx. 5 por colono) y Niveles 1 al 10:** Asignación modular desde el popup **Trabajos** (**Leñador**, **Minero**, **Transportador**, **Constructor**, **Agricultor**, **Botánico**, **Explorador** y **Líder de Colonia**) con progresión gradual y escalado de velocidad, capacidad de carga, rendimiento y alcance.
 - [ ] Puertas de madera, suelos construidos, fogatas, camas y mesas de trabajo, además de cascos y armaduras equipables.
 - [ ] Necesidades pendientes: hambre (consumo de zanahorias), salud y estado de ánimo con pensamientos terrestres.
 - [ ] Ciclo día/noche visual y estaciones terrestres (lluvia, temperatura ambiente, crecimiento de arbolitos).

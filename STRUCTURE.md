@@ -89,11 +89,12 @@ Arquitectura modular separada en núcleo nativo (**Rust**), motor de escenas/UI 
 │       │   ├── settings_screen.gd       # Sliders de audio, escala táctil y sensibilidad de cámara
 │       │   └── loading_screen.gd        # Carga asíncrona con progreso hacia el mundo 2D
 │       └── world/
-│           ├── colony_world.gd          # Orquestador del mapa, props, muros, ítems, cámara, pool de audio SFX y selección
+│           ├── colony_world.gd          # Orquestador del mapa, props, muros, ítems, cámara, pool de audio SFX, roles y selección
 │           ├── ground_canvas.gd         # Lienzo optimizado del suelo terrestre visible en cámara
 │           ├── world_overlay.gd         # Capa de zonas, cultivos de zanahoria, marcas y arrastre de selección
 │           ├── colonist_visual.gd       # Ensamblado por capas: colono, corona, herramienta en mano/espalda, carga y Zzz
-│           └── world_hud.gd             # Barra superior, selector inferior, menú de construcción, inspector e inventario
+│           ├── jobs_popup.gd            # Popup modular de Trabajos: hasta 5 roles por colono y niveles 1 al 10
+│           └── world_hud.gd             # Barra superior, selector inferior, menú de construcción, Trabajos, inspector e inventario
 ├── rust/
 │   ├── Cargo.toml                       # Crate cdylib `colonia_core` (godot =0.5.5, api-4-7)
 │   ├── rust-toolchain.toml              # Fija Rust 1.100.0 + targets ARM64 y ARMv7
@@ -103,9 +104,10 @@ Arquitectura modular separada en núcleo nativo (**Rust**), motor de escenas/UI 
 │       ├── noise.rs                     # RNG determinista SplitMix64 y ruido fractal 2D (FBM)
 │       ├── world_gen.rs                 # Generación procedural de piso, árboles, arbolitos, rocas y piedras
 │       ├── tools.rs                     # Catálogo de herramientas de cobre (hacha, pico, pala, azada, espada)
+│       ├── roles.rs                     # Los 8 roles, límite de 5 roles por colono, curva de niveles 1..=10 y bonificadores
 │       ├── colony_types.rs              # Modelos de ítems, zonas, cultivos, paredes, órdenes e inventario por ranuras
 │       ├── pathfinding.rs               # Pathfinding A* acotado sobre obstáculos y paredes dinámicas
-│       └── colonist_sim.rs              # Simulación de colonos, líder, energía/sueño, eventos SFX y guardado
+│       └── colonist_sim.rs              # Simulación de colonos, roles/niveles, líder, energía/sueño, eventos SFX y guardado
 ├── scripts/
 │   └── build_android.sh                 # Compila Rust (ARM64 + ARMv7 + host Linux) y exporta APKs en Godot
 ├── src/                                 # Marcador web mínimo ("Hello World") para el entorno de vista previa
@@ -126,4 +128,4 @@ Arquitectura modular separada en núcleo nativo (**Rust**), motor de escenas/UI 
 ## Frontera de datos Rust ↔ Godot
 
 - **`WorldGenerator` (`rust/src/world_gen.rs`)**: recibe `(seed, width, height, biome_code)` generados aleatoriamente de forma interna y devuelve un `VarDictionary` con `PackedInt32Array` para `ground`, `props` y `blocked`.
-- **`ColonySimulation` (`rust/src/colonist_sim.rs`)**: recibe las órdenes por área (`designate_area`), gestiona al Líder de Colonia y sus reuniones, avanza cultivos, energía/sueño, ranuras de inventario (`ColonistInventory`), pathfinding A* y colonos en `step_simulation(delta)`, y entrega `get_colonists_snapshot()`, `get_world_snapshot(force_full)` (incluyendo `sfx_events` para audio) y `export_save_state()` para sincronizar visuales, HUD y JSON en `SaveManager`.
+- **`ColonySimulation` (`rust/src/colonist_sim.rs`)**: recibe las órdenes por área (`designate_area`), gestiona los 8 roles y niveles `1..=10` (`get_colonist_roles_detail`, `set_colonist_role_enabled`), coordina al Líder de Colonia y sus reuniones, avanza cultivos (arado/cosecha por Agricultor y siembra/cuidado por Botánico), energía/sueño, ranuras de inventario (`ColonistInventory`), pathfinding A* y colonos en `step_simulation(delta)`, y entrega `get_colonists_snapshot()`, `get_world_snapshot(force_full)` (incluyendo `sfx_events` para audio) y `export_save_state()` para sincronizar visuales, HUD y JSON en `SaveManager`.
