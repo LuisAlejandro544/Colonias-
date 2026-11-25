@@ -101,9 +101,9 @@ func _build_menu_ui() -> void:
 
 	# Tarjeta principal del menú (lado izquierdo)
 	var menu_panel := PanelContainer.new()
-	menu_panel.custom_minimum_size = Vector2(440, 0)
+	menu_panel.custom_minimum_size = Vector2(500, 0)
 	menu_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	UiTheme.apply_panel_style(menu_panel, UiTheme.BG_PANEL, UiTheme.BORDER_LIGHT, 14, 28, 28)
+	UiTheme.apply_panel_style(menu_panel, UiTheme.BG_PANEL, UiTheme.BORDER_LIGHT, 16, 30, 26)
 	layout.add_child(menu_panel)
 
 	var vbox := VBoxContainer.new()
@@ -113,18 +113,18 @@ func _build_menu_ui() -> void:
 	var emblem_label := Label.new()
 	emblem_label.text = "CRÓNICAS TERRESTRES"
 	emblem_label.add_theme_color_override("font_color", UiTheme.TEXT_ACCENT)
-	emblem_label.add_theme_font_size_override("font_size", 13)
+	emblem_label.add_theme_font_size_override("font_size", UiTheme.scaled_px(16))
 	vbox.add_child(emblem_label)
 
 	var title := Label.new()
 	title.text = "Colonia Centinela"
-	UiTheme.style_title(title, 36)
+	UiTheme.style_title(title, 42)
 	vbox.add_child(title)
 
 	var subtitle := Label.new()
 	subtitle.text = "Gestiona asentamientos humanos en la Tierra desde el primer campamento hasta tecnología avanzada."
 	subtitle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	UiTheme.style_subtitle(subtitle, 15)
+	UiTheme.style_subtitle(subtitle, 19)
 	vbox.add_child(subtitle)
 
 	var sep := HSeparator.new()
@@ -137,31 +137,31 @@ func _build_menu_ui() -> void:
 		var col_name := str(slot_data.get("colony_name", "Colonia"))
 		_continue_btn = Button.new()
 		_continue_btn.text = "Continuar: %s (Ranura %d)" % [col_name, _latest_slot]
-		UiTheme.style_button(_continue_btn, "amber", 54)
+		UiTheme.style_button(_continue_btn, "amber", 60, 21)
 		_continue_btn.pressed.connect(_on_continue_pressed)
 		vbox.add_child(_continue_btn)
 
 	var new_game_btn := Button.new()
 	new_game_btn.text = "Nueva Partida"
-	UiTheme.style_button(new_game_btn, "primary", 54)
+	UiTheme.style_button(new_game_btn, "primary", 60, 22)
 	new_game_btn.pressed.connect(_on_new_game_pressed)
 	vbox.add_child(new_game_btn)
 
 	var saves_btn := Button.new()
 	saves_btn.text = "Partidas Guardadas"
-	UiTheme.style_button(saves_btn, "secondary", 52)
+	UiTheme.style_button(saves_btn, "secondary", 58, 21)
 	saves_btn.pressed.connect(_on_saves_pressed)
 	vbox.add_child(saves_btn)
 
 	var settings_btn := Button.new()
 	settings_btn.text = "Ajustes del Juego"
-	UiTheme.style_button(settings_btn, "secondary", 52)
+	UiTheme.style_button(settings_btn, "secondary", 58, 21)
 	settings_btn.pressed.connect(_on_settings_pressed)
 	vbox.add_child(settings_btn)
 
 	var quit_btn := Button.new()
 	quit_btn.text = "Salir"
-	UiTheme.style_button(quit_btn, "danger", 48)
+	UiTheme.style_button(quit_btn, "danger", 54, 20)
 	quit_btn.pressed.connect(_on_quit_pressed)
 	vbox.add_child(quit_btn)
 
@@ -171,9 +171,9 @@ func _build_menu_ui() -> void:
 	layout.add_child(right_spacer)
 
 	var card := PanelContainer.new()
-	card.custom_minimum_size = Vector2(360, 0)
+	card.custom_minimum_size = Vector2(400, 0)
 	card.size_flags_vertical = Control.SIZE_SHRINK_END
-	UiTheme.apply_panel_style(card, Color(0.15, 0.12, 0.09, 0.90), UiTheme.BORDER_BRASS, 12, 22, 18)
+	UiTheme.apply_panel_style(card, Color(0.15, 0.12, 0.09, 0.92), UiTheme.BORDER_BRASS, 14, 24, 20)
 	layout.add_child(card)
 
 	var card_v := VBoxContainer.new()
@@ -183,13 +183,13 @@ func _build_menu_ui() -> void:
 	var card_head := Label.new()
 	card_head.text = "Edición Móvil • Vista Centinela"
 	card_head.add_theme_color_override("font_color", UiTheme.TEXT_ACCENT)
-	card_head.add_theme_font_size_override("font_size", 15)
+	card_head.add_theme_font_size_override("font_size", UiTheme.scaled_px(18))
 	card_v.add_child(card_head)
 
 	var card_body := Label.new()
 	card_body.text = "Mundos terrestres procedurales, biomas vivos y colonos autónomos simulados en núcleo nativo Rust + Godot 4.7."
 	card_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	UiTheme.style_subtitle(card_body, 14)
+	UiTheme.style_subtitle(card_body, 17)
 	card_v.add_child(card_body)
 
 
@@ -201,7 +201,7 @@ func _on_continue_pressed() -> void:
 	if data.is_empty():
 		return
 	GameSession.load_from_slot_data(_latest_slot, data)
-	get_tree().change_scene_to_file("res://scenes/world/colony_world.tscn")
+	get_tree().change_scene_to_file("res://scenes/ui/loading_screen.tscn")
 
 
 func _on_new_game_pressed() -> void:

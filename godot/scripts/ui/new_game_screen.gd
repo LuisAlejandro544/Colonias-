@@ -67,18 +67,19 @@ func _build_ui() -> void:
 	var title := Label.new()
 	title.text = "Fundar Nueva Colonia"
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	UiTheme.style_title(title, 30)
+	UiTheme.style_title(title, 36)
 	header.add_child(title)
 
 	var back_btn := Button.new()
 	back_btn.text = "Volver al Menú"
-	UiTheme.style_button(back_btn, "secondary", 46)
+	UiTheme.style_button(back_btn, "secondary", 54, 20)
 	back_btn.pressed.connect(_on_back_pressed)
 	header.add_child(back_btn)
 
-	# Contenido central en dos columnas limpias
+	# Contenido central en dos columnas limpias con scroll táctil vertical
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	root_v.add_child(scroll)
 
 	var cols := HBoxContainer.new()
@@ -89,27 +90,27 @@ func _build_ui() -> void:
 	# Columna izquierda: Identidad, Semilla y Bioma
 	var left_panel := PanelContainer.new()
 	left_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	UiTheme.apply_panel_style(left_panel, UiTheme.BG_PANEL, UiTheme.BORDER_BRASS, 12, 22, 20)
+	UiTheme.apply_panel_style(left_panel, UiTheme.BG_PANEL, UiTheme.BORDER_BRASS, 14, 24, 22)
 	cols.add_child(left_panel)
 
 	var left_v := VBoxContainer.new()
-	left_v.add_theme_constant_override("separation", 14)
+	left_v.add_theme_constant_override("separation", 16)
 	left_panel.add_child(left_v)
 
 	left_v.add_child(_section_label("Nombre de la colonia"))
 	var name_row := HBoxContainer.new()
-	name_row.add_theme_constant_override("separation", 10)
+	name_row.add_theme_constant_override("separation", 12)
 	left_v.add_child(name_row)
 
 	_name_input = LineEdit.new()
 	_name_input.text = COLONY_NAMES[randi() % COLONY_NAMES.size()]
 	_name_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_name_input.custom_minimum_size.y = 44
+	UiTheme.style_line_edit(_name_input, 54, 20)
 	name_row.add_child(_name_input)
 
 	var rand_name_btn := Button.new()
 	rand_name_btn.text = "Aleatorio"
-	UiTheme.style_button(rand_name_btn, "secondary", 44)
+	UiTheme.style_button(rand_name_btn, "secondary", 54, 20)
 	rand_name_btn.pressed.connect(func():
 		UiTheme.trigger_touch_feedback()
 		_name_input.text = COLONY_NAMES[randi() % COLONY_NAMES.size()]
@@ -118,18 +119,18 @@ func _build_ui() -> void:
 
 	left_v.add_child(_section_label("Semilla del mundo procedural"))
 	var seed_row := HBoxContainer.new()
-	seed_row.add_theme_constant_override("separation", 10)
+	seed_row.add_theme_constant_override("separation", 12)
 	left_v.add_child(seed_row)
 
 	_seed_input = LineEdit.new()
 	_seed_input.text = str(randi_range(10000, 999999))
 	_seed_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_seed_input.custom_minimum_size.y = 44
+	UiTheme.style_line_edit(_seed_input, 54, 20)
 	seed_row.add_child(_seed_input)
 
 	var rand_seed_btn := Button.new()
 	rand_seed_btn.text = "Nueva Semilla"
-	UiTheme.style_button(rand_seed_btn, "secondary", 44)
+	UiTheme.style_button(rand_seed_btn, "secondary", 54, 20)
 	rand_seed_btn.pressed.connect(func():
 		UiTheme.trigger_touch_feedback()
 		_seed_input.text = str(randi_range(10000, 999999))
@@ -146,6 +147,7 @@ func _build_ui() -> void:
 		var btn := Button.new()
 		btn.text = "%s — %s" % [b["title"], b["desc"]]
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		btn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		btn.pressed.connect(_select_biome.bind(b["code"]))
 		left_v.add_child(btn)
 		_biome_buttons[b["code"]] = btn
@@ -153,16 +155,16 @@ func _build_ui() -> void:
 	# Columna derecha: Tamaño, Colonos y Ranura
 	var right_panel := PanelContainer.new()
 	right_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	UiTheme.apply_panel_style(right_panel, UiTheme.BG_PANEL, UiTheme.BORDER_BRASS, 12, 22, 20)
+	UiTheme.apply_panel_style(right_panel, UiTheme.BG_PANEL, UiTheme.BORDER_BRASS, 14, 24, 22)
 	cols.add_child(right_panel)
 
 	var right_v := VBoxContainer.new()
-	right_v.add_theme_constant_override("separation", 14)
+	right_v.add_theme_constant_override("separation", 16)
 	right_panel.add_child(right_v)
 
 	right_v.add_child(_section_label("Tamaño del mapa"))
 	var size_row := HBoxContainer.new()
-	size_row.add_theme_constant_override("separation", 10)
+	size_row.add_theme_constant_override("separation", 12)
 	right_v.add_child(size_row)
 
 	for sz in [64, 96, 128]:
@@ -175,12 +177,12 @@ func _build_ui() -> void:
 
 	right_v.add_child(_section_label("Colonos iniciales"))
 	var col_row := HBoxContainer.new()
-	col_row.add_theme_constant_override("separation", 12)
+	col_row.add_theme_constant_override("separation", 14)
 	right_v.add_child(col_row)
 
 	var minus_btn := Button.new()
-	minus_btn.text = " - "
-	UiTheme.style_button(minus_btn, "secondary", 44)
+	minus_btn.text = "  -  "
+	UiTheme.style_button(minus_btn, "secondary", 54, 24)
 	minus_btn.pressed.connect(func():
 		UiTheme.trigger_touch_feedback()
 		_colonists_count = maxi(3, _colonists_count - 1)
@@ -192,12 +194,12 @@ func _build_ui() -> void:
 	_colonist_label.text = "%d colonos listos para descender" % _colonists_count
 	_colonist_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_colonist_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	UiTheme.style_subtitle(_colonist_label, 16)
+	UiTheme.style_subtitle(_colonist_label, 19)
 	col_row.add_child(_colonist_label)
 
 	var plus_btn := Button.new()
-	plus_btn.text = " + "
-	UiTheme.style_button(plus_btn, "secondary", 44)
+	plus_btn.text = "  +  "
+	UiTheme.style_button(plus_btn, "secondary", 54, 24)
 	plus_btn.pressed.connect(func():
 		UiTheme.trigger_touch_feedback()
 		_colonists_count = mini(6, _colonists_count + 1)
@@ -210,6 +212,7 @@ func _build_ui() -> void:
 		var idx := int(slot_info["slot"])
 		var btn := Button.new()
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		btn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		if slot_info["exists"]:
 			btn.text = "Ranura %d (Sobrescribir: %s)" % [idx, slot_info["colony_name"]]
 		else:
@@ -225,7 +228,7 @@ func _build_ui() -> void:
 
 	var start_btn := Button.new()
 	start_btn.text = "Fundar Colonia y Entrar al Mundo"
-	UiTheme.style_button(start_btn, "primary", 56)
+	UiTheme.style_button(start_btn, "primary", 64, 22)
 	start_btn.pressed.connect(_on_start_pressed)
 	footer.add_child(start_btn)
 
@@ -235,8 +238,7 @@ func _build_ui() -> void:
 func _section_label(txt: String) -> Label:
 	var lbl := Label.new()
 	lbl.text = txt
-	lbl.add_theme_color_override("font_color", UiTheme.TEXT_ACCENT)
-	lbl.add_theme_font_size_override("font_size", 16)
+	UiTheme.style_section_label(lbl, 20)
 	return lbl
 
 
@@ -260,11 +262,11 @@ func _select_slot(slot_idx: int) -> void:
 
 func _refresh_selection_styles() -> void:
 	for code in _biome_buttons.keys():
-		UiTheme.style_button(_biome_buttons[code], "amber" if code == _biome_code else "secondary", 46)
+		UiTheme.style_button(_biome_buttons[code], "amber" if code == _biome_code else "secondary", 58, 19)
 	for sz in _size_buttons.keys():
-		UiTheme.style_button(_size_buttons[sz], "amber" if sz == _map_size else "secondary", 44)
+		UiTheme.style_button(_size_buttons[sz], "amber" if sz == _map_size else "secondary", 54, 20)
 	for idx in _slot_buttons.keys():
-		UiTheme.style_button(_slot_buttons[idx], "amber" if idx == _target_slot else "secondary", 44)
+		UiTheme.style_button(_slot_buttons[idx], "amber" if idx == _target_slot else "secondary", 54, 19)
 
 
 func _on_back_pressed() -> void:
@@ -286,4 +288,4 @@ func _on_start_pressed() -> void:
 		_map_size,
 		_colonists_count
 	)
-	get_tree().change_scene_to_file("res://scenes/world/colony_world.tscn")
+	get_tree().change_scene_to_file("res://scenes/ui/loading_screen.tscn")

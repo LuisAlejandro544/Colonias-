@@ -42,24 +42,30 @@ func _build_ui() -> void:
 	var title := Label.new()
 	title.text = "Ranuras de Partidas Guardadas"
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	UiTheme.style_title(title, 30)
+	UiTheme.style_title(title, 36)
 	header.add_child(title)
 
 	var back_btn := Button.new()
 	back_btn.text = "Volver"
-	UiTheme.style_button(back_btn, "secondary", 46)
+	UiTheme.style_button(back_btn, "secondary", 54, 20)
 	back_btn.pressed.connect(_on_back_pressed)
 	header.add_child(back_btn)
 
 	var hint := Label.new()
 	hint.text = "Selecciona una colonia guardada para continuar o administra tus espacios disponibles."
-	UiTheme.style_subtitle(hint, 15)
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiTheme.style_subtitle(hint, 19)
 	root_v.add_child(hint)
 
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	root_v.add_child(scroll)
+
 	_slots_box = VBoxContainer.new()
-	_slots_box.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_slots_box.add_theme_constant_override("separation", 14)
-	root_v.add_child(_slots_box)
+	_slots_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_slots_box.add_theme_constant_override("separation", 16)
+	scroll.add_child(_slots_box)
 
 	_build_confirm_popup()
 
@@ -68,32 +74,32 @@ func _build_confirm_popup() -> void:
 	_confirm_overlay = PanelContainer.new()
 	_confirm_overlay.visible = false
 	_confirm_overlay.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	_confirm_overlay.custom_minimum_size = Vector2(460, 200)
-	UiTheme.apply_panel_style(_confirm_overlay, UiTheme.BG_PANEL_ALT, Color("#b86454"), 14, 26, 22)
+	_confirm_overlay.custom_minimum_size = Vector2(540, 230)
+	UiTheme.apply_panel_style(_confirm_overlay, UiTheme.BG_PANEL_ALT, Color("#b86454"), 16, 28, 24)
 	add_child(_confirm_overlay)
 
 	var v := VBoxContainer.new()
-	v.add_theme_constant_override("separation", 16)
+	v.add_theme_constant_override("separation", 18)
 	_confirm_overlay.add_child(v)
 
 	var head := Label.new()
 	head.text = "Confirmar eliminación"
-	UiTheme.style_title(head, 22)
+	UiTheme.style_title(head, 28)
 	v.add_child(head)
 
 	_confirm_label = Label.new()
 	_confirm_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	UiTheme.style_subtitle(_confirm_label, 15)
+	UiTheme.style_subtitle(_confirm_label, 19)
 	v.add_child(_confirm_label)
 
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_END
-	row.add_theme_constant_override("separation", 12)
+	row.add_theme_constant_override("separation", 14)
 	v.add_child(row)
 
 	var cancel_btn := Button.new()
 	cancel_btn.text = "Cancelar"
-	UiTheme.style_button(cancel_btn, "secondary", 44)
+	UiTheme.style_button(cancel_btn, "secondary", 54, 20)
 	cancel_btn.pressed.connect(func():
 		UiTheme.trigger_touch_feedback()
 		_pending_delete_slot = -1
@@ -103,7 +109,7 @@ func _build_confirm_popup() -> void:
 
 	var ok_btn := Button.new()
 	ok_btn.text = "Eliminar Partida"
-	UiTheme.style_button(ok_btn, "danger", 44)
+	UiTheme.style_button(ok_btn, "danger", 54, 20)
 	ok_btn.pressed.connect(_confirm_delete)
 	row.add_child(ok_btn)
 
@@ -115,25 +121,25 @@ func _refresh_slots() -> void:
 	for info in SaveManager.list_slots():
 		var slot_idx := int(info["slot"])
 		var card := PanelContainer.new()
-		UiTheme.apply_panel_style(card, UiTheme.BG_SLOT, UiTheme.BORDER_BRASS, 12, 22, 18)
+		UiTheme.apply_panel_style(card, UiTheme.BG_SLOT, UiTheme.BORDER_BRASS, 14, 24, 20)
 		_slots_box.add_child(card)
 
 		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 16)
+		row.add_theme_constant_override("separation", 18)
 		card.add_child(row)
 
 		var text_v := VBoxContainer.new()
 		text_v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		text_v.add_theme_constant_override("separation", 4)
+		text_v.add_theme_constant_override("separation", 6)
 		row.add_child(text_v)
 
 		var title := Label.new()
 		var sub := Label.new()
+		sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
 		if info["exists"]:
 			title.text = "Ranura %d — %s" % [slot_idx, info["colony_name"]]
-			title.add_theme_color_override("font_color", UiTheme.TEXT_PARCHMENT)
-			title.add_theme_font_size_override("font_size", 21)
+			UiTheme.style_title(title, 25)
 
 			sub.text = "Bioma: %s  •  Colonos: %d  •  Día %d  •  Mapa %dx%d  •  Semilla %d\nGuardado: %s" % [
 				info["biome_label"],
@@ -144,39 +150,39 @@ func _refresh_slots() -> void:
 				info["seed"],
 				info["saved_at"],
 			]
-			UiTheme.style_subtitle(sub, 14)
+			UiTheme.style_subtitle(sub, 17)
 		else:
 			title.text = "Ranura %d — Espacio vacío" % slot_idx
 			title.add_theme_color_override("font_color", UiTheme.TEXT_MUTED)
-			title.add_theme_font_size_override("font_size", 20)
+			title.add_theme_font_size_override("font_size", UiTheme.scaled_px(24))
 
 			sub.text = "Lista para fundar una nueva colonia terrestre."
-			UiTheme.style_subtitle(sub, 14)
+			UiTheme.style_subtitle(sub, 17)
 
 		text_v.add_child(title)
 		text_v.add_child(sub)
 
 		var actions := HBoxContainer.new()
 		actions.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		actions.add_theme_constant_override("separation", 10)
+		actions.add_theme_constant_override("separation", 12)
 		row.add_child(actions)
 
 		if info["exists"]:
 			var load_btn := Button.new()
 			load_btn.text = "Cargar"
-			UiTheme.style_button(load_btn, "primary", 46)
+			UiTheme.style_button(load_btn, "primary", 56, 21)
 			load_btn.pressed.connect(_on_load_slot.bind(slot_idx))
 			actions.add_child(load_btn)
 
 			var del_btn := Button.new()
 			del_btn.text = "Borrar"
-			UiTheme.style_button(del_btn, "danger", 46)
+			UiTheme.style_button(del_btn, "danger", 56, 21)
 			del_btn.pressed.connect(_ask_delete_slot.bind(slot_idx, str(info["colony_name"])))
 			actions.add_child(del_btn)
 		else:
 			var create_btn := Button.new()
 			create_btn.text = "Nueva Partida aquí"
-			UiTheme.style_button(create_btn, "amber", 46)
+			UiTheme.style_button(create_btn, "amber", 56, 20)
 			create_btn.pressed.connect(func():
 				UiTheme.trigger_touch_feedback()
 				get_tree().change_scene_to_file("res://scenes/ui/new_game_screen.tscn")
@@ -190,7 +196,7 @@ func _on_load_slot(slot_idx: int) -> void:
 	if data.is_empty():
 		return
 	GameSession.load_from_slot_data(slot_idx, data)
-	get_tree().change_scene_to_file("res://scenes/world/colony_world.tscn")
+	get_tree().change_scene_to_file("res://scenes/ui/loading_screen.tscn")
 
 
 func _ask_delete_slot(slot_idx: int, colony_name: String) -> void:

@@ -1,18 +1,20 @@
 # Escena principal jugable: Mundo 2D terrestre en vista centinela (estilo RimWorld).
 #
 # Lógica: Conecta directamente con los nodos nativos en Rust (`WorldGenerator` y
-# `ColonySimulation`), dibuja el piso optimizado dentro del área visible de la
-# cámara, coloca árboles, arbolitos, rocas y piedras ordenados por eje Y junto a
-# los colonos autónomos, y gestiona la cámara táctil (arrastre, pellizco y selección).
+# `ColonySimulation`), muestra un overlay de progreso mientras genera el terreno
+# y distribuye árboles, arbolitos, rocas y piedras por lotes sin bloquear la
+# pantalla, y gestiona la cámara táctil (arrastre, pellizco y selección). Si la
+# librería nativa `colonia_core` no estuviera cargada, muestra un aviso claro.
 
 extends Node2D
 
 const TILE_PX := 64.0
 const MIN_ZOOM := 0.55
 const MAX_ZOOM := 1.85
+const PROPS_PER_FRAME := 240
 
-var _world_gen: WorldGenerator
-var _colony_sim: ColonySimulation
+var _world_gen: Node
+var _colony_sim: Node
 
 var _map_width: int = 64
 var _map_height: int = 64
@@ -24,10 +26,17 @@ var _entities_layer: Node2D
 var _camera: Camera2D
 var _hud: WorldHud
 
+var _loading_layer: CanvasLayer
+var _loading_title: Label
+var _loading_status: Label
+var _loading_bar: ProgressBar
+var _error_back_btn: Button
+
 var _colonist_nodes: Dictionary = {}
 var _selected_colonist_id: int = -1
 var _follow_selected: bool = false
 var _sim_speed: float = 1.0
+var _world_ready: bool = false
 
 # Control táctil móvil (arrastre, detección de toque y pellizco)
 var _active_touches: Dictionary = {}
@@ -38,10 +47,22 @@ var _last_pinch_dist: float = 0.0
 
 
 func _ready() -> void:
-	_world_gen = WorldGenerator.new()
-	add_child(_world_gen)
+	_build_loading_overlay()
 
-	_colony_sim = ColonySimulation.new()
+	if not ClassDB.class_exists(&"WorldGenerator") or not ClassDB.class_exists(&"ColonySimulation"):
+		_show_core_error(
+			"No se pudo inicializar el núcleo nativo Rust (`colonia_core`).\n" +
+			"Verifica que el APK incluya `libcolonia_core.so` para la arquitectura de tu dispositivo."
+		)
+		return
+
+	_world_gen = ClassDB.instantiate(&"WorldGenerator") as Node
+	_colony_sim = ClassDB.instantiate(&"ColonySimulation") as Node
+	if _world_gen == null or _colony_sim == null:
+		_show_core_error("Error al instanciar `WorldGenerator` o `ColonySimulation` desde Rust.")
+		return
+
+	add_child(_world_gen)
 	add_child(_colony_sim)
 
 	_camera = Camera2D.new()
@@ -65,11 +86,90 @@ func _ready() -> void:
 	_hud.save_requested.connect(_save_current_colony)
 	_hud.follow_toggled.connect(func(enabled: bool): _follow_selected = enabled)
 
-	_initialize_world()
+	call_deferred("_initialize_world_async")
 
 
-func _initialize_world() -> void:
-	var data: Dictionary = _world_gen.generate_world(
+func _build_loading_overlay() -> void:
+	_loading_layer = CanvasLayer.new()
+	_loading_layer.layer = 20
+	add_child(_loading_layer)
+
+	var bg := ColorRect.new()
+	bg.color = UiTheme.BG_DARK
+	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_loading_layer.add_child(bg)
+
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_loading_layer.add_child(center)
+
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(680, 0)
+	UiTheme.apply_panel_style(panel, UiTheme.BG_PANEL, UiTheme.BORDER_LIGHT, 16, 36, 32)
+	center.add_child(panel)
+
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 16)
+	panel.add_child(v)
+
+	_loading_title = Label.new()
+	_loading_title.text = "Generando mundo: %s" % GameSession.colony_name
+	_loading_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_loading_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiTheme.style_title(_loading_title, 32)
+	v.add_child(_loading_title)
+
+	_loading_bar = ProgressBar.new()
+	_loading_bar.min_value = 0.0
+	_loading_bar.max_value = 100.0
+	_loading_bar.value = 18.0
+	_loading_bar.show_percentage = false
+	_loading_bar.custom_minimum_size = Vector2(0, 30)
+
+	var bar_bg := StyleBoxFlat.new()
+	bar_bg.bg_color = Color("#1b1510")
+	bar_bg.border_color = UiTheme.BORDER_BRASS
+	bar_bg.set_border_width_all(2)
+	bar_bg.set_corner_radius_all(8)
+	_loading_bar.add_theme_stylebox_override("background", bar_bg)
+
+	var bar_fill := StyleBoxFlat.new()
+	bar_fill.bg_color = UiTheme.BTN_PRIMARY_HOVER
+	bar_fill.set_corner_radius_all(6)
+	_loading_bar.add_theme_stylebox_override("fill", bar_fill)
+	v.add_child(_loading_bar)
+
+	_loading_status = Label.new()
+	_loading_status.text = "Calculando bioma y elevación en núcleo Rust..."
+	_loading_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_loading_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiTheme.style_subtitle(_loading_status, 19)
+	v.add_child(_loading_status)
+
+	_error_back_btn = Button.new()
+	_error_back_btn.text = "Volver al Menú Principal"
+	_error_back_btn.visible = false
+	UiTheme.style_button(_error_back_btn, "danger", 56, 20)
+	_error_back_btn.pressed.connect(func():
+		UiTheme.trigger_touch_feedback()
+		get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
+	)
+	v.add_child(_error_back_btn)
+
+
+func _show_core_error(msg: String) -> void:
+	_loading_title.text = "No se pudo abrir la colonia"
+	_loading_bar.visible = false
+	_loading_status.text = msg
+	_loading_status.add_theme_color_override("font_color", Color("#e58a76"))
+	_error_back_btn.visible = true
+
+
+func _initialize_world_async() -> void:
+	await get_tree().process_frame
+
+	var data: Dictionary = _world_gen.call(
+		"generate_world",
 		GameSession.seed_value,
 		GameSession.map_size,
 		GameSession.map_size,
@@ -81,6 +181,14 @@ func _initialize_world() -> void:
 	var props: PackedInt32Array = data.get("props", PackedInt32Array())
 	_blocked_tiles = data.get("blocked", PackedInt32Array())
 
+	if _ground_tiles.is_empty():
+		_show_core_error("El generador procedural devolvió un terreno vacío.")
+		return
+
+	_loading_bar.value = 35.0
+	_loading_status.text = "Preparando suelo terrestre (%dx%d)..." % [_map_width, _map_height]
+	await get_tree().process_frame
+
 	_ground_canvas.configure(_map_width, _map_height, _ground_tiles, _camera)
 	_camera.limit_left = 0
 	_camera.limit_top = 0
@@ -88,10 +196,15 @@ func _initialize_world() -> void:
 	_camera.limit_bottom = int(_map_height * TILE_PX)
 	_camera.position = Vector2(_map_width * TILE_PX * 0.5, _map_height * TILE_PX * 0.5)
 
-	_spawn_world_props(props)
+	await _spawn_world_props_async(props)
+
+	_loading_bar.value = 92.0
+	_loading_status.text = "Desplegando colonos en el claro central..."
+	await get_tree().process_frame
 
 	if GameSession.saved_colonists.is_empty():
-		_colony_sim.setup_colony(
+		_colony_sim.call(
+			"setup_colony",
 			GameSession.seed_value,
 			_map_width,
 			_map_height,
@@ -100,7 +213,8 @@ func _initialize_world() -> void:
 		)
 	else:
 		var arr := Array(GameSession.saved_colonists)
-		_colony_sim.restore_colonists(
+		_colony_sim.call(
+			"restore_colonists",
 			GameSession.seed_value,
 			_map_width,
 			_map_height,
@@ -109,9 +223,13 @@ func _initialize_world() -> void:
 		)
 
 	_sync_colonist_visuals()
+	_ground_canvas.queue_redraw()
+	_loading_bar.value = 100.0
+	_world_ready = true
+	_loading_layer.visible = false
 
 
-func _spawn_world_props(props: PackedInt32Array) -> void:
+func _spawn_world_props_async(props: PackedInt32Array) -> void:
 	var tex_oak := load("res://assets/props/tree_oak.svg") as Texture2D
 	var tex_pine := load("res://assets/props/tree_pine.svg") as Texture2D
 	var tex_sapling := load("res://assets/props/sapling.svg") as Texture2D
@@ -122,9 +240,13 @@ func _spawn_world_props(props: PackedInt32Array) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = GameSession.seed_value ^ 0x4455
 
+	var spawned_in_batch := 0
+	var total_tiles := _map_width * _map_height
+
 	for y in range(_map_height):
 		for x in range(_map_width):
-			var p := props[y * _map_width + x]
+			var idx := y * _map_width + x
+			var p := props[idx]
 			if p == 0:
 				continue
 
@@ -168,11 +290,20 @@ func _spawn_world_props(props: PackedInt32Array) -> void:
 					sprite.flip_h = rng.randf() < 0.5
 
 			_entities_layer.add_child(sprite)
+			spawned_in_batch += 1
+			if spawned_in_batch >= PROPS_PER_FRAME:
+				spawned_in_batch = 0
+				var pct := 35.0 + (float(idx) / maxf(1.0, float(total_tiles))) * 55.0
+				_loading_bar.value = pct
+				_loading_status.text = "Colocando bosques y rocas (%d%%)..." % int(round(pct))
+				await get_tree().process_frame
 
 
 func _process(delta: float) -> void:
+	if not _world_ready or _colony_sim == null:
+		return
 	if _sim_speed > 0.0:
-		_colony_sim.step_simulation(delta * _sim_speed)
+		_colony_sim.call("step_simulation", delta * _sim_speed)
 	_sync_colonist_visuals()
 	_ground_canvas.queue_redraw()
 
@@ -182,7 +313,7 @@ func _process(delta: float) -> void:
 
 
 func _sync_colonist_visuals() -> void:
-	var snapshots: Array = _colony_sim.get_colonists_snapshot()
+	var snapshots: Array = _colony_sim.call("get_colonists_snapshot")
 	for snap in snapshots:
 		if not (snap is Dictionary):
 			continue
@@ -202,6 +333,8 @@ func _sync_colonist_visuals() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if not _world_ready:
+		return
 	if event is InputEventScreenTouch:
 		var touch := event as InputEventScreenTouch
 		if touch.pressed:
@@ -278,7 +411,7 @@ func _apply_zoom_delta(delta_zoom: float) -> void:
 func _handle_world_tap(screen_pos: Vector2) -> void:
 	var world_pos := get_viewport().get_canvas_transform().affine_inverse() * screen_pos
 	var best_id := -1
-	var best_dist := 48.0
+	var best_dist := 54.0
 
 	for cid in _colonist_nodes.keys():
 		var c := _colonist_nodes[cid] as ColonistVisual
@@ -300,7 +433,9 @@ func _handle_world_tap(screen_pos: Vector2) -> void:
 
 
 func _save_current_colony() -> void:
-	var snapshots := _colony_sim.get_colonists_snapshot()
+	if _colony_sim == null:
+		return
+	var snapshots: Array = _colony_sim.call("get_colonists_snapshot")
 	var payload := {
 		"colony_name": GameSession.colony_name,
 		"seed": GameSession.seed_value,
@@ -327,17 +462,16 @@ class _GroundCanvas extends Node2D:
 		_h = h
 		_tiles = tiles
 		_cam = cam
-		_textures = [
-			load("res://assets/ground/ground_grass.svg") as Texture2D,
-			load("res://assets/ground/ground_fertile.svg") as Texture2D,
-			load("res://assets/ground/ground_dirt.svg") as Texture2D,
-			load("res://assets/ground/ground_gravel.svg") as Texture2D,
-			load("res://assets/ground/ground_stone.svg") as Texture2D,
-		]
+		_textures.clear()
+		_textures.append(load("res://assets/ground/ground_grass.svg") as Texture2D)
+		_textures.append(load("res://assets/ground/ground_fertile.svg") as Texture2D)
+		_textures.append(load("res://assets/ground/ground_dirt.svg") as Texture2D)
+		_textures.append(load("res://assets/ground/ground_gravel.svg") as Texture2D)
+		_textures.append(load("res://assets/ground/ground_stone.svg") as Texture2D)
 		queue_redraw()
 
 	func _draw() -> void:
-		if _w <= 0 or _h <= 0 or _tiles.is_empty() or _cam == null:
+		if _w <= 0 or _h <= 0 or _tiles.is_empty() or _cam == null or _textures.is_empty():
 			return
 
 		var vp_size := get_viewport_rect().size / _cam.zoom
@@ -356,6 +490,8 @@ class _GroundCanvas extends Node2D:
 			for x in range(min_x, max_x + 1):
 				var kind := clampi(_tiles[y * _w + x], 0, _textures.size() - 1)
 				var tex := _textures[kind]
+				if tex == null:
+					continue
 				var rect := Rect2(x * TILE_PX, y * TILE_PX, TILE_PX + 0.5, TILE_PX + 0.5)
 				# Ligera variación orgánica de tono para evitar repetición uniforme
 				var shade := 0.96 + float(((x * 37 + y * 17) & 7)) * 0.01

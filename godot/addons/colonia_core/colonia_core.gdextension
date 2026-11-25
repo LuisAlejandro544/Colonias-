@@ -14,6 +14,11 @@ reloadable = true
 
 android.debug.arm64 = "res://bin/aarch64/libcolonia_core.so"
 android.release.arm64 = "res://bin/aarch64/libcolonia_core.so"
+android.debug.arm64-v8a = "res://bin/aarch64/libcolonia_core.so"
+android.release.arm64-v8a = "res://bin/aarch64/libcolonia_core.so"
+
+android.debug.arm32 = "res://bin/armv7/libcolonia_core.so"
+android.release.arm32 = "res://bin/armv7/libcolonia_core.so"
 android.debug.armeabi-v7a = "res://bin/armv7/libcolonia_core.so"
 android.release.armeabi-v7a = "res://bin/armv7/libcolonia_core.so"
 

@@ -23,7 +23,7 @@ func _ready() -> void:
 
 
 func get_ui_scale_multiplier() -> float:
-	return 1.18 if ui_scale_mode == 1 else 1.0
+	return 1.16 if ui_scale_mode == 1 else 1.0
 
 
 func load_settings() -> void:

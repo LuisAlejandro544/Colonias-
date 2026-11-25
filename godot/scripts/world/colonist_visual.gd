@@ -92,15 +92,15 @@ func _build_layers(data: Dictionary) -> void:
 	sb.content_margin_top = 2
 	sb.content_margin_bottom = 2
 	plate.add_theme_stylebox_override("panel", sb)
-	plate.position = Vector2(-40, 12)
-	plate.custom_minimum_size = Vector2(80, 0)
+	plate.position = Vector2(-48, 12)
+	plate.custom_minimum_size = Vector2(96, 0)
 	add_child(plate)
 
 	_name_label = Label.new()
 	_name_label.text = colonist_name
 	_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_name_label.add_theme_color_override("font_color", Color("#f5ebd6"))
-	_name_label.add_theme_font_size_override("font_size", 12)
+	_name_label.add_theme_font_size_override("font_size", 15)
 	plate.add_child(_name_label)
 
 

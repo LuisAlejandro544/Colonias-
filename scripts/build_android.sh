@@ -71,13 +71,47 @@ cp "$RUST_DIR/target/armv7-linux-androideabi/${TARGET_SUBDIR}/libcolonia_core.so
 cp "$RUST_DIR/target/${TARGET_SUBDIR}/libcolonia_core.so" "$GODOT_DIR/bin/linux/"
 
 if command -v godot >/dev/null 2>&1; then
-  mkdir -p "$ROOT_DIR/build"
+  mkdir -p "$ROOT_DIR/build" "$GODOT_DIR/.godot"
   echo "Importando recursos SVG, ETC2/ASTC y GDExtension en Godot..."
   godot --headless --path "$GODOT_DIR" --import || true
 
-  echo "Exportando APK Debug para arm64-v8a (64 bits)..."
-  godot --headless --path "$GODOT_DIR" "$GODOT_EXPORT_FLAG" "Android-arm64-v8a" "$ROOT_DIR/build/colonia_centinela-arm64-v8a-${BUILD_MODE}.apk"
+  EXT_LIST_FILE="$GODOT_DIR/.godot/extension_list.cfg"
+  EXT_ENTRY="res://addons/colonia_core/colonia_core.gdextension"
+  if [[ ! -f "$EXT_LIST_FILE" ]] || ! grep -qxF "$EXT_ENTRY" "$EXT_LIST_FILE"; then
+    echo "Registrando $EXT_ENTRY en .godot/extension_list.cfg..."
+    echo "$EXT_ENTRY" >> "$EXT_LIST_FILE"
+    godot --headless --path "$GODOT_DIR" --import || true
+  fi
 
-  echo "Exportando APK Debug para armeabi-v7a (32 bits)..."
-  godot --headless --path "$GODOT_DIR" "$GODOT_EXPORT_FLAG" "Android-armeabi-v7a" "$ROOT_DIR/build/colonia_centinela-armeabi-v7a-${BUILD_MODE}.apk"
+  APK_ARM64="$ROOT_DIR/build/colonia_centinela-arm64-v8a-${BUILD_MODE}.apk"
+  APK_ARMV7="$ROOT_DIR/build/colonia_centinela-armeabi-v7a-${BUILD_MODE}.apk"
+
+  echo "Exportando APK para arm64-v8a (64 bits)..."
+  godot --headless --path "$GODOT_DIR" "$GODOT_EXPORT_FLAG" "Android-arm64-v8a" "$APK_ARM64"
+
+  echo "Exportando APK para armeabi-v7a (32 bits)..."
+  godot --headless --path "$GODOT_DIR" "$GODOT_EXPORT_FLAG" "Android-armeabi-v7a" "$APK_ARMV7"
+
+  ensure_so_in_apk() {
+    local apk_file="$1"
+    local abi="$2"
+    local so_src="$3"
+    if ! unzip -l "$apk_file" | grep -q "lib/${abi}/libcolonia_core.so"; then
+      echo "Aviso: lib/${abi}/libcolonia_core.so no fue empaquetado por el template; inyectando binario nativo sin comprimir..."
+      local stage_dir
+      stage_dir="$(mktemp -d)"
+      mkdir -p "$stage_dir/lib/${abi}"
+      cp "$so_src" "$stage_dir/lib/${abi}/libcolonia_core.so"
+      (cd "$stage_dir" && zip -0 -r "$apk_file" "lib/${abi}/libcolonia_core.so")
+      rm -rf "$stage_dir"
+    fi
+    if ! unzip -l "$apk_file" | grep -q "lib/${abi}/libcolonia_core.so"; then
+      echo "Error fatal: falta lib/${abi}/libcolonia_core.so en $apk_file" >&2
+      exit 1
+    fi
+    echo "Verificado lib/${abi}/libcolonia_core.so dentro de $(basename "$apk_file")."
+  }
+
+  ensure_so_in_apk "$APK_ARM64" "arm64-v8a" "$GODOT_DIR/bin/aarch64/libcolonia_core.so"
+  ensure_so_in_apk "$APK_ARMV7" "armeabi-v7a" "$GODOT_DIR/bin/armv7/libcolonia_core.so"
 fi
