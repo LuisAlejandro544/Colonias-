@@ -2270,7 +2270,7 @@ impl ColonySimulation {
             rd.set("xp_next", &xp_next.to_variant());
             rd.set(
                 "effect_summary",
-                &GString::from(effect_summary_es(r, lv)).to_variant(),
+                &GString::from(&effect_summary_es(r, lv)).to_variant(),
             );
             out.push(&rd.to_variant());
         }
