@@ -372,7 +372,7 @@ class _TouchScrollHandler extends Node:
 
 	func _apply_scroll_delta(dy: float) -> void:
 		_scroll_accum += dy
-		var step := int(truncf(_scroll_accum))
+		var step := int(_scroll_accum)
 		if step == 0:
 			return
 		_scroll_accum -= float(step)

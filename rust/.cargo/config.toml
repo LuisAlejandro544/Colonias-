@@ -11,5 +11,5 @@
 rustflags = ["-C", "link-arg=-Wl,-z,max-page-size=16384"]
 
 [target.armv7-linux-androideabi]
-# Arquitectura ARMv7 (32 bits) - Soporte para dispositivos Android de 32 bits.
-rustflags = ["-C", "target-feature=+neon"]
+# Arquitectura ARMv7 (32 bits) - Soporte amplio para dispositivos Android de 32 bits
+# sin depender de `-C target-feature=+neon` (obsoleto en Rust moderno).
