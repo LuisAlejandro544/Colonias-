@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <ellipse cx="66" cy="96" rx="22" ry="9" fill="#18130e" opacity="0.24"/>
+  <!-- Tallo joven con contorno nítido (primero borde oscuro, luego interior de madera) -->
+  <path d="M62 95 Q64 74 63 51" fill="none" stroke="#1e1813" stroke-width="8.5" stroke-linecap="round"/>
+  <path d="M62 95 Q64 74 63 51" fill="none" stroke="#755336" stroke-width="4.2" stroke-linecap="round"/>
+  <!-- Hojas frescas del arbolito -->
+  <path d="M62 68 C43 62 36 45 50 40 C60 38 65 55 62 68 Z" fill="#659449" stroke="#1e1813" stroke-width="3.4" stroke-linejoin="round"/>
+  <path d="M64 62 C83 56 90 39 76 34 C66 32 61 49 64 62 Z" fill="#77a956" stroke="#1e1813" stroke-width="3.4" stroke-linejoin="round"/>
+  <path d="M63 52 C55 33 63 18 72 26 C77 35 69 47 63 52 Z" fill="#84b861" stroke="#1e1813" stroke-width="3.4" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,41 @@
+; Configuración principal del proyecto en Godot 4.7.2 para dispositivos móviles.
+;
+; Lógica: Configura renderizado móvil de alta nitidez (filtro lineal y MSAA 4x
+; para evitar pixelado y mantener el estilo ilustrado tipo RimWorld), orienta
+; la pantalla en horizontal, registra los módulos globales (AutoLoads) y arranca
+; en el Menú Principal modular.
+
+config_version=5
+
+[application]
+
+config/name="Colonia Centinela"
+config/description="Juego móvil 2D en vista centinela sobre colonias terrestres (Godot 4.7.2 + Rust 1.100.0)."
+run/main_scene="res://scenes/ui/main_menu.tscn"
+config/features=PackedStringArray("4.7", "Mobile")
+
+[autoload]
+
+UiTheme="*res://scripts/autoload/ui_theme.gd"
+SettingsManager="*res://scripts/autoload/settings_manager.gd"
+SaveManager="*res://scripts/autoload/save_manager.gd"
+GameSession="*res://scripts/autoload/game_session.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=0
+
+[input_devices]
+
+pointing/emulate_touch_from_mouse=true
+
+[rendering]
+
+textures/canvas_textures/default_texture_filter=1
+anti_aliasing/quality/msaa_2d=2
+renderer/rendering_method="mobile"
+renderer/rendering_method.mobile="mobile"

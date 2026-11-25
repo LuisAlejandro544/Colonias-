@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Torso redondeado clásico estilo RimWorld (túnica neutra para tinte con modulate) -->
+  <path d="M40 94 C39 74 44 62 64 62 C84 62 89 74 88 94 C88 103 78 106 64 106 C50 106 40 103 40 94 Z" fill="#ffffff" stroke="#1e1813" stroke-width="4.5" stroke-linejoin="round"/>
+  <!-- Sombra sutil inferior y detalle de cinturón/cuello visible bajo la cabeza -->
+  <path d="M43 94 C50 101 78 101 85 94" fill="none" stroke="#000000" stroke-width="4" opacity="0.14" stroke-linecap="round"/>
+  <path d="M42 86 Q64 90 86 86" fill="none" stroke="#1e1813" stroke-width="2.4" opacity="0.28" stroke-linecap="round"/>
+  <path d="M55 66 Q64 73 73 66" fill="none" stroke="#1e1813" stroke-width="2.4" opacity="0.35" stroke-linecap="round"/>
+</svg>

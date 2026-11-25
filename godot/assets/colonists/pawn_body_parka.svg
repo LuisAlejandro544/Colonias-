@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Abrigo / chaqueta de expedición estilo RimWorld -->
+  <path d="M37 95 C36 72 43 60 64 60 C85 60 92 72 91 95 C91 104 80 108 64 108 C48 108 37 104 37 95 Z" fill="#ffffff" stroke="#1e1813" stroke-width="4.5" stroke-linejoin="round"/>
+  <!-- Solapa y bolsillos visibles debajo de la cabeza -->
+  <line x1="64" y1="68" x2="64" y2="105" stroke="#1e1813" stroke-width="2.6" opacity="0.34"/>
+  <path d="M48 66 Q64 76 80 66" fill="none" stroke="#1e1813" stroke-width="3" opacity="0.4" stroke-linecap="round"/>
+  <path d="M44 87 L56 87 M72 87 L84 87" stroke="#1e1813" stroke-width="2.4" opacity="0.26" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,6 @@
+{
+  "name": "Colonia Centinela",
+  "description": "Entorno base para el juego móvil 2D en vista centinela sobre colonias con Godot 4.7.2 y Rust 1.100.0.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

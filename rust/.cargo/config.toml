@@ -1,0 +1,15 @@
+# Configuración de Cargo para compilación cruzada hacia Android (32 y 64 bits).
+#
+# Lógica: Define las banderas comunes de compilación y señala cómo se enlazan
+# los binarios `.so` usando el NDK de Android. Los enlazadores específicos
+# (`CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER` y
+# `CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER`) se inyectan desde
+# `scripts/build_android.sh` o el flujo de GitHub Actions según la ruta del NDK.
+
+[target.aarch64-linux-android]
+# Arquitectura ARM64 (64 bits) - Estándar en dispositivos Android modernos.
+rustflags = ["-C", "link-arg=-Wl,-z,max-page-size=16384"]
+
+[target.armv7-linux-androideabi]
+# Arquitectura ARMv7 (32 bits) - Soporte para dispositivos Android de 32 bits.
+rustflags = ["-C", "target-feature=+neon"]

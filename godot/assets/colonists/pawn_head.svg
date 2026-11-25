@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Cabeza redonda neutra (piel aplicada via modulate) -->
+  <circle cx="64" cy="46" r="21" fill="#ffffff" stroke="#1e1813" stroke-width="4.5"/>
+  <path d="M49 54 A17 17 0 0 0 79 54" fill="none" stroke="#000000" stroke-width="3" opacity="0.1" stroke-linecap="round"/>
+</svg>

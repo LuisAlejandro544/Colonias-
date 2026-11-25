@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Ojos expresivos estilo RimWorld (no se tiñen con la piel) -->
+  <ellipse cx="56.5" cy="48" rx="2.6" ry="3.2" fill="#1e1813"/>
+  <ellipse cx="71.5" cy="48" rx="2.6" ry="3.2" fill="#1e1813"/>
+  <circle cx="55.6" cy="46.8" r="0.9" fill="#ffffff" opacity="0.8"/>
+  <circle cx="70.6" cy="46.8" r="0.9" fill="#ffffff" opacity="0.8"/>
+</svg>

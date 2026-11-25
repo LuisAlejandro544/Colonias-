@@ -1,0 +1,13 @@
+# Escena principal mínima (placeholder) para validar la estructura 2D de Godot 4.7.
+#
+# Lógica: Contiene un nodo raíz `Node2D` junto al nodo nativo `ColoniaBootstrap`
+# definido en Rust para verificar que la extensión carga al iniciar la app móvil.
+
+[gd_scene load_steps=2 format=3 uid="uid://bcoloniacentinela01"]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="ColoniaBootstrap" type="ColoniaBootstrap" parent="."]

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <ellipse cx="48" cy="84" rx="22" ry="10" fill="#18130e" opacity="0.22"/>
+  <ellipse cx="84" cy="78" rx="18" ry="8" fill="#18130e" opacity="0.22"/>
+  <!-- Piedra grande del grupo -->
+  <polygon points="28,78 32,58 50,50 68,60 66,80 42,84" fill="#8f897e" stroke="#1e1813" stroke-width="3.2" stroke-linejoin="round"/>
+  <path d="M36 60 L50 54" stroke="#aba497" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Piedra mediana -->
+  <polygon points="72,74 76,58 92,54 102,66 94,78 78,78" fill="#7c766d" stroke="#1e1813" stroke-width="3" stroke-linejoin="round"/>
+  <!-- Guijarro frontal -->
+  <polygon points="54,94 60,84 74,84 78,94 64,98" fill="#9b9489" stroke="#1e1813" stroke-width="2.8" stroke-linejoin="round"/>
+</svg>

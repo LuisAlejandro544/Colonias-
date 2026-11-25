@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">
+  <ellipse cx="86" cy="118" rx="52" ry="22" fill="#18130e" opacity="0.28"/>
+  <!-- Cuerpo principal de la roca -->
+  <polygon points="32,102 26,70 48,40 94,32 130,54 136,92 114,116 58,118" fill="#847f76" stroke="#1e1813" stroke-width="4.5" stroke-linejoin="round"/>
+  <!-- Facetas y grietas estilo RimWorld -->
+  <polygon points="48,40 94,32 106,62 64,68" fill="#9c968b"/>
+  <polygon points="106,62 130,54 136,92 114,116 94,92" fill="#6f6a62"/>
+  <path d="M64 68 L106 62 M64 68 L58 118 M94 92 L114 116" fill="none" stroke="#4f4b45" stroke-width="3" stroke-linecap="round"/>
+  <path d="M56 44 L88 38" fill="none" stroke="#b5afa3" stroke-width="3.5" stroke-linecap="round" opacity="0.8"/>
+</svg>

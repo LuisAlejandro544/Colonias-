@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Cabello corto ajustado exactamente al contorno de la cabeza (cx=64, cy=46, r=21) -->
+  <path d="M42 46 C42 29 52 22 64 22 C76 22 86 29 86 46 C82 37 74 34 64 35 C54 34 46 37 42 46 Z" fill="#ffffff" stroke="#1e1813" stroke-width="4" stroke-linejoin="round"/>
+</svg>

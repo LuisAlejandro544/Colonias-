@@ -1,0 +1,137 @@
+# Flujo manual en GitHub Actions para compilar APKs Debug separados (64 bits y 32 bits) con firma obligatoria.
+#
+# Lógica:
+# 1. Solo se activa manualmente (`workflow_dispatch`).
+# 2. Exige los 4 secretos de firma Android (`ANDROID_KEYSTORE_BASE64`,
+#    `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`)
+#    y falla de inmediato si falta alguno.
+# 3. Descarga dependencias (JDK 17, Android SDK/NDK/build-tools, Rust 1.100.0,
+#    crates de Cargo y Godot 4.7.2-stable + plantillas Android).
+# 4. Compila los `.so` nativos en Debug y exporta dos APKs sueltos:
+#    - `colonia_centinela-arm64-v8a-debug.apk` (64 bits)
+#    - `colonia_centinela-armeabi-v7a-debug.apk` (32 bits)
+# 5. Alinea, firma y verifica ambos APKs con `apksigner` usando tu keystore y los
+#    sube como artefactos independientes.
+
+name: Build Android Debug APKs (Manual + Signed)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-debug-apks:
+    runs-on: ubuntu-latest
+    env:
+      GODOT_VERSION: "4.7.2-stable"
+      GODOT_TEMPLATES_DIR: "4.7.2.stable"
+      BUILD_MODE: "debug"
+
+    steps:
+      - name: Validar secretos obligatorios de firma Android
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KS_B64" ] || [ -z "$KS_PASS" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASS" ]; then
+            echo "::error::Falta configurar la firma en GitHub Secrets: ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS y ANDROID_KEY_PASSWORD."
+            exit 1
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Android SDK & Build Tools
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android NDK r27c & Build Tools 35
+        run: sdkmanager "ndk;27.2.12479018" "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Setup Rust 1.100.0 toolchain (ARM64 y ARMv7)
+        uses: dtolnay/rust-toolchain@1.100.0
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi
+
+      - name: Cache Cargo dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            rust/target
+          key: ${{ runner.os }}-cargo-1.100-${{ hashFiles('rust/Cargo.toml') }}
+
+      - name: Download Rust Cargo dependencies
+        run: cargo fetch --manifest-path rust/Cargo.toml
+
+      - name: Download Godot 4.7.2-stable & Android Export Templates
+        run: |
+          mkdir -p /tmp/godot "$HOME/.local/share/godot/export_templates/${GODOT_TEMPLATES_DIR}"
+          curl -fsSL -o /tmp/godot/godot.zip "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
+          unzip -q /tmp/godot/godot.zip -d /tmp/godot
+          sudo mv "/tmp/godot/Godot_v${GODOT_VERSION}_linux.x86_64" /usr/local/bin/godot
+          sudo chmod +x /usr/local/bin/godot
+          curl -fsSL -o /tmp/godot/templates.tpz "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_export_templates.tpz"
+          unzip -q /tmp/godot/templates.tpz -d /tmp/godot/templates
+          mv /tmp/godot/templates/templates/* "$HOME/.local/share/godot/export_templates/${GODOT_TEMPLATES_DIR}/"
+
+      - name: Preparar debug keystore temporal para exportación de Godot
+        run: |
+          mkdir -p "$HOME/.android"
+          if [ ! -f "$HOME/.android/debug.keystore" ]; then
+            keytool -genkeypair -v -keystore "$HOME/.android/debug.keystore" \
+              -storepass android -alias androiddebugkey -keypass android \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+          fi
+
+      - name: Compilar librerías Rust Debug y exportar APKs separados (arm64 y armv7)
+        env:
+          ANDROID_NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/27.2.12479018
+          BUILD_MODE: debug
+        run: |
+          chmod +x scripts/build_android.sh
+          ./scripts/build_android.sh
+
+      - name: Firmar y verificar ambos APKs con apksigner usando GitHub Secrets
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "$KS_B64" | base64 --decode > /tmp/signing.keystore
+          APKSIGNER="${ANDROID_HOME}/build-tools/35.0.0/apksigner"
+          ZIPALIGN="${ANDROID_HOME}/build-tools/35.0.0/zipalign"
+          for apk in build/colonia_centinela-arm64-v8a-debug.apk build/colonia_centinela-armeabi-v7a-debug.apk; do
+            aligned="${apk%.apk}-aligned.apk"
+            "$ZIPALIGN" -f -p 4 "$apk" "$aligned"
+            mv "$aligned" "$apk"
+            "$APKSIGNER" sign \
+              --ks /tmp/signing.keystore \
+              --ks-key-alias "$KEY_ALIAS" \
+              --ks-pass env:KS_PASS \
+              --key-pass env:KEY_PASS \
+              "$apk"
+            "$APKSIGNER" verify --verbose "$apk"
+          done
+          rm -f /tmp/signing.keystore
+
+      - name: Subir APK Debug arm64-v8a (64 bits)
+        uses: actions/upload-artifact@v4
+        with:
+          name: colonia-centinela-debug-arm64-v8a
+          path: build/colonia_centinela-arm64-v8a-debug.apk
+
+      - name: Subir APK Debug armeabi-v7a (32 bits)
+        uses: actions/upload-artifact@v4
+        with:
+          name: colonia-centinela-debug-armeabi-v7a
+          path: build/colonia_centinela-armeabi-v7a-debug.apk
