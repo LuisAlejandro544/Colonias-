@@ -17,20 +17,21 @@ Menús Godot (scripts/ui/*.gd)
    ▼
 Escena del Mundo (godot/scripts/world/colony_world.gd)
    ├── Llama a WorldGenerator (rust/src/world_gen.rs) -> terreno + obstáculos
-   ├── Llama a ColonySimulation (rust/src/colonist_sim.rs) -> posición/estado de colonos
-   └── Dibuja suelo SVG, props Y-sorted, capas de ColonistVisual y HUD táctil
+   ├── Llama a ColonySimulation (rust/src/colonist_sim.rs) -> líder, reuniones, A*, cultivos, muros, ítems
+   ├── WorldOverlay (world_overlay.gd) -> zonas, etapas de zanahorias, marcas y selección táctil
+   └── Dibuja suelo SVG, props/muros/ítems Y-sorted, ColonistVisual (herramientas de cobre) y HUD táctil
 ```
 
 ## 3. Cómo añadir nuevas mecánicas limpiamente
 
-- **Nuevo bioma o recurso natural en el mapa:**
-  1. Agrega la variante en `rust/src/world_gen.rs` (`EarthBiome`, `GroundKind` o `PropKind`).
-  2. Crea el `.svg` correspondiente en `godot/assets/` (sin pixel art, contorno `#1e1813`) y revísalo renderizándolo a `.png`.
-  3. Registra la textura y el mapeo en `godot/scripts/world/colony_world.gd` y `godot/scripts/autoload/save_manager.gd`.
+- **Nuevo bioma, cultivo o estructura:**
+  1. Agrega las variantes en `rust/src/world_gen.rs` o `rust/src/colony_types.rs` y la lógica en `rust/src/colonist_sim.rs`.
+  2. Crea los `.svg` correspondientes en `godot/assets/` (sin pixel art, contorno `#1e1813`) y revísalos renderizándolos a `.png`.
+  3. Registra las texturas y el mapeo en `godot/scripts/world/colony_world.gd` o `godot/scripts/world/world_overlay.gd` y mantén la conversión de guardado en `_convert_save_dict_for_rust`.
 - **Nuevas herramientas, tareas o necesidades de colonos:**
-  1. Crea un submódulo dedicado en `rust/src/` (ej. `tools.rs`, `tasks.rs`) y expón métodos limpios desde `ColonySimulation` o una clase `GodotClass` nueva en `rust/src/lib.rs`.
+  1. Extiende `rust/src/tools.rs`, `rust/src/colony_types.rs` o crea un submódulo dedicado en `rust/src/` y expón métodos limpios en `ColonySimulation`.
   2. Añade pruebas unitarias `#[cfg(test)]` en Rust para la lógica pura.
-  3. Mantén la serialización compatible con JSON en `SaveManager` (`user://saves/slot_N.json`).
+  3. Mantén la serialización compatible con JSON en `SaveManager` (`user://saves/slot_N.json`), convirtiendo enteros parseados como float por `JSON.parse()` antes de pasarlos a `gdext`.
 
 ## 4. Checklist antes de terminar cualquier cambio
 

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <!-- Globo cálido de reunión/órdenes con cola fluida -->
+  <path d="M13 11 H51 A8 8 0 0 1 59 19 V37 A8 8 0 0 1 51 45 H28 L16 56 L19 45 H13 A8 8 0 0 1 5 37 V19 A8 8 0 0 1 13 11 Z" fill="#f4e9d2" stroke="#1e1813" stroke-width="3.8" stroke-linejoin="round"/>
+  <path d="M13 14.5 H50 A4.5 4.5 0 0 1 54.5 19" fill="none" stroke="#fff9eb" stroke-width="2.2" stroke-linecap="round"/>
+  <circle cx="21" cy="28" r="3.6" fill="#8f5d24" stroke="#1e1813" stroke-width="1.5"/>
+  <circle cx="32" cy="28" r="3.6" fill="#8f5d24" stroke="#1e1813" stroke-width="1.5"/>
+  <circle cx="43" cy="28" r="3.6" fill="#8f5d24" stroke="#1e1813" stroke-width="1.5"/>
+</svg>

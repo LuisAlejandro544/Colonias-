@@ -10,41 +10,43 @@ Hoja de ruta modular para llevar **Colonia Centinela** desde la base técnica ac
 - [x] Interfaz cálida multipantalla (Menú Principal con diorama, Nueva Partida, 3 Ranuras de Guardado en JSON y Ajustes persistentes).
 - [x] Generador procedural terrestre por semilla con 3 biomas (*Bosque Templado*, *Pradera Fértil*, *Sierra Rocosa*).
 - [x] Assets vectoriales `.svg` estilo RimWorld (suelos, robles, pinos, arbolitos, rocas de granito/hierro, piedras sueltas y colonos por capas).
-- [x] Movimiento autónomo básico con evasión de obstáculos y cámara centinela táctil.
+- [x] Movimiento autónomo básico y cámara centinela táctil.
 - [x] Flujo manual en GitHub Actions para APKs Debug separados y firmados.
 
 ---
 
-## Fase 2 — Herramientas, Tala, Minería e Inventario
+## Fase 2 — Líder de Colonia, Herramientas de Cobre, Tala, Minería y Almacén *(Completada)*
 
-- [ ] Catálogo de herramientas en Rust (`ToolDef`): hacha de piedra/acero, pico, pala y herramientas avanzadas (motosierra industrial, cortador láser portátil).
-- [ ] Anclaje visual de herramienta en mano (`Marker2D`) con animación procedural de golpe/uso y partículas.
-- [ ] Sistema de órdenes táctiles sobre árboles y rocas (marcar para talar o picar) y cola de trabajos por prioridades.
-- [ ] Recursos recolectables en el suelo (troncos de madera, bloques de piedra, mena de hierro) y transporte a zonas de almacenamiento.
-- [ ] Barra de recursos de la colonia en el HUD.
+- [x] **Líder de Colonia aleatorio y reuniones:** En lugar de ejecutar órdenes mágicamente, un líder elegido al azar reúne o se acerca personalmente a los colonos para comunicar las tareas antes de iniciarlas.
+- [x] **Catálogo inicial de herramientas de cobre (`CopperTool`):** Hacha de cobre, Pico de cobre, Pala de cobre, Azada de cobre y Espada de cobre en Rust + `.svg` con anclaje en mano y animación de golpe.
+- [x] **Órdenes táctiles por selección de área:** Marcar árboles para talar y rocas/vetas para minar mediante arrastre táctil.
+- [x] **Recursos sueltos en el piso (`.svg`) y Zona de Almacenamiento:** Troncos de madera, bloques de piedra, mena de hierro, mena de cobre, semillas de zanahoria y zanahorias con transporte automático al almacén.
+- [x] **Barra de inventario y estado del líder en el HUD.**
 
 ---
 
-## Fase 3 — Construcción, Necesidades y Ciclo Terrestre
+## Fase 3 — Construcción Modular, Cultivo de Zanahorias y Navegación A* *(En progreso)*
 
-- [ ] Sistema de planos y construcción modular (suelos de madera/piedra, muros, puertas, fogatas, camas y mesas de trabajo).
-- [ ] Navegación inteligente (*pathfinding* A* / Dijkstra en Rust sobre grilla dinámica actualizada al construir o talar).
-- [ ] Necesidades de colonos: energía/sueño, hambre, salud y estado de ánimo con pensamientos terrestres.
-- [ ] Ciclo día/noche y estaciones terrestres (lluvia, temperatura ambiente, crecimiento de arbolitos).
+- [x] **Zona de construcción con madera:** Planos y construcción de **bloques/paredes de madera** (`2` de madera por bloque) que bloquean el paso.
+- [x] **Zona de cultivo agrícola (Zanahorias):** Arado con azada de cobre, siembra de semillas de zanahoria, 4 etapas de crecimiento `.svg` y cosecha con recuperación de semillas.
+- [x] **Navegación inteligente (*pathfinding* A* en Rust)** sobre la grilla dinámica al construir muros o despejar árboles/rocas.
+- [ ] Puertas de madera, suelos construidos, fogatas, camas y mesas de trabajo.
+- [ ] Necesidades de colonos: energía/sueño, hambre (consumo de zanahorias), salud y estado de ánimo con pensamientos terrestres.
+- [ ] Ciclo día/noche visual y estaciones terrestres (lluvia, temperatura ambiente, crecimiento de arbolitos).
 
 ---
 
 ## Fase 4 — Tecnología Terrestre Avanzada
 
-- [ ] Árbol de investigación terrestre (metalurgia, electricidad, automatización, energía limpia y defensa).
+- [ ] Árbol de investigación terrestre (forja de bronce/hierro/acero, electricidad, automatización, energía limpia y defensa).
+- [ ] Mejora progresiva desde herramientas de cobre hacia herramientas de hierro/acero y equipo eléctrico.
 - [ ] Red eléctrica de la colonia: paneles solares, turbinas eólicas, generadores de biocombustible y baterías.
-- [ ] Estaciones de fabricación avanzada y recarga para herramientas eléctricas/láser.
-- [ ] Estructuras defensivas y torretas automáticas terrestres.
+- [ ] Estaciones de fabricación avanzada y estructuras defensivas terrestres.
 
 ---
 
 ## Fase 5 — Eventos, Audio y Distribución APK
 
-- [ ] Eventos dinámicos terrestres (caravanas comerciales, brotes de clima extremo, fauna local, incursiones).
+- [ ] Eventos dinámicos terrestres (caravanas comerciales, brotes de clima extremo, fauna local, incursiones con uso de la espada de cobre).
 - [ ] Música ambiental acústica y efectos de sonido conectados a los sliders de `SettingsManager`.
 - [ ] Generación de APKs Release optimizados y firmados listos para publicación en Uptodown y descarga directa.

@@ -22,7 +22,31 @@ Arquitectura modular separada en núcleo nativo (**Rust**), motor de escenas/UI 
 │   │   │   ├── pawn_face.svg            # Ojos expresivos oscuros
 │   │   │   ├── pawn_hair_short.svg      # Peinado corto
 │   │   │   ├── pawn_hair_bob.svg        # Peinado melena
-│   │   │   └── pawn_hair_ponytail.svg   # Peinado coleta
+│   │   │   ├── pawn_hair_ponytail.svg   # Peinado coleta
+│   │   │   ├── leader_crown.svg         # Corona/insignia dorada del Líder de Colonia
+│   │   │   └── meeting_bubble.svg       # Globo de diálogo cuando el líder reúne y da órdenes
+│   │   ├── tools/
+│   │   │   ├── tool_copper_axe.svg      # Hacha de cobre
+│   │   │   ├── tool_copper_pickaxe.svg  # Pico de cobre
+│   │   │   ├── tool_copper_shovel.svg   # Pala de cobre
+│   │   │   ├── tool_copper_hoe.svg      # Azada de cobre
+│   │   │   └── tool_copper_sword.svg    # Espada de cobre
+│   │   ├── items/
+│   │   │   ├── item_wood_logs.svg       # Troncos de madera sueltos en el piso
+│   │   │   ├── item_stone_chunk.svg     # Bloques/trozos de piedra sueltos
+│   │   │   ├── item_iron_ore.svg        # Mena de hierro suelta
+│   │   │   ├── item_copper_ore.svg      # Mena de cobre suelta
+│   │   │   ├── item_carrot_seeds.svg    # Saquito de semillas de zanahoria
+│   │   │   └── item_carrot.svg          # Manojo de zanahorias cosechadas
+│   │   ├── crops/
+│   │   │   ├── soil_tilled.svg          # Tierra arada en surcos lista para sembrar
+│   │   │   ├── carrot_stage_1_seeded.svg  # Semillas recién sembradas en el surco
+│   │   │   ├── carrot_stage_2_sprout.svg  # Brotes verdes jóvenes
+│   │   │   ├── carrot_stage_3_growing.svg # Follaje frondoso en crecimiento
+│   │   │   └── carrot_stage_4_ready.svg   # Zanahorias maduras listas para cosechar
+│   │   ├── structures/
+│   │   │   ├── wall_wood_blueprint.svg  # Plano guía de bloque de pared de madera
+│   │   │   └── wall_wood.svg            # Bloque sólido de pared/casa de madera
 │   │   ├── ground/
 │   │   │   ├── ground_grass.svg         # Pasto templado
 │   │   │   ├── ground_fertile.svg       # Tierra fértil oscura
@@ -60,10 +84,11 @@ Arquitectura modular separada en núcleo nativo (**Rust**), motor de escenas/UI 
 │       │   ├── settings_screen.gd       # Sliders de audio, escala táctil y sensibilidad de cámara
 │       │   └── loading_screen.gd        # Carga asíncrona con progreso hacia el mundo 2D
 │       └── world/
-│           ├── colony_world.gd          # Orquestador del mapa, props, cámara táctil y snapshots Rust
+│           ├── colony_world.gd          # Orquestador del mapa, props, muros, ítems, cámara y selección táctil
 │           ├── ground_canvas.gd         # Lienzo optimizado del suelo terrestre visible en cámara
-│           ├── colonist_visual.gd       # Ensamblado visual por capas de cada colono
-│           └── world_hud.gd             # Barra superior, inspector de colono y menú popup en partida
+│           ├── world_overlay.gd         # Capa de zonas, cultivos de zanahoria, marcas y arrastre de selección
+│           ├── colonist_visual.gd       # Ensamblado por capas: colono, corona de líder, herramientas y carga
+│           └── world_hud.gd             # Barra superior (líder e inventario), selector inferior, inspector y menú
 ├── rust/
 │   ├── Cargo.toml                       # Crate cdylib `colonia_core` (godot =0.5.5, api-4-7)
 │   ├── rust-toolchain.toml              # Fija Rust 1.100.0 + targets ARM64 y ARMv7
@@ -72,7 +97,10 @@ Arquitectura modular separada en núcleo nativo (**Rust**), motor de escenas/UI 
 │       ├── lib.rs                       # Registro GDExtension y exportación de clases
 │       ├── noise.rs                     # RNG determinista SplitMix64 y ruido fractal 2D (FBM)
 │       ├── world_gen.rs                 # Generación procedural de piso, árboles, arbolitos, rocas y piedras
-│       └── colonist_sim.rs              # Simulación autónoma de colonos, evasión y serialización
+│       ├── tools.rs                     # Catálogo de herramientas de cobre (hacha, pico, pala, azada, espada)
+│       ├── colony_types.rs              # Modelos puros de ítems, zonas, cultivos, paredes, órdenes e inventario
+│       ├── pathfinding.rs               # Pathfinding A* acotado sobre obstáculos y paredes dinámicas
+│       └── colonist_sim.rs              # Simulación de colonos, líder aleatorio, reuniones, tareas y guardado
 ├── scripts/
 │   └── build_android.sh                 # Compila Rust (ARM64 + ARMv7 + host Linux) y exporta APKs en Godot
 ├── src/                                 # Marcador web mínimo ("Hello World") para el entorno de vista previa
@@ -93,4 +121,4 @@ Arquitectura modular separada en núcleo nativo (**Rust**), motor de escenas/UI 
 ## Frontera de datos Rust ↔ Godot
 
 - **`WorldGenerator` (`rust/src/world_gen.rs`)**: recibe `(seed, width, height, biome_code)` y devuelve un `VarDictionary` con `PackedInt32Array` para `ground`, `props` y `blocked`.
-- **`ColonySimulation` (`rust/src/colonist_sim.rs`)**: mantiene en memoria el estado completo de los colonos, avanza la simulación con `step_simulation(delta)` y entrega un `VarArray` de diccionarios (`get_colonists_snapshot()`) para que Godot sincronice los nodos `ColonistVisual` y guarde en JSON.
+- **`ColonySimulation` (`rust/src/colonist_sim.rs`)**: recibe las órdenes por área (`designate_area`), gestiona al Líder de Colonia y sus reuniones, avanza cultivos, pathfinding A* y colonos en `step_simulation(delta)` y entrega `get_colonists_snapshot()`, `get_world_snapshot(force_full)` y `export_save_state()` para sincronizar visuales, HUD y JSON en `SaveManager`.

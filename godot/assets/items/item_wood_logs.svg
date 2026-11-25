@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Pila de 3 troncos anidados y atados firmemente con cuerda -->
+  <ellipse cx="64" cy="99" rx="46" ry="14" fill="#18130e" opacity="0.30"/>
+  <!-- Tronco trasero izquierdo -->
+  <path d="M22 62 L76 62 L76 86 L22 86 Z" fill="#6d4729" stroke="#1e1813" stroke-width="4.2" stroke-linejoin="round"/>
+  <ellipse cx="22" cy="74" rx="7" ry="12" fill="#59391f" stroke="#1e1813" stroke-width="4"/>
+  <ellipse cx="76" cy="74" rx="8" ry="12" fill="#dcb888" stroke="#1e1813" stroke-width="3.8"/>
+  <ellipse cx="76" cy="74" rx="4" ry="6" fill="none" stroke="#b08654" stroke-width="2"/>
+  <!-- Tronco delantero derecho -->
+  <path d="M36 68 L98 68 L98 92 L36 92 Z" fill="#7d5330" stroke="#1e1813" stroke-width="4.2" stroke-linejoin="round"/>
+  <ellipse cx="36" cy="80" rx="7" ry="12" fill="#654124" stroke="#1e1813" stroke-width="4"/>
+  <ellipse cx="98" cy="80" rx="8" ry="12" fill="#e5c495" stroke="#1e1813" stroke-width="3.8"/>
+  <ellipse cx="98" cy="80" rx="4" ry="6" fill="none" stroke="#b08654" stroke-width="2"/>
+  <path d="M48 76 L84 76 M52 84 L82 84" stroke="#53341b" stroke-width="2.2" stroke-linecap="round"/>
+  <!-- Tronco superior encajado entre los dos inferiores -->
+  <path d="M28 42 L88 42 L88 66 L28 66 Z" fill="#8f6139" stroke="#1e1813" stroke-width="4.2" stroke-linejoin="round"/>
+  <ellipse cx="28" cy="54" rx="7" ry="12" fill="#714b2b" stroke="#1e1813" stroke-width="4"/>
+  <ellipse cx="88" cy="54" rx="8" ry="12" fill="#e9ca9d" stroke="#1e1813" stroke-width="3.8"/>
+  <ellipse cx="88" cy="54" rx="4" ry="6" fill="none" stroke="#b08654" stroke-width="2"/>
+  <path d="M40 50 L75 50 M44 58 L73 58" stroke="#623f22" stroke-width="2.2" stroke-linecap="round"/>
+  <!-- Cuerda envolviendo el contorno real del haz y nudo en el cruce -->
+  <path d="M52 41 C58 41 62 47 62 54 C62 61 59 66 59 68 C64 72 66 83 62 93" fill="none" stroke="#1e1813" stroke-width="7.5" stroke-linecap="round"/>
+  <path d="M52 41 C58 41 62 47 62 54 C62 61 59 66 59 68 C64 72 66 83 62 93" fill="none" stroke="#d4b57e" stroke-width="3.8" stroke-linecap="round"/>
+  <path d="M54 65 L66 71 M65 65 L54 71" stroke="#1e1813" stroke-width="5.5" stroke-linecap="round"/>
+  <path d="M54 65 L66 71 M65 65 L54 71" stroke="#dfC38e" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

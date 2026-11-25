@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Mena de cobre nativo con vetas cobrizas integradas en la roca -->
+  <ellipse cx="64" cy="96" rx="40" ry="14" fill="#18130e" opacity="0.30"/>
+  <polygon points="22,84 28,48 56,30 92,36 106,62 98,88 62,96 32,92" fill="#6d665d" stroke="#1e1813" stroke-width="4.5" stroke-linejoin="round"/>
+  <polygon points="56,30 92,36 78,60 44,54" fill="#857d72"/>
+  <polygon points="78,60 106,62 98,88 62,96 68,74" fill="#534d46"/>
+  <path d="M44 54 L78 60 L68 74 M28 48 L44 54" fill="none" stroke="#3f3a34" stroke-width="2.6" stroke-linecap="round"/>
+  <!-- Vetas cobrizas incrustadas siguiendo las facetas -->
+  <polygon points="36,66 56,54 67,67 48,79" fill="#d4763d" stroke="#592e15" stroke-width="2.2" stroke-linejoin="round"/>
+  <polygon points="41,65 55,57 61,63 49,70" fill="#f0a26b"/>
+  <polygon points="73,43 92,47 94,61 75,56" fill="#df8247" stroke="#592e15" stroke-width="2.2" stroke-linejoin="round"/>
+  <polygon points="77,46 89,49 89,55 79,52" fill="#f5b382"/>
+  <!-- Pátina mineral suave en grieta inferior -->
+  <polygon points="62,77 77,74 80,84 65,86" fill="#5e9c78" stroke="#2d4d3a" stroke-width="2" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Azada de cobre agrícola con cuello sólido y hoja amplia bien conectada -->
+  <ellipse cx="64" cy="108" rx="34" ry="8" fill="#18130e" opacity="0.22"/>
+  <!-- Mango largo de madera (termina dentro del casquillo) -->
+  <path d="M22 106 L76 42" fill="none" stroke="#1e1813" stroke-width="14.5" stroke-linecap="round"/>
+  <path d="M22 106 L76 42" fill="none" stroke="#8a5a34" stroke-width="8.5" stroke-linecap="round"/>
+  <path d="M38 88 L70 50" fill="none" stroke="#aa764a" stroke-width="2.8" stroke-linecap="round" opacity="0.72"/>
+  <!-- Agarre de cuero -->
+  <path d="M22 106 L37 89" fill="none" stroke="#4a2c19" stroke-width="9.2" stroke-linecap="round"/>
+  <path d="M24 98 L31 103 M30 91 L37 96" stroke="#22140b" stroke-width="2.2" stroke-linecap="round"/>
+  <!-- Hoja y cuello continuo desde el casquillo (sin hendiduras) -->
+  <path d="M68 37 L79 26 L98 32 L113 59 L95 75 L78 48 L68 41 Z" fill="#c96b36" stroke="#1e1813" stroke-width="4.4" stroke-linejoin="round"/>
+  <!-- Bisel afilado iluminado -->
+  <path d="M87 34 L96 36 L108 58 L95 70 L82 48 Z" fill="#eeaa73"/>
+  <path d="M107 58 L95 69" stroke="#ffe0bf" stroke-width="2.6" stroke-linecap="round"/>
+  <!-- Casquillo remachado alineado al mango -->
+  <path d="M68 38 L78 28 L86 37 L77 48 Z" fill="#93451e" stroke="#1e1813" stroke-width="2.8" stroke-linejoin="round"/>
+  <circle cx="77" cy="38" r="2.2" fill="#eab584"/>
+</svg>

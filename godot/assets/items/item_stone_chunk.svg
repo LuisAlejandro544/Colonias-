@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Pila de bloques de piedra facetados estilo RimWorld -->
+  <ellipse cx="64" cy="96" rx="40" ry="14" fill="#18130e" opacity="0.30"/>
+  <!-- Piedra izquierda -->
+  <polygon points="20,86 24,58 46,48 64,62 60,90 34,94" fill="#827c72" stroke="#1e1813" stroke-width="4.2" stroke-linejoin="round"/>
+  <polygon points="24,58 46,48 54,68 32,74" fill="#a29b8e"/>
+  <polygon points="54,68 64,62 60,90 34,94 42,80" fill="#676259"/>
+  <!-- Piedra derecha -->
+  <polygon points="58,88 64,54 88,46 108,62 104,88 76,94" fill="#777167" stroke="#1e1813" stroke-width="4.2" stroke-linejoin="round"/>
+  <polygon points="64,54 88,46 94,66 72,72" fill="#979084"/>
+  <polygon points="94,66 108,62 104,88 76,94 82,78" fill="#5d5850"/>
+  <!-- Piedra superior -->
+  <polygon points="38,62 46,34 74,28 90,46 82,66 54,68" fill="#948d81" stroke="#1e1813" stroke-width="4.2" stroke-linejoin="round"/>
+  <polygon points="46,34 74,28 76,48 52,52" fill="#b3aca0"/>
+  <path d="M52 52 L76 48 L82 66" fill="none" stroke="#534e47" stroke-width="2.8" stroke-linecap="round"/>
+  <path d="M50 38 L70 34" stroke="#cbc4b8" stroke-width="2.8" stroke-linecap="round" opacity="0.8"/>
+</svg>

@@ -1,17 +1,19 @@
 # Colonia Centinela
 
-Juego 2D móvil en vista centinela sobre gestión y supervivencia de colonias humanas en la Tierra, con progresión desde herramientas básicas hasta tecnología avanzada. Construido con **Godot Engine 4.7.2** para renderizado/interfaz táctil y **Rust 1.100.0** (`gdext`) como núcleo nativo de simulación y generación procedural.
+Juego 2D móvil en vista centinela sobre gestión y supervivencia de colonias humanas en la Tierra, con progresión desde herramientas básicas de cobre hasta tecnología avanzada. Construido con **Godot Engine 4.7.2** para renderizado/interfaz táctil y **Rust 1.100.0** (`gdext`) como núcleo nativo de simulación, pathfinding y generación procedural.
 
 > **Nota sobre el entorno web:** La carpeta `src/` contiene únicamente un marcador mínimo (`"Hello World"`) para mantener compilando la vista previa web de desarrollo. El juego real está pensado exclusivamente para **Android (APK)** en `godot/` y `rust/`.
 
 ---
 
-## Características implementadas (v0.1.0)
+## Características implementadas (v0.2.0)
 
-- **Menú principal y navegación multipantalla:** Portada cálida con diorama vivo, pantallas independientes para **Nueva Partida**, **Ranuras de Partidas Guardadas** (3 ranuras JSON con confirmación de borrado) y **Ajustes del Juego** persistentes en `user://settings.cfg`.
-- **Estética ilustrada tipo RimWorld (sin pixel art):** Recursos vectoriales `.svg` con filtro lineal y MSAA 4x, contornos gruesos y paleta orgánica de madera y pergamino.
-- **Generación procedural terrestre en Rust:** Ruido determinista por semilla (`SplitMix64` + FBM) que crea biomas de la Tierra (*Bosque Templado*, *Pradera Fértil*, *Sierra Rocosa*) con pasto, tierra fértil, tierra batida, grava, piedra, robles, pinos, arbolitos, rocas de granito, vetas de hierro y piedras sueltas.
-- **Colonos autónomos por capas:** Peones compuestos por sombra, túnica/abrigo, cabeza, rostro y peinados independientes que recorren el mapa evitando obstáculos con cámara centinela táctil (arrastre, zoom con pellizco/botones e inspector inferior al tocar un colono).
+- **Líder de Colonia y reuniones de órdenes:** Al fundar una colonia se elige aleatoriamente a un **Líder de Colonia** (distinguido con corona dorada y espada de cobre). Las órdenes marcadas por el jugador no se ejecutan de forma mágica: el líder convoca una reunión o se acerca personalmente a los colonos para comunicar las instrucciones antes de que trabajen.
+- **Herramientas de cobre en mano:** Catálogo nativo en Rust con `.svg` independientes y animación de golpe para **Hacha de cobre**, **Pico de cobre**, **Pala de cobre**, **Azada de cobre** y **Espada de cobre**.
+- **Tala, minería y recursos sueltos en el piso:** Selección táctil por área para talar árboles y minar rocas de granito o hierro, soltando **troncos de madera**, **bloques de piedra**, **mena de hierro** y **mena de cobre** que los colonos recogen y transportan al almacén.
+- **Zona de Almacenamiento y Construcción de madera:** Designación de áreas de almacén y planos de **bloques/paredes de madera** que consumen madera para construir refugios sólidos que bloquean el paso y obligan al pathfinding A* a rodearlos.
+- **Zona de Cultivo (Zanahorias):** Designación de áreas agrícolas donde los colonos aran la tierra con la azada de cobre, siembran **semillas de zanahoria**, ven crecer los brotes en 4 etapas visuales `.svg` y cosechan **zanahorias** y nuevas semillas.
+- **Menú principal, multipantalla y guardado completo:** Portada con diorama vivo, pantallas independientes para **Nueva Partida**, **Ranuras de Partidas Guardadas** (3 ranuras JSON con zonas, cultivos, paredes, ítems y líder) y **Ajustes del Juego** persistentes en `user://settings.cfg`.
 - **Compilación Android de 32 y 64 bits:** Exportación separada de APKs Debug firmados para `arm64-v8a` y `armeabi-v7a` mediante GitHub Actions.
 
 ---

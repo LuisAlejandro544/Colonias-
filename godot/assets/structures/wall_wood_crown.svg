@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Corona superior continua de pared de madera (sin bordes exteriores para conectar bloques) -->
+  <rect x="0" y="0" width="128" height="128" fill="#9e6d43"/>
+  <path d="M0 24 L128 24 M0 48 L128 48 M0 72 L128 72 M0 96 L128 96 M0 120 L128 120" stroke="#784f2c" stroke-width="2.4"/>
+  <path d="M12 12 L48 12 M78 12 L114 12 M22 36 L88 36 M16 60 L68 60 M84 60 L118 60 M28 84 L92 84 M14 108 L58 108 M76 108 L112 108" stroke="#b68356" stroke-width="2.4" stroke-linecap="round" opacity="0.72"/>
+</svg>

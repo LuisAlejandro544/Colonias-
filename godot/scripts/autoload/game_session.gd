@@ -1,8 +1,8 @@
 # Estado de sesión activa compartido entre las pantallas de menús y el mundo 2D.
 #
 # Lógica: Almacena los parámetros de la colonia actual (ranura, nombre, semilla,
-# bioma, tamaño y colonos cargados) y recuerda a qué pantalla regresar al salir
-# de Ajustes o Ranuras.
+# bioma, tamaño, colonos y estado completo guardado del mundo) y recuerda a qué
+# pantalla regresar al salir de Ajustes o Ranuras.
 
 extends Node
 
@@ -14,6 +14,7 @@ var map_size: int = 64
 var initial_colonists: int = 4
 var day_count: int = 1
 var saved_colonists: Array = []
+var saved_world_state: Dictionary = {}
 
 var return_scene_path: String = "res://scenes/ui/main_menu.tscn"
 var in_world_mode: bool = false
@@ -28,6 +29,7 @@ func start_new_colony(slot: int, name_str: String, seed_num: int, biome: String,
 	initial_colonists = colonist_num
 	day_count = 1
 	saved_colonists = []
+	saved_world_state = {}
 	in_world_mode = true
 
 
@@ -40,5 +42,6 @@ func load_from_slot_data(slot: int, data: Dictionary) -> void:
 	day_count = int(data.get("day", 1))
 	var cols = data.get("colonists", [])
 	saved_colonists = cols if cols is Array else []
+	saved_world_state = data.duplicate(true)
 	initial_colonists = max(1, saved_colonists.size())
 	in_world_mode = true

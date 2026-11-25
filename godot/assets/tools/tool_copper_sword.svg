@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Espada de cobre simétrica alineada al eje exacto 45° (x + y = 128) -->
+  <ellipse cx="64" cy="108" rx="34" ry="8" fill="#18130e" opacity="0.22"/>
+  <!-- Hoja de cobre de doble filo con punta aguda en (110, 18) -->
+  <path d="M41 73 L87 29 L110 18 L99 41 L55 87 Z" fill="#c96b36" stroke="#1e1813" stroke-width="4.4" stroke-linejoin="round"/>
+  <!-- Mitad superior iluminada -->
+  <path d="M44 74 L88 31 L107 21 L49 79 Z" fill="#eeaa73"/>
+  <path d="M51 75 L96 31" stroke="#ffe0bf" stroke-width="2.2" stroke-linecap="round"/>
+  <!-- Canal central alineado -->
+  <path d="M52 76 L92 36" stroke="#8f421d" stroke-width="2.6" stroke-linecap="round"/>
+  <!-- Empuñadura envuelta en cuero -->
+  <path d="M25 103 L42 86" fill="none" stroke="#1e1813" stroke-width="13.5" stroke-linecap="round"/>
+  <path d="M25 103 L42 86" fill="none" stroke="#52321e" stroke-width="8" stroke-linecap="round"/>
+  <path d="M28 96 L33 101 M34 90 L39 95" stroke="#24160d" stroke-width="2.2" stroke-linecap="round"/>
+  <!-- Guarda cruzada perpendicular exacta -->
+  <path d="M30 70 L35 65 L63 93 L58 98 L44 88 Z" fill="#b36d2d" stroke="#1e1813" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M34 69 L58 93" stroke="#e2a55c" stroke-width="2.2" stroke-linecap="round"/>
+  <!-- Pomo facetado centrado en (22, 106) -->
+  <polygon points="14,106 22,98 30,106 22,114" fill="#d99a45" stroke="#1e1813" stroke-width="3.6" stroke-linejoin="round"/>
+</svg>

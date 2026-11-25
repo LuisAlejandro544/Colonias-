@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Pico de cobre simétrico de minería estilo RimWorld -->
+  <ellipse cx="64" cy="108" rx="34" ry="8" fill="#18130e" opacity="0.22"/>
+  <!-- Mango de madera (termina dentro del casquillo central sin sobresalir atrás) -->
+  <path d="M24 104 L78 42" fill="none" stroke="#1e1813" stroke-width="15" stroke-linecap="round"/>
+  <path d="M24 104 L78 42" fill="none" stroke="#8a5a34" stroke-width="9" stroke-linecap="round"/>
+  <path d="M39 87 L73 48" fill="none" stroke="#aa764a" stroke-width="2.8" stroke-linecap="round" opacity="0.72"/>
+  <!-- Agarre de cuero -->
+  <path d="M24 104 L38 88" fill="none" stroke="#4a2c19" stroke-width="9.4" stroke-linecap="round"/>
+  <path d="M26 96 L33 101 M32 89 L39 94" stroke="#22140b" stroke-width="2.2" stroke-linecap="round"/>
+  <!-- Cabeza doble curvada y puntiaguda de cobre -->
+  <path d="M32 28 C52 21 73 24 89 38 C102 51 107 69 102 88 C95 72 89 58 78 48 C65 37 51 33 32 28 Z" fill="#c96b36" stroke="#1e1813" stroke-width="4.4" stroke-linejoin="round"/>
+  <!-- Bisel superior iluminado dentro de la hoja -->
+  <path d="M44 29 C60 26 75 30 87 41 C96 50 100 62 99 75 C94 61 88 50 79 42 C68 33 56 30 44 29 Z" fill="#eeaa73"/>
+  <path d="M55 31 C68 31 78 35 86 43 C93 50 96 58 97 66" fill="none" stroke="#ffe0bf" stroke-width="2.2" stroke-linecap="round"/>
+  <!-- Casquillo central alineado al eje del mango -->
+  <path d="M70 34 L82 28 L91 38 L83 49 L71 42 Z" fill="#93451e" stroke="#1e1813" stroke-width="3.2" stroke-linejoin="round"/>
+  <circle cx="80" cy="39" r="2.4" fill="#eab584"/>
+</svg>

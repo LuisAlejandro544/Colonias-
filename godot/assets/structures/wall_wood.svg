@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Bloque completo de pared de madera 2.5D estilo RimWorld (borde a borde 0..128) -->
+  <rect x="0" y="0" width="128" height="128" fill="#6b4528"/>
+  <!-- Cara superior iluminada (corona del muro) -->
+  <rect x="0" y="0" width="128" height="72" fill="#9e6d43"/>
+  <path d="M0 24 L128 24 M0 48 L128 48" stroke="#784f2c" stroke-width="2.6"/>
+  <path d="M16 12 L52 12 M78 12 L112 12 M22 36 L86 36 M18 60 L68 60 M84 60 L114 60" stroke="#b68356" stroke-width="2.4" stroke-linecap="round" opacity="0.72"/>
+  <!-- Cara frontal sombreada con tablones verticales -->
+  <rect x="0" y="72" width="128" height="56" fill="#633f23"/>
+  <path d="M32 72 L32 128 M64 72 L64 128 M96 72 L96 128" stroke="#452b16" stroke-width="2.6"/>
+  <path d="M0 98 L128 98" stroke="#7d5330" stroke-width="2" opacity="0.45"/>
+  <!-- Divisoria nítida entre corona superior y frente -->
+  <line x1="0" y1="72" x2="128" y2="72" stroke="#1e1813" stroke-width="3.6"/>
+  <!-- Remaches de refuerzo alineados -->
+  <circle cx="14" cy="14" r="2.6" fill="#3a332d"/>
+  <circle cx="114" cy="14" r="2.6" fill="#3a332d"/>
+  <circle cx="16" cy="84" r="2.6" fill="#3a332d"/>
+  <circle cx="112" cy="84" r="2.6" fill="#3a332d"/>
+  <!-- Contorno exterior limpio al ras de la casilla -->
+  <rect x="2" y="2" width="124" height="124" fill="none" stroke="#1e1813" stroke-width="4"/>
+</svg>

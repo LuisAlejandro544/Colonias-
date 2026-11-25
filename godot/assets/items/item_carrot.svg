@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Manojo de 3 zanahorias frescas con tallos unidos a cada corona -->
+  <ellipse cx="62" cy="96" rx="40" ry="13" fill="#18130e" opacity="0.30"/>
+  <!-- Zanahoria superior (raíz -> corona -> tallo propio) -->
+  <g>
+    <path d="M74 44 C86 30 98 22 108 24 C102 34 90 42 76 48 Z" fill="#4f853a" stroke="#1e1813" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M26 64 C42 52 60 40 72 38 C79 41 78 50 70 55 C52 61 34 67 26 64 Z" fill="#d16122" stroke="#1e1813" stroke-width="3.8" stroke-linejoin="round"/>
+    <path d="M38 59 C52 51 64 45 71 43" fill="none" stroke="#f29349" stroke-width="2.4" stroke-linecap="round"/>
+  </g>
+  <!-- Zanahoria inferior (raíz -> corona -> tallo propio) -->
+  <g>
+    <path d="M80 62 C95 50 109 48 114 55 C102 60 91 63 80 65 Z" fill="#5c9844" stroke="#1e1813" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M34 90 C50 79 68 66 80 60 C87 63 86 73 76 78 C58 86 41 93 34 90 Z" fill="#db6c28" stroke="#1e1813" stroke-width="3.8" stroke-linejoin="round"/>
+    <path d="M46 84 C60 76 71 69 78 65" fill="none" stroke="#f59b52" stroke-width="2.4" stroke-linecap="round"/>
+  </g>
+  <!-- Zanahoria central delantera (más grande) -->
+  <g>
+    <path d="M76 52 C88 37 104 34 112 40 C100 47 89 52 78 56 Z" fill="#68a84c" stroke="#1e1813" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M22 80 C42 66 64 51 77 47 C84 52 82 64 70 70 C52 79 32 85 22 80 Z" fill="#ee812f" stroke="#1e1813" stroke-width="4.2" stroke-linejoin="round"/>
+    <path d="M34 74 C50 64 64 55 74 51" fill="none" stroke="#ffad5e" stroke-width="3" stroke-linecap="round"/>
+    <path d="M51 64 L54 70 M63 57 L66 63 M40 71 L42 76" stroke="#9e4314" stroke-width="2.4" stroke-linecap="round"/>
+  </g>
+  <!-- Cuerda atando los tres cuellos juntos -->
+  <path d="M72 44 C78 53 80 63 77 73" fill="none" stroke="#1e1813" stroke-width="7" stroke-linecap="round"/>
+  <path d="M72 44 C78 53 80 63 77 73" fill="none" stroke="#d6b884" stroke-width="3.6" stroke-linecap="round"/>
+</svg>

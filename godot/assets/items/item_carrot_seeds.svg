@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Saco abierto de arpillera con semillas de zanahoria -->
+  <ellipse cx="62" cy="98" rx="36" ry="13" fill="#18130e" opacity="0.30"/>
+  <!-- Cuerpo del saco -->
+  <path d="M30 88 C24 68 30 46 42 40 L82 40 C94 46 100 68 94 88 C86 98 38 98 30 88 Z" fill="#bfa070" stroke="#1e1813" stroke-width="4.4" stroke-linejoin="round"/>
+  <path d="M74 44 C86 52 90 70 86 88 C78 94 64 95 56 94 C72 86 78 66 74 44 Z" fill="#a38458"/>
+  <!-- Borde doblado hacia afuera mostrando las semillas dentro -->
+  <ellipse cx="62" cy="40" rx="22" ry="11" fill="#4f3924" stroke="#1e1813" stroke-width="3.8"/>
+  <ellipse cx="55" cy="40" rx="4.5" ry="2.6" fill="#d4aa6a" stroke="#1e1813" stroke-width="1.4"/>
+  <ellipse cx="65" cy="38" rx="4.5" ry="2.6" fill="#c29555" stroke="#1e1813" stroke-width="1.4"/>
+  <ellipse cx="72" cy="42" rx="4.5" ry="2.6" fill="#d4aa6a" stroke="#1e1813" stroke-width="1.4"/>
+  <ellipse cx="58" cy="43" rx="4.2" ry="2.4" fill="#b88a4a" stroke="#1e1813" stroke-width="1.4"/>
+  <!-- Cuello enrollado y cuerda -->
+  <path d="M38 42 Q62 52 86 42" fill="none" stroke="#d9be8c" stroke-width="7" stroke-linecap="round"/>
+  <path d="M38 42 Q62 52 86 42" fill="none" stroke="#1e1813" stroke-width="2.6" stroke-linecap="round"/>
+  <!-- Emblema de zanahoria dibujado en el saco -->
+  <path d="M62 59 C67 59 69 64 66 72 L62 84 L58 72 C55 64 57 59 62 59 Z" fill="#e07529" stroke="#1e1813" stroke-width="2.5"/>
+  <path d="M57 57 L62 51 L67 57" fill="none" stroke="#4f823a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Semillitas derramadas en el suelo -->
+  <ellipse cx="98" cy="92" rx="4.8" ry="2.8" transform="rotate(-18 98 92)" fill="#c99c5b" stroke="#1e1813" stroke-width="2"/>
+  <ellipse cx="107" cy="86" rx="4.5" ry="2.6" transform="rotate(24 107 86)" fill="#b88a4a" stroke="#1e1813" stroke-width="2"/>
+  <ellipse cx="104" cy="96" rx="4.2" ry="2.5" fill="#d4aa6a" stroke="#1e1813" stroke-width="2"/>
+</svg>

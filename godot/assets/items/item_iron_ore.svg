@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Mena de hierro con vetas integradas en las facetas de la roca (estilo boulder_iron) -->
+  <ellipse cx="64" cy="96" rx="40" ry="14" fill="#18130e" opacity="0.30"/>
+  <polygon points="22,84 26,50 52,32 88,34 106,58 100,88 64,96 34,92" fill="#706b65" stroke="#1e1813" stroke-width="4.5" stroke-linejoin="round"/>
+  <polygon points="52,32 88,34 78,60 44,56" fill="#89837b"/>
+  <polygon points="78,60 106,58 100,88 64,96 68,74" fill="#57534d"/>
+  <path d="M44 56 L78 60 L68 74 M26 50 L44 56" fill="none" stroke="#423e39" stroke-width="2.6" stroke-linecap="round"/>
+  <!-- Vetas ferrosas incrustadas siguiendo los planos de fractura -->
+  <polygon points="36,68 55,60 66,72 48,82" fill="#9d5837" stroke="#4f2b1a" stroke-width="2.2" stroke-linejoin="round"/>
+  <polygon points="41,68 54,62 59,68 48,74" fill="#bd6f49"/>
+  <polygon points="73,43 92,46 95,60 77,57" fill="#a8623f" stroke="#4f2b1a" stroke-width="2.2" stroke-linejoin="round"/>
+  <polygon points="77,46 90,48 90,55 79,53" fill="#c77b54"/>
+  <polygon points="69,78 83,75 86,85 72,87" fill="#8f4c2e" stroke="#4f2b1a" stroke-width="2" stroke-linejoin="round"/>
+</svg>

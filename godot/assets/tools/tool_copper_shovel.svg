@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Pala de cobre con empuñadura abierta en D y casquillo integrado -->
+  <ellipse cx="64" cy="108" rx="34" ry="8" fill="#18130e" opacity="0.22"/>
+  <!-- Empuñadura abierta en D (hueco transparente interior) -->
+  <path d="M13 94 L34 115 M15 95 C23 89 30 90 34 94 C38 98 39 105 33 113" fill="none" stroke="#1e1813" stroke-width="10.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M13 94 L34 115 M15 95 C23 89 30 90 34 94 C38 98 39 105 33 113" fill="none" stroke="#9b663c" stroke-width="5.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Astil recto alineado al eje 45° (x + y = 128) -->
+  <path d="M33 95 L68 60" fill="none" stroke="#1e1813" stroke-width="14" stroke-linecap="round"/>
+  <path d="M33 95 L68 60" fill="none" stroke="#8a5a34" stroke-width="8.4" stroke-linecap="round"/>
+  <path d="M37 91 L63 65" fill="none" stroke="#aa764a" stroke-width="2.6" stroke-linecap="round" opacity="0.72"/>
+  <!-- Hoja acopada simétrica de cobre -->
+  <path d="M62 46 L72 56 L82 66 C95 57 107 40 109 19 C88 21 71 33 62 46 Z" fill="#c96b36" stroke="#1e1813" stroke-width="4.4" stroke-linejoin="round"/>
+  <!-- Mitad superior iluminada y nervio central -->
+  <path d="M67 47 L73 53 L104 24 C88 26 75 35 67 47 Z" fill="#eeaa73"/>
+  <path d="M74 54 L102 26" stroke="#ffe0bf" stroke-width="2.3" stroke-linecap="round"/>
+  <!-- Casquillo tubular uniendo astil y hoja sin escalones -->
+  <path d="M58 61 L69 50 L78 59 L67 70 Z" fill="#93451e" stroke="#1e1813" stroke-width="3.2" stroke-linejoin="round"/>
+  <circle cx="68" cy="60" r="2.2" fill="#eab584"/>
+</svg>

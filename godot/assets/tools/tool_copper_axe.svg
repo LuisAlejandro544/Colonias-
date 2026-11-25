@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Hacha de cobre barbuda estilo RimWorld con encastre sólido y contorno limpio -->
+  <ellipse cx="64" cy="108" rx="34" ry="8" fill="#18130e" opacity="0.22"/>
+  <!-- Mango curvado de fresno (termina dentro del ojo de la cabeza) -->
+  <path d="M24 104 C42 84 58 63 76 42" fill="none" stroke="#1e1813" stroke-width="15" stroke-linecap="round"/>
+  <path d="M24 104 C42 84 58 63 76 42" fill="none" stroke="#8a5a34" stroke-width="9" stroke-linecap="round"/>
+  <path d="M40 86 C52 72 62 59 72 47" fill="none" stroke="#aa764a" stroke-width="2.8" stroke-linecap="round" opacity="0.72"/>
+  <!-- Empuñadura de cuero en la base del mango -->
+  <path d="M23 105 C28 99 34 92 40 85" fill="none" stroke="#4a2c19" stroke-width="9.4" stroke-linecap="round"/>
+  <path d="M25 97 L32 102 M31 90 L38 95" stroke="#22140b" stroke-width="2.2" stroke-linecap="round"/>
+  <!-- Cabeza de hacha barbuda en cobre (maza trasera + cuello + hoja curva) -->
+  <path d="M61 33 L73 20 C84 22 96 22 104 25 C112 38 110 56 98 70 C89 58 82 50 72 46 L61 36 Z" fill="#c96b36" stroke="#1e1813" stroke-width="4.4" stroke-linejoin="round"/>
+  <!-- Bisel brillante del filo -->
+  <path d="M97 29 C104 38 103 52 96 63 C91 55 88 46 90 36 C91 32 93 30 97 29 Z" fill="#eeaa73"/>
+  <path d="M99 33 C103 41 102 51 97 58" fill="none" stroke="#ffe0bf" stroke-width="2.4" stroke-linecap="round"/>
+  <!-- Ojo de encastre remachado contenido dentro de la cabeza -->
+  <path d="M67 34 L75 25 L83 33 L74 43 Z" fill="#93451e" stroke="#1e1813" stroke-width="2.8" stroke-linejoin="round"/>
+  <circle cx="75" cy="34" r="2.2" fill="#eab584"/>
+</svg>

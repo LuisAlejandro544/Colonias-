@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <!-- Corona dorada artesanal del Líder de Colonia -->
+  <path d="M11 45 L8 20 L22 31 L32 12 L42 31 L56 20 L53 45 Z" fill="#e5b34b" stroke="#1e1813" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M14 43 L11.5 24.5 L22.5 33 L32 16 L36 27 L24 43 Z" fill="#f7cf72" opacity="0.65"/>
+  <rect x="11" y="42" width="42" height="9.5" rx="3" fill="#c28529" stroke="#1e1813" stroke-width="3.6"/>
+  <circle cx="32" cy="46.8" r="3" fill="#b83f2e" stroke="#1e1813" stroke-width="1.6"/>
+  <circle cx="32" cy="12" r="4" fill="#fff2bd" stroke="#1e1813" stroke-width="2.4"/>
+  <circle cx="8.5" cy="19.5" r="3.2" fill="#fff2bd" stroke="#1e1813" stroke-width="2.2"/>
+  <circle cx="55.5" cy="19.5" r="3.2" fill="#fff2bd" stroke="#1e1813" stroke-width="2.2"/>
+</svg>
