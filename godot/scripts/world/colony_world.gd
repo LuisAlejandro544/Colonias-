@@ -361,8 +361,10 @@ func _unhandled_input(event: InputEvent) -> void:
 				_press_screen_pos = touch.position
 				_drag_moved = false
 			elif _active_touches.size() == 2:
-				var pts := _active_touches.values()
-				_last_pinch_dist = pts[0].distance_to(pts[1])
+				var pts: Array = _active_touches.values()
+				var p0 := pts[0] as Vector2
+				var p1 := pts[1] as Vector2
+				_last_pinch_dist = p0.distance_to(p1)
 		else:
 			if _active_touches.size() == 1 and not _drag_moved:
 				_handle_world_tap(touch.position)
@@ -379,10 +381,12 @@ func _unhandled_input(event: InputEvent) -> void:
 			_pan_camera(-drag.relative)
 		elif _active_touches.size() == 2:
 			_drag_moved = true
-			var pts := _active_touches.values()
-			var dist := pts[0].distance_to(pts[1])
+			var pts: Array = _active_touches.values()
+			var p0 := pts[0] as Vector2
+			var p1 := pts[1] as Vector2
+			var dist: float = p0.distance_to(p1)
 			if _last_pinch_dist > 0.0:
-				var ratio := (dist - _last_pinch_dist) * 0.004 * SettingsManager.zoom_speed
+				var ratio: float = (dist - _last_pinch_dist) * 0.004 * SettingsManager.zoom_speed
 				_apply_zoom_delta(ratio)
 			_last_pinch_dist = dist
 
