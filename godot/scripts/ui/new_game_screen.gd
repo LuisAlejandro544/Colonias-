@@ -1,9 +1,9 @@
 # Pantalla 2: Configuración de Nueva Partida (Colonia Terrestre).
 #
-# Lógica: Permite al jugador elegir el nombre de su colonia, una semilla
-# procedural aleatoria o manual, el bioma de la Tierra (Bosque Templado,
-# Pradera Fértil o Sierra Rocosa), el tamaño del mapa, el número de colonos
-# iniciales y la ranura de guardado destino antes de lanzar la simulación.
+# Lógica: Permite al jugador elegir el nombre de su colonia, la cantidad de
+# colonos iniciales y la ranura de guardado destino. Tanto la semilla como el
+# bioma y las dimensiones del terreno se generan aleatoriamente en segundo plano
+# sin mostrarse al usuario para que cada expedición sea un descubrimiento único.
 
 extends Control
 
@@ -16,20 +16,22 @@ const COLONY_NAMES := [
 	"Puerto Arroyo",
 ]
 
+const EARTH_BIOMES := [
+	"temperate_forest",
+	"fertile_meadow",
+	"rocky_highlands",
+]
+
 var _name_input: LineEdit
-var _seed_input: LineEdit
-var _biome_code: String = "temperate_forest"
-var _map_size: int = 64
 var _colonists_count: int = 4
 var _target_slot: int = 1
 
-var _biome_buttons: Dictionary = {}
-var _size_buttons: Dictionary = {}
 var _slot_buttons: Dictionary = {}
 var _colonist_label: Label
 
 
 func _ready() -> void:
+	randomize()
 	_target_slot = _pick_default_slot()
 	_build_ui()
 
@@ -87,7 +89,7 @@ func _build_ui() -> void:
 	cols.add_theme_constant_override("separation", 22)
 	scroll.add_child(cols)
 
-	# Columna izquierda: Identidad, Semilla y Bioma
+	# Columna izquierda: Identidad, Colonos iniciales y nota de expedición
 	var left_panel := PanelContainer.new()
 	left_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	UiTheme.apply_panel_style(left_panel, UiTheme.BG_PANEL, UiTheme.BORDER_BRASS, 14, 24, 22)
@@ -117,68 +119,10 @@ func _build_ui() -> void:
 	)
 	name_row.add_child(rand_name_btn)
 
-	left_v.add_child(_section_label("Semilla del mundo procedural"))
-	var seed_row := HBoxContainer.new()
-	seed_row.add_theme_constant_override("separation", 12)
-	left_v.add_child(seed_row)
-
-	_seed_input = LineEdit.new()
-	_seed_input.text = str(randi_range(10000, 999999))
-	_seed_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	UiTheme.style_line_edit(_seed_input, 54, 20)
-	seed_row.add_child(_seed_input)
-
-	var rand_seed_btn := Button.new()
-	rand_seed_btn.text = "Nueva Semilla"
-	UiTheme.style_button(rand_seed_btn, "secondary", 54, 20)
-	rand_seed_btn.pressed.connect(func():
-		UiTheme.trigger_touch_feedback()
-		_seed_input.text = str(randi_range(10000, 999999))
-	)
-	seed_row.add_child(rand_seed_btn)
-
-	left_v.add_child(_section_label("Bioma terrestre"))
-	var biomes := [
-		{"code": "temperate_forest", "title": "Bosque Templado", "desc": "Abundantes robles, pinos y suelo equilibrado."},
-		{"code": "fertile_meadow", "title": "Pradera Fértil", "desc": "Amplios pastizales fértiles ideales para crecer."},
-		{"code": "rocky_highlands", "title": "Sierra Rocosa", "desc": "Rocas de granito y vetas de hierro expuestas."},
-	]
-	for b in biomes:
-		var btn := Button.new()
-		btn.text = "%s — %s" % [b["title"], b["desc"]]
-		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		btn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		btn.pressed.connect(_select_biome.bind(b["code"]))
-		left_v.add_child(btn)
-		_biome_buttons[b["code"]] = btn
-
-	# Columna derecha: Tamaño, Colonos y Ranura
-	var right_panel := PanelContainer.new()
-	right_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	UiTheme.apply_panel_style(right_panel, UiTheme.BG_PANEL, UiTheme.BORDER_BRASS, 14, 24, 22)
-	cols.add_child(right_panel)
-
-	var right_v := VBoxContainer.new()
-	right_v.add_theme_constant_override("separation", 16)
-	right_panel.add_child(right_v)
-
-	right_v.add_child(_section_label("Tamaño del mapa"))
-	var size_row := HBoxContainer.new()
-	size_row.add_theme_constant_override("separation", 12)
-	right_v.add_child(size_row)
-
-	for sz in [64, 96, 128]:
-		var btn := Button.new()
-		btn.text = "%dx%d" % [sz, sz]
-		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		btn.pressed.connect(_select_size.bind(sz))
-		size_row.add_child(btn)
-		_size_buttons[sz] = btn
-
-	right_v.add_child(_section_label("Colonos iniciales"))
+	left_v.add_child(_section_label("Colonos iniciales"))
 	var col_row := HBoxContainer.new()
 	col_row.add_theme_constant_override("separation", 14)
-	right_v.add_child(col_row)
+	left_v.add_child(col_row)
 
 	var minus_btn := Button.new()
 	minus_btn.text = "  -  "
@@ -206,6 +150,35 @@ func _build_ui() -> void:
 		_colonist_label.text = "%d colonos listos para descender" % _colonists_count
 	)
 	col_row.add_child(plus_btn)
+
+	var note_card := PanelContainer.new()
+	UiTheme.apply_panel_style(note_card, UiTheme.BG_PANEL_ALT, UiTheme.BORDER_BRASS, 12, 18, 16)
+	left_v.add_child(note_card)
+
+	var note_v := VBoxContainer.new()
+	note_v.add_theme_constant_override("separation", 8)
+	note_card.add_child(note_v)
+
+	var note_head := Label.new()
+	note_head.text = "Expedición en Terreno Desconocido"
+	UiTheme.style_section_label(note_head, 19)
+	note_v.add_child(note_head)
+
+	var note_body := Label.new()
+	note_body.text = "El entorno natural, los recursos minerales y los bosques se generan automáticamente al iniciar para que cada colonia explore un lugar distinto."
+	note_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiTheme.style_subtitle(note_body, 17)
+	note_v.add_child(note_body)
+
+	# Columna derecha: Ranura de guardado
+	var right_panel := PanelContainer.new()
+	right_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UiTheme.apply_panel_style(right_panel, UiTheme.BG_PANEL, UiTheme.BORDER_BRASS, 14, 24, 22)
+	cols.add_child(right_panel)
+
+	var right_v := VBoxContainer.new()
+	right_v.add_theme_constant_override("separation", 16)
+	right_panel.add_child(right_v)
 
 	right_v.add_child(_section_label("Ranura de guardado destino"))
 	for slot_info in SaveManager.list_slots():
@@ -243,18 +216,6 @@ func _section_label(txt: String) -> Label:
 	return lbl
 
 
-func _select_biome(code: String) -> void:
-	UiTheme.trigger_touch_feedback()
-	_biome_code = code
-	_refresh_selection_styles()
-
-
-func _select_size(sz: int) -> void:
-	UiTheme.trigger_touch_feedback()
-	_map_size = sz
-	_refresh_selection_styles()
-
-
 func _select_slot(slot_idx: int) -> void:
 	UiTheme.trigger_touch_feedback()
 	_target_slot = slot_idx
@@ -262,12 +223,8 @@ func _select_slot(slot_idx: int) -> void:
 
 
 func _refresh_selection_styles() -> void:
-	for code in _biome_buttons.keys():
-		UiTheme.style_button(_biome_buttons[code], "amber" if code == _biome_code else "secondary", 58, 19)
-	for sz in _size_buttons.keys():
-		UiTheme.style_button(_size_buttons[sz], "amber" if sz == _map_size else "secondary", 54, 20)
 	for idx in _slot_buttons.keys():
-		UiTheme.style_button(_slot_buttons[idx], "amber" if idx == _target_slot else "secondary", 54, 19)
+		UiTheme.style_button(_slot_buttons[idx], "amber" if idx == _target_slot else "secondary", 56, 19)
 
 
 func _on_back_pressed() -> void:
@@ -277,16 +234,16 @@ func _on_back_pressed() -> void:
 
 func _on_start_pressed() -> void:
 	UiTheme.trigger_touch_feedback()
-	var raw_seed := _seed_input.text.strip_edges()
-	var parsed_seed := int(raw_seed.hash()) if not raw_seed.is_valid_int() else int(raw_seed)
-	if parsed_seed == 0:
-		parsed_seed = 24819
+	randomize()
+	var random_seed := randi_range(100000, 999999999)
+	var random_biome: String = EARTH_BIOMES[randi() % EARTH_BIOMES.size()]
+	var random_size := 64 if randf() < 0.6 else 80
 	GameSession.start_new_colony(
 		_target_slot,
 		_name_input.text,
-		parsed_seed,
-		_biome_code,
-		_map_size,
+		random_seed,
+		random_biome,
+		random_size,
 		_colonists_count
 	)
 	get_tree().change_scene_to_file("res://scenes/ui/loading_screen.tscn")

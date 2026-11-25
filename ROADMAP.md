@@ -8,7 +8,7 @@ Hoja de ruta modular para llevar **Colonia Centinela** desde la base técnica ac
 
 - [x] Puente nativo **Godot 4.7.2 ↔ Rust 1.100.0** (`godot = "=0.5.5"`, `api-4-7`) para Android 32 y 64 bits.
 - [x] Interfaz cálida multipantalla (Menú Principal con diorama, Nueva Partida, 3 Ranuras de Guardado en JSON y Ajustes persistentes).
-- [x] Generador procedural terrestre por semilla con 3 biomas (*Bosque Templado*, *Pradera Fértil*, *Sierra Rocosa*).
+- [x] Generador procedural terrestre aleatorio y oculto al jugador con 3 biomas internos (*Bosque Templado*, *Pradera Fértil*, *Sierra Rocosa*).
 - [x] Assets vectoriales `.svg` estilo RimWorld (suelos, robles, pinos, arbolitos, rocas de granito/hierro, piedras sueltas y colonos por capas).
 - [x] Movimiento autónomo básico y cámara centinela táctil.
 - [x] Flujo manual en GitHub Actions para APKs Debug separados y firmados.
@@ -27,11 +27,13 @@ Hoja de ruta modular para llevar **Colonia Centinela** desde la base técnica ac
 
 ## Fase 3 — Construcción Modular, Cultivo de Zanahorias y Navegación A* *(En progreso)*
 
-- [x] **Zona de construcción con madera:** Planos y construcción de **bloques/paredes de madera** (`2` de madera por bloque) que bloquean el paso.
+- [x] **Menú de Construcción y Zonas:** Popup dedicado para elegir **Zona de Almacenamiento**, **Zona de Cultivo (Zanahorias)** y planos de **Pared de Madera** (`2` de madera por bloque) que bloquean el paso.
 - [x] **Zona de cultivo agrícola (Zanahorias):** Arado con azada de cobre, siembra de semillas de zanahoria, 4 etapas de crecimiento `.svg` y cosecha con recuperación de semillas.
+- [x] **Inventario personal por ranuras en colonos:** Espacios para futuro casco, futura armadura, herramienta en la **espalda** (visible detrás del colono), **mano principal** y carga en mochila, con popup de inspección en el HUD.
+- [x] **Energía y sueño en el suelo:** Gasto de energía al trabajar o caminar y descanso en el suelo al fatigarse, con postura acostada y partículas `.svg` `Zzz` animadas.
 - [x] **Navegación inteligente (*pathfinding* A* en Rust)** sobre la grilla dinámica al construir muros o despejar árboles/rocas.
-- [ ] Puertas de madera, suelos construidos, fogatas, camas y mesas de trabajo.
-- [ ] Necesidades de colonos: energía/sueño, hambre (consumo de zanahorias), salud y estado de ánimo con pensamientos terrestres.
+- [ ] Puertas de madera, suelos construidos, fogatas, camas y mesas de trabajo, además de cascos y armaduras equipables.
+- [ ] Necesidades pendientes: hambre (consumo de zanahorias), salud y estado de ánimo con pensamientos terrestres.
 - [ ] Ciclo día/noche visual y estaciones terrestres (lluvia, temperatura ambiente, crecimiento de arbolitos).
 
 ---
@@ -48,5 +50,5 @@ Hoja de ruta modular para llevar **Colonia Centinela** desde la base técnica ac
 ## Fase 5 — Eventos, Audio y Distribución APK
 
 - [ ] Eventos dinámicos terrestres (caravanas comerciales, brotes de clima extremo, fauna local, incursiones con uso de la espada de cobre).
-- [ ] Música ambiental acústica y efectos de sonido conectados a los sliders de `SettingsManager`.
+- [x] Efectos de sonido de talar, picar y construir (`.ogg` CC0) sincronizados desde Rust y conectados a `SettingsManager` *(pendiente: música ambiental acústica)*.
 - [ ] Generación de APKs Release optimizados y firmados listos para publicación en Uptodown y descarga directa.

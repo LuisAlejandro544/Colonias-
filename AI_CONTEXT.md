@@ -8,6 +8,7 @@ Este documento resume las decisiones arquitectónicas, versiones fijadas, restri
 
 - **Juego:** Colonia Centinela — simulación de colonias 2D en vista centinela (estilo *RimWorld*), ambientada **exclusivamente en la Tierra**, con progresión desde herramientas básicas de cobre hacia tecnología terrestre avanzada.
 - **Líder de Colonia y cadena de mando:** Un colono aleatorio actúa como Líder de Colonia. Las órdenes marcadas por el jugador (talar, minar, almacén, cultivo, construcción) pasan por una reunión o trato personal del líder con los colonos antes de ejecutarse.
+- **Generación aleatoria oculta:** La semilla, el bioma y el tamaño del terreno se generan aleatoriamente en `new_game_screen.gd` y se persisten únicamente de forma interna en el JSON de guardado. **Nunca** deben mostrarse en la interfaz de usuario (ni en Nueva Partida, Carga, Ranuras ni HUD).
 - **Plataforma:** **Juego móvil Android** (NO web). Los APKs se distribuyen de forma directa (terceros / Uptodown), no orientados a Google Play `.aab`.
 - **Entorno del creador:** Trabaja desde un teléfono móvil (sin PC), por lo que depende de la compilación automatizada en GitHub Actions.
 - **Entorno web (`src/`):** Debe permanecer únicamente como un `"Hello World"` limpio que compile con `vite build` y `tsc --noEmit`.
@@ -34,6 +35,10 @@ Este documento resume las decisiones arquitectónicas, versiones fijadas, restri
 - **Sin `android-actions/setup-android`:** Esa acción intenta instalar el paquete obsoleto `tools` eliminado por Google (`Failed to find package 'tools'`). El workflow usa directamente el `sdkmanager` preinstalado en el runner Ubuntu.
 - **Validación estricta de firma:** Exige los 4 secretos (`ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`) al inicio y firma/verifica ambos APKs con `zipalign` + `apksigner`.
 
-### E. Licencias y derechos de autor
+### E. Licencias, audio y derechos de autor
 - Usar únicamente nombres originales (sin marcas registradas).
 - No incorporar dependencias ni assets que obliguen a abrir el código fuente del proyecto o imponer atribuciones restrictivas (no GPL/AGPL).
+- Los efectos de sonido en `godot/assets/audio/*.ogg` provienen de *Kenney Impact Sounds* bajo licencia **CC0 1.0 Universal (Dominio Público)**, disparados mediante `sfx_events` desde `ColonySimulation` hacia un pool de `AudioStreamPlayer` en `colony_world.gd`.
+
+### F. Inventario de colonos y sueño en el suelo
+- Cada colono usa `ColonistInventory` (`rust/src/colony_types.rs`) con `helmet_slot`, `armor_slot`, `back_tool` y `main_hand` (con intercambio automático al equipar o guardar herramientas) además de energía (`energy`) para acostarse en el suelo (`ColonistActivity::Sleeping`) con partículas `.svg` `sleep_zzz.svg`.

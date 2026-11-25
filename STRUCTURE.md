@@ -24,7 +24,12 @@ Arquitectura modular separada en núcleo nativo (**Rust**), motor de escenas/UI 
 │   │   │   ├── pawn_hair_bob.svg        # Peinado melena
 │   │   │   ├── pawn_hair_ponytail.svg   # Peinado coleta
 │   │   │   ├── leader_crown.svg         # Corona/insignia dorada del Líder de Colonia
-│   │   │   └── meeting_bubble.svg       # Globo de diálogo cuando el líder reúne y da órdenes
+│   │   │   ├── meeting_bubble.svg       # Globo de diálogo cuando el líder reúne y da órdenes
+│   │   │   └── sleep_zzz.svg            # Partícula vectorial animada "Zzz" al dormir en el suelo
+│   │   ├── audio/                       # Efectos de sonido .ogg (Kenney Impact Sounds, CC0 1.0)
+│   │   │   ├── chop_01.ogg .. 03.ogg    # Impactos de hacha al talar madera
+│   │   │   ├── mine_01.ogg .. 03.ogg    # Golpes de pico sobre roca y vetas minerales
+│   │   │   └── build_01.ogg .. 03.ogg   # Golpes de construcción de paredes de madera
 │   │   ├── tools/
 │   │   │   ├── tool_copper_axe.svg      # Hacha de cobre
 │   │   │   ├── tool_copper_pickaxe.svg  # Pico de cobre
@@ -79,16 +84,16 @@ Arquitectura modular separada en núcleo nativo (**Rust**), motor de escenas/UI 
 │       │   └── game_session.gd          # Estado activo compartido entre menús y mundo
 │       ├── ui/
 │       │   ├── main_menu.gd             # Portada con diorama vivo y botones de navegación
-│       │   ├── new_game_screen.gd       # Selector de nombre, semilla, bioma, mapa, colonos y ranura
+│       │   ├── new_game_screen.gd       # Nombre de colonia, cantidad de colonos y ranura (semilla/terreno aleatorios ocultos)
 │       │   ├── save_slots_screen.gd     # Tarjetas de ranuras + popup de confirmación al borrar
 │       │   ├── settings_screen.gd       # Sliders de audio, escala táctil y sensibilidad de cámara
 │       │   └── loading_screen.gd        # Carga asíncrona con progreso hacia el mundo 2D
 │       └── world/
-│           ├── colony_world.gd          # Orquestador del mapa, props, muros, ítems, cámara y selección táctil
+│           ├── colony_world.gd          # Orquestador del mapa, props, muros, ítems, cámara, pool de audio SFX y selección
 │           ├── ground_canvas.gd         # Lienzo optimizado del suelo terrestre visible en cámara
 │           ├── world_overlay.gd         # Capa de zonas, cultivos de zanahoria, marcas y arrastre de selección
-│           ├── colonist_visual.gd       # Ensamblado por capas: colono, corona de líder, herramientas y carga
-│           └── world_hud.gd             # Barra superior (líder e inventario), selector inferior, inspector y menú
+│           ├── colonist_visual.gd       # Ensamblado por capas: colono, corona, herramienta en mano/espalda, carga y Zzz
+│           └── world_hud.gd             # Barra superior, selector inferior, menú de construcción, inspector e inventario
 ├── rust/
 │   ├── Cargo.toml                       # Crate cdylib `colonia_core` (godot =0.5.5, api-4-7)
 │   ├── rust-toolchain.toml              # Fija Rust 1.100.0 + targets ARM64 y ARMv7
@@ -98,9 +103,9 @@ Arquitectura modular separada en núcleo nativo (**Rust**), motor de escenas/UI 
 │       ├── noise.rs                     # RNG determinista SplitMix64 y ruido fractal 2D (FBM)
 │       ├── world_gen.rs                 # Generación procedural de piso, árboles, arbolitos, rocas y piedras
 │       ├── tools.rs                     # Catálogo de herramientas de cobre (hacha, pico, pala, azada, espada)
-│       ├── colony_types.rs              # Modelos puros de ítems, zonas, cultivos, paredes, órdenes e inventario
+│       ├── colony_types.rs              # Modelos de ítems, zonas, cultivos, paredes, órdenes e inventario por ranuras
 │       ├── pathfinding.rs               # Pathfinding A* acotado sobre obstáculos y paredes dinámicas
-│       └── colonist_sim.rs              # Simulación de colonos, líder aleatorio, reuniones, tareas y guardado
+│       └── colonist_sim.rs              # Simulación de colonos, líder, energía/sueño, eventos SFX y guardado
 ├── scripts/
 │   └── build_android.sh                 # Compila Rust (ARM64 + ARMv7 + host Linux) y exporta APKs en Godot
 ├── src/                                 # Marcador web mínimo ("Hello World") para el entorno de vista previa
@@ -120,5 +125,5 @@ Arquitectura modular separada en núcleo nativo (**Rust**), motor de escenas/UI 
 
 ## Frontera de datos Rust ↔ Godot
 
-- **`WorldGenerator` (`rust/src/world_gen.rs`)**: recibe `(seed, width, height, biome_code)` y devuelve un `VarDictionary` con `PackedInt32Array` para `ground`, `props` y `blocked`.
-- **`ColonySimulation` (`rust/src/colonist_sim.rs`)**: recibe las órdenes por área (`designate_area`), gestiona al Líder de Colonia y sus reuniones, avanza cultivos, pathfinding A* y colonos en `step_simulation(delta)` y entrega `get_colonists_snapshot()`, `get_world_snapshot(force_full)` y `export_save_state()` para sincronizar visuales, HUD y JSON en `SaveManager`.
+- **`WorldGenerator` (`rust/src/world_gen.rs`)**: recibe `(seed, width, height, biome_code)` generados aleatoriamente de forma interna y devuelve un `VarDictionary` con `PackedInt32Array` para `ground`, `props` y `blocked`.
+- **`ColonySimulation` (`rust/src/colonist_sim.rs`)**: recibe las órdenes por área (`designate_area`), gestiona al Líder de Colonia y sus reuniones, avanza cultivos, energía/sueño, ranuras de inventario (`ColonistInventory`), pathfinding A* y colonos en `step_simulation(delta)`, y entrega `get_colonists_snapshot()`, `get_world_snapshot(force_full)` (incluyendo `sfx_events` para audio) y `export_save_state()` para sincronizar visuales, HUD y JSON en `SaveManager`.

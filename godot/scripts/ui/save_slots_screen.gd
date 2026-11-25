@@ -142,13 +142,9 @@ func _refresh_slots() -> void:
 			title.text = "Ranura %d — %s" % [slot_idx, info["colony_name"]]
 			UiTheme.style_title(title, 25)
 
-			sub.text = "Bioma: %s  •  Colonos: %d  •  Día %d  •  Mapa %dx%d  •  Semilla %d\nGuardado: %s" % [
-				info["biome_label"],
+			sub.text = "Colonos: %d  •  Día %d\nGuardado: %s" % [
 				info["colonist_count"],
 				info["day"],
-				info["map_size"],
-				info["map_size"],
-				info["seed"],
 				info["saved_at"],
 			]
 			UiTheme.style_subtitle(sub, 17)

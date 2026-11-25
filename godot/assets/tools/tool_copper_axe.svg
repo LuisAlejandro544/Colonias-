@@ -1,19 +1,29 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
-  <!-- Hacha de cobre barbuda estilo RimWorld con encastre sólido y contorno limpio -->
-  <ellipse cx="64" cy="108" rx="34" ry="8" fill="#18130e" opacity="0.22"/>
-  <!-- Mango curvado de fresno (termina dentro del ojo de la cabeza) -->
-  <path d="M24 104 C42 84 58 63 76 42" fill="none" stroke="#1e1813" stroke-width="15" stroke-linecap="round"/>
-  <path d="M24 104 C42 84 58 63 76 42" fill="none" stroke="#8a5a34" stroke-width="9" stroke-linecap="round"/>
-  <path d="M40 86 C52 72 62 59 72 47" fill="none" stroke="#aa764a" stroke-width="2.8" stroke-linecap="round" opacity="0.72"/>
-  <!-- Empuñadura de cuero en la base del mango -->
-  <path d="M23 105 C28 99 34 92 40 85" fill="none" stroke="#4a2c19" stroke-width="9.4" stroke-linecap="round"/>
-  <path d="M25 97 L32 102 M31 90 L38 95" stroke="#22140b" stroke-width="2.2" stroke-linecap="round"/>
-  <!-- Cabeza de hacha barbuda en cobre (maza trasera + cuello + hoja curva) -->
-  <path d="M61 33 L73 20 C84 22 96 22 104 25 C112 38 110 56 98 70 C89 58 82 50 72 46 L61 36 Z" fill="#c96b36" stroke="#1e1813" stroke-width="4.4" stroke-linejoin="round"/>
-  <!-- Bisel brillante del filo -->
-  <path d="M97 29 C104 38 103 52 96 63 C91 55 88 46 90 36 C91 32 93 30 97 29 Z" fill="#eeaa73"/>
-  <path d="M99 33 C103 41 102 51 97 58" fill="none" stroke="#ffe0bf" stroke-width="2.4" stroke-linecap="round"/>
-  <!-- Ojo de encastre remachado contenido dentro de la cabeza -->
-  <path d="M67 34 L75 25 L83 33 L74 43 Z" fill="#93451e" stroke="#1e1813" stroke-width="2.8" stroke-linejoin="round"/>
-  <circle cx="75" cy="34" r="2.2" fill="#eab584"/>
+  <defs>
+    <!-- Degradado claro únicamente en el borde afilado convexo -->
+    <linearGradient id="axeBladeEdge" x1="87" y1="45" x2="104" y2="54" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#c96b36"/>
+      <stop offset="48%" stop-color="#e5975b"/>
+      <stop offset="85%" stop-color="#f7c492"/>
+      <stop offset="100%" stop-color="#ffe7cc"/>
+    </linearGradient>
+  </defs>
+  <!-- Hacha de cobre compacta con cuello estrecho y filo curvo convexo sin estirarse hacia arriba -->
+  <ellipse cx="64" cy="109" rx="34" ry="7.5" fill="#18130e" opacity="0.22"/>
+  <!-- Mango de madera curvado -->
+  <path d="M22 105 C39 86 56 64 74 38" fill="none" stroke="#1e1813" stroke-width="15" stroke-linecap="round"/>
+  <path d="M22 105 C39 86 56 64 74 38" fill="none" stroke="#8a5a34" stroke-width="9" stroke-linecap="round"/>
+  <path d="M40 85 C51 72 60 59 70 46" fill="none" stroke="#b37f52" stroke-width="2.6" stroke-linecap="round" opacity="0.78"/>
+  <!-- Empuñadura de cuero -->
+  <path d="M22 105 C28 98 34 91 40 83" fill="none" stroke="#4a2c19" stroke-width="9.4" stroke-linecap="round"/>
+  <path d="M25 96 L31 101 M30 89 L37 94 M36 83 L42 87" stroke="#22140b" stroke-width="2" stroke-linecap="round"/>
+  <!-- Cabeza metálica compacta: maza trasera + cuello estrecho + ensanche hacia filo convexo -->
+  <path d="M62 41 L69 32 C76 37 85 38 97 37 C106 45 103 59 89 66 C84 55 77 49 69 47 Z" fill="#c96b36" stroke="#1e1813" stroke-width="4.4" stroke-linejoin="round"/>
+  <!-- Degradado claro aplicado únicamente sobre el borde afilado convexo -->
+  <path d="M95 39 C103 46 101 58 89 63 C92 54 92 45 90 39 Z" fill="url(#axeBladeEdge)"/>
+  <!-- Sombra forjada en el cuello estrecho -->
+  <path d="M74 42 C78 44 82 46 86 52 C81 48 77 46 72 45 Z" fill="#9c4820" opacity="0.65"/>
+  <!-- Collarín sujetado al mango -->
+  <path d="M65 39 L72 31 L80 38 L73 47 Z" fill="#8f401c" stroke="#1e1813" stroke-width="3" stroke-linejoin="round"/>
+  <circle cx="72.5" cy="39" r="1.9" fill="#eab584"/>
 </svg>

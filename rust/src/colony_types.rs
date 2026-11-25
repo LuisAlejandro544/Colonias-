@@ -144,6 +144,7 @@ pub enum ColonistActivity {
     Resting,
     Wandering,
     Scouting,
+    Sleeping,
     ConveningMeeting,
     AttendingMeeting,
     MovingToTask,
@@ -160,6 +161,7 @@ impl ColonistActivity {
             Self::Resting => "Observando el claro",
             Self::Wandering => "Recorriendo la colonia",
             Self::Scouting => "Inspeccionando el entorno",
+            Self::Sleeping => "Durmiendo en el suelo",
             Self::ConveningMeeting => "Reuniendo colonos para dar órdenes",
             Self::AttendingMeeting => "Escuchando instrucciones del líder",
             Self::MovingToTask => "En camino a su tarea",
@@ -184,6 +186,69 @@ pub struct ActiveTask {
     pub phase: i32, // 0 = ir al objetivo/recoger, 1 = ejecutar/entregar
 }
 
+/// Inventario personal y ranuras de equipamiento del colono:
+/// - `helmet_slot`: ranura reservada para futuros cascos.
+/// - `armor_slot`: ranura reservada para futuras armaduras.
+/// - `back_tool`: herramienta o arma llevada en la espalda (pico, azada, espada, etc.).
+/// - `main_hand`: herramienta o arma empuñada actualmente en la mano principal.
+#[derive(Clone, Debug)]
+pub struct ColonistInventory {
+    pub helmet_slot: String,
+    pub armor_slot: String,
+    pub back_tool: CopperTool,
+    pub main_hand: CopperTool,
+}
+
+impl ColonistInventory {
+    pub fn default_for_role(role: &str, is_leader: bool) -> Self {
+        let main_hand = CopperTool::default_for_role(role, is_leader);
+        let back_tool = if is_leader {
+            CopperTool::CopperAxe
+        } else {
+            match role {
+                "Leñador" => CopperTool::CopperShovel,
+                "Minero" => CopperTool::CopperShovel,
+                "Constructor" => CopperTool::CopperAxe,
+                "Botánico" => CopperTool::CopperShovel,
+                "Explorador" => CopperTool::CopperPickaxe,
+                _ => CopperTool::CopperHoe,
+            }
+        };
+        Self {
+            helmet_slot: String::new(),
+            armor_slot: String::new(),
+            back_tool,
+            main_hand,
+        }
+    }
+
+    /// Equipa una herramienta en la mano principal intercambiándola con la espalda si hace falta.
+    pub fn equip_main_hand(&mut self, tool: CopperTool) {
+        if self.main_hand == tool {
+            return;
+        }
+        if self.back_tool == tool && self.main_hand != CopperTool::None {
+            self.back_tool = self.main_hand;
+            self.main_hand = tool;
+            return;
+        }
+        if self.main_hand != CopperTool::None && self.back_tool == CopperTool::None {
+            self.back_tool = self.main_hand;
+        }
+        self.main_hand = tool;
+    }
+
+    /// Guarda la herramienta de la mano principal en la espalda (p.ej. al dormir o cargar).
+    pub fn stow_main_hand(&mut self) {
+        if self.main_hand != CopperTool::None {
+            if self.back_tool == CopperTool::None {
+                self.back_tool = self.main_hand;
+            }
+            self.main_hand = CopperTool::None;
+        }
+    }
+}
+
 /// Estado completo de un colono en simulación.
 #[derive(Clone, Debug)]
 pub struct Colonist {
@@ -201,6 +266,7 @@ pub struct Colonist {
     pub speed: f32,
     pub health: i32,
     pub mood: i32,
+    pub energy: f32,
     pub wait_timer: f32,
     pub walk_phase: f32,
     pub work_swing_phase: f32,
@@ -210,7 +276,7 @@ pub struct Colonist {
     pub hair_color: String,
     pub outfit_color: String,
     pub activity: ColonistActivity,
-    pub equipped_tool: CopperTool,
+    pub inventory: ColonistInventory,
     pub carrying_kind: Option<ItemKind>,
     pub carrying_amount: i32,
     pub active_task: Option<ActiveTask>,

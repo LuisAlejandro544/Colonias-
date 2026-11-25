@@ -16,10 +16,11 @@ Menús Godot (scripts/ui/*.gd)
    │  configuran GameSession y leen/escriben SaveManager / SettingsManager
    ▼
 Escena del Mundo (godot/scripts/world/colony_world.gd)
-   ├── Llama a WorldGenerator (rust/src/world_gen.rs) -> terreno + obstáculos
-   ├── Llama a ColonySimulation (rust/src/colonist_sim.rs) -> líder, reuniones, A*, cultivos, muros, ítems
+   ├── Llama a WorldGenerator (rust/src/world_gen.rs) -> terreno + obstáculos (semilla/bioma aleatorios ocultos)
+   ├── Llama a ColonySimulation (rust/src/colonist_sim.rs) -> líder, reuniones, A*, cultivos, muros, ítems, energía/sueño, inventario y sfx_events
    ├── WorldOverlay (world_overlay.gd) -> zonas, etapas de zanahorias, marcas y selección táctil
-   └── Dibuja suelo SVG, props/muros/ítems Y-sorted, ColonistVisual (herramientas de cobre) y HUD táctil
+   ├── WorldHud (world_hud.gd) -> barra superior, selector inferior, menú de construcción/zonas e inventario de colono
+   └── Dibuja suelo SVG, props/muros/ítems Y-sorted, ColonistVisual (mano, espalda y Zzz SVG) y reproduce SFX .ogg
 ```
 
 ## 3. Cómo añadir nuevas mecánicas limpiamente
@@ -27,9 +28,9 @@ Escena del Mundo (godot/scripts/world/colony_world.gd)
 - **Nuevo bioma, cultivo o estructura:**
   1. Agrega las variantes en `rust/src/world_gen.rs` o `rust/src/colony_types.rs` y la lógica en `rust/src/colonist_sim.rs`.
   2. Crea los `.svg` correspondientes en `godot/assets/` (sin pixel art, contorno `#1e1813`) y revísalos renderizándolos a `.png`.
-  3. Registra las texturas y el mapeo en `godot/scripts/world/colony_world.gd` o `godot/scripts/world/world_overlay.gd` y mantén la conversión de guardado en `_convert_save_dict_for_rust`.
-- **Nuevas herramientas, tareas o necesidades de colonos:**
-  1. Extiende `rust/src/tools.rs`, `rust/src/colony_types.rs` o crea un submódulo dedicado en `rust/src/` y expón métodos limpios en `ColonySimulation`.
+  3. Registra las texturas y el mapeo en `godot/scripts/world/colony_world.gd` o `godot/scripts/world/world_overlay.gd` y mantén la conversión de guardado en `_convert_save_dict_for_rust` (sin exponer semilla ni parámetros de terreno al jugador).
+- **Nuevas herramientas, armaduras/cascos, tareas o necesidades de colonos:**
+  1. Extiende `rust/src/tools.rs`, `ColonistInventory` en `rust/src/colony_types.rs` o crea un submódulo dedicado en `rust/src/` y expón métodos limpios en `ColonySimulation`.
   2. Añade pruebas unitarias `#[cfg(test)]` en Rust para la lógica pura.
   3. Mantén la serialización compatible con JSON en `SaveManager` (`user://saves/slot_N.json`), convirtiendo enteros parseados como float por `JSON.parse()` antes de pasarlos a `gdext`.
 

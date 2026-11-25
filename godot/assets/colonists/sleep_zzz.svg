@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
+  <!-- Tres letras Zzz cálidas estilo vectorial RimWorld para animación de sueño -->
+  <!-- Z pequeña inferior izquierda -->
+  <g transform="translate(8, 59) rotate(-8)">
+    <path d="M2 2 H22 L5 22 H23" fill="none" stroke="#1e1813" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M2 2 H22 L5 22 H23" fill="none" stroke="#e9dcc1" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <!-- Z mediana central -->
+  <g transform="translate(33, 33) rotate(-4)">
+    <path d="M2 2 H27 L5 27 H28" fill="none" stroke="#1e1813" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M2 2 H27 L5 27 H28" fill="none" stroke="#f5ebd6" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <!-- Z grande superior derecha -->
+  <g transform="translate(60, 5) rotate(3)">
+    <path d="M2 2 H31 L6 31 H32" fill="none" stroke="#1e1813" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M2 2 H31 L6 31 H32" fill="none" stroke="#ffe5a3" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

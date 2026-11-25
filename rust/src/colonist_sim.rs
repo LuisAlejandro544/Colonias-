@@ -18,8 +18,8 @@ use godot::classes::{INode, Node};
 use godot::prelude::*;
 
 use crate::colony_types::{
-    ActiveTask, Colonist, ColonistActivity, ColonyInventory, ColonyOrder, CropCell, CropStage,
-    GroundItem, ItemKind, OrderKind, OrderStatus, StructureKind, ZoneKind,
+    ActiveTask, Colonist, ColonistActivity, ColonistInventory, ColonyInventory, ColonyOrder,
+    CropCell, CropStage, GroundItem, ItemKind, OrderKind, OrderStatus, StructureKind, ZoneKind,
 };
 use crate::noise::SeededRng;
 use crate::pathfinding::find_path;
@@ -75,6 +75,7 @@ pub struct SimulationCore {
     pub world_dirty: bool,
     pub day_clock: f32,
     pub day_count: i32,
+    pub pending_sfx: Vec<&'static str>,
 }
 
 impl SimulationCore {
@@ -127,6 +128,7 @@ impl SimulationCore {
             world_dirty: true,
             day_clock: 0.0,
             day_count: 1,
+            pending_sfx: Vec::new(),
         }
     }
 
@@ -170,7 +172,7 @@ impl SimulationCore {
             let hair_idx = self.rng.next_usize(HAIR_HEX.len());
             let outfit_idx = self.rng.next_usize(OUTFIT_HEX.len());
 
-            let default_tool = CopperTool::default_for_role(&role_str, is_leader);
+            let inventory = ColonistInventory::default_for_role(&role_str, is_leader);
 
             self.colonists.push(Colonist {
                 id: i + 1,
@@ -187,6 +189,7 @@ impl SimulationCore {
                 speed: 2.35 + self.rng.next_f32() * 0.35,
                 health: 100,
                 mood: (84 + self.rng.range_i32(-6, 10) + if is_leader { 4 } else { 0 }).clamp(50, 100),
+                energy: 86.0 + (i as f32 * 3.0).min(14.0),
                 wait_timer: 0.3 + self.rng.next_f32() * 1.2,
                 walk_phase: 0.0,
                 work_swing_phase: 0.0,
@@ -196,7 +199,7 @@ impl SimulationCore {
                 hair_color: HAIR_HEX[hair_idx].to_string(),
                 outfit_color: OUTFIT_HEX[outfit_idx].to_string(),
                 activity: ColonistActivity::Resting,
-                equipped_tool: default_tool,
+                inventory,
                 carrying_kind: None,
                 carrying_amount: 0,
                 active_task: None,
@@ -218,7 +221,7 @@ impl SimulationCore {
         if !self.colonists.iter().any(|c| c.is_leader) {
             let idx = self.rng.next_usize(self.colonists.len());
             self.colonists[idx].is_leader = true;
-            self.colonists[idx].equipped_tool = CopperTool::CopperSword;
+            self.colonists[idx].inventory.equip_main_hand(CopperTool::CopperSword);
         }
     }
 
@@ -548,7 +551,7 @@ impl SimulationCore {
         if self.colonists.len() <= 1 {
             self.meeting_active = true;
             self.colonists[l_idx].activity = ColonistActivity::ConveningMeeting;
-            self.colonists[l_idx].equipped_tool = CopperTool::CopperSword;
+            self.colonists[l_idx].inventory.equip_main_hand(CopperTool::CopperSword);
             self.colonists[l_idx].path.clear();
             self.meeting_timer += dt;
             if self.meeting_timer >= 0.7 {
@@ -590,7 +593,7 @@ impl SimulationCore {
         if best_dist <= 2.3 || self.meeting_approach_timer >= 6.5 {
             // Ya están reunidos cara a cara (o cerca): el líder transmite las órdenes.
             self.colonists[l_idx].activity = ColonistActivity::ConveningMeeting;
-            self.colonists[l_idx].equipped_tool = CopperTool::CopperSword;
+            self.colonists[l_idx].inventory.equip_main_hand(CopperTool::CopperSword);
             self.colonists[l_idx].path.clear();
             self.colonists[l_idx].facing_x = (px - lx).signum();
             self.colonists[l_idx].facing_y = (py - ly).signum();
@@ -600,7 +603,7 @@ impl SimulationCore {
                     continue;
                 }
                 let d = ((c.x - lx).powi(2) + (c.y - ly).powi(2)).sqrt();
-                if d <= 3.2 && c.active_task.is_none() {
+                if d <= 3.2 && c.active_task.is_none() && c.activity != ColonistActivity::Sleeping {
                     c.activity = ColonistActivity::AttendingMeeting;
                     c.path.clear();
                     c.facing_x = (lx - c.x).signum();
@@ -623,7 +626,7 @@ impl SimulationCore {
                 self.release_colonist_task(l_idx);
             }
             self.colonists[l_idx].activity = ColonistActivity::ConveningMeeting;
-            self.colonists[l_idx].equipped_tool = CopperTool::CopperSword;
+            self.colonists[l_idx].inventory.equip_main_hand(CopperTool::CopperSword);
             if self.colonists[l_idx].path.is_empty() {
                 if let Some(path) = find_path(
                     self.map_width,
@@ -644,7 +647,9 @@ impl SimulationCore {
                 if i == l_idx {
                     continue;
                 }
-                if self.colonists[i].active_task.is_none() {
+                if self.colonists[i].active_task.is_none()
+                    && self.colonists[i].activity != ColonistActivity::Sleeping
+                {
                     self.colonists[i].activity = ColonistActivity::AttendingMeeting;
                     if self.colonists[i].path.is_empty() {
                         let cx = self.colonists[i].x.floor() as i32;
@@ -744,6 +749,7 @@ impl SimulationCore {
                     });
                     self.colonists[c_idx].path = path;
                     self.colonists[c_idx].activity = ColonistActivity::Hauling;
+                    self.colonists[c_idx].inventory.stow_main_hand();
                     return;
                 }
             } else {
@@ -797,13 +803,14 @@ impl SimulationCore {
                 });
                 self.colonists[c_idx].path = path;
                 self.colonists[c_idx].activity = ColonistActivity::MovingToTask;
-                self.colonists[c_idx].equipped_tool = match order_kind {
+                let task_tool = match order_kind {
                     OrderKind::ChopTree => CopperTool::CopperAxe,
                     OrderKind::MineRock => CopperTool::CopperPickaxe,
                     OrderKind::BuildWoodWall => CopperTool::CopperShovel,
                     OrderKind::FarmCell => CopperTool::CopperHoe,
                     OrderKind::HaulItem => CopperTool::CopperShovel,
                 };
+                self.colonists[c_idx].inventory.equip_main_hand(task_tool);
                 return;
             }
         }
@@ -853,7 +860,7 @@ impl SimulationCore {
                     });
                     self.colonists[c_idx].path = path;
                     self.colonists[c_idx].activity = ColonistActivity::MovingToTask;
-                    self.colonists[c_idx].equipped_tool = CopperTool::CopperHoe;
+                    self.colonists[c_idx].inventory.equip_main_hand(CopperTool::CopperHoe);
                     return;
                 }
             }
@@ -897,6 +904,7 @@ impl SimulationCore {
                     });
                     self.colonists[c_idx].path = path;
                     self.colonists[c_idx].activity = ColonistActivity::Hauling;
+                    self.colonists[c_idx].inventory.stow_main_hand();
                     return;
                 }
             }
@@ -951,11 +959,17 @@ impl SimulationCore {
         match task.kind {
             OrderKind::ChopTree => {
                 self.colonists[c_idx].activity = ColonistActivity::Chopping;
-                self.colonists[c_idx].equipped_tool = CopperTool::CopperAxe;
+                self.colonists[c_idx].inventory.equip_main_hand(CopperTool::CopperAxe);
                 self.colonists[c_idx].work_swing_phase += dt * 11.0;
 
                 let mut t = task;
+                let prev_t = t.work_timer;
                 t.work_timer += dt;
+                for beat in [0.25f32, 0.95, 1.65] {
+                    if prev_t < beat && t.work_timer >= beat {
+                        self.pending_sfx.push("chop");
+                    }
+                }
                 if t.work_timer < 2.1 {
                     self.colonists[c_idx].active_task = Some(t);
                     return;
@@ -967,6 +981,7 @@ impl SimulationCore {
                         self.props[idx] = 0;
                         self.blocked[idx] = 0;
                         self.spawn_item(ItemKind::WoodLogs, t.target_x, t.target_y, 4, false);
+                        self.pending_sfx.push("chop");
                     }
                 }
                 self.orders.retain(|o| o.id != t.order_id);
@@ -977,11 +992,17 @@ impl SimulationCore {
             }
             OrderKind::MineRock => {
                 self.colonists[c_idx].activity = ColonistActivity::Mining;
-                self.colonists[c_idx].equipped_tool = CopperTool::CopperPickaxe;
+                self.colonists[c_idx].inventory.equip_main_hand(CopperTool::CopperPickaxe);
                 self.colonists[c_idx].work_swing_phase += dt * 12.0;
 
                 let mut t = task;
+                let prev_t = t.work_timer;
                 t.work_timer += dt;
+                for beat in [0.25f32, 1.05, 1.85] {
+                    if prev_t < beat && t.work_timer >= beat {
+                        self.pending_sfx.push("mine");
+                    }
+                }
                 if t.work_timer < 2.5 {
                     self.colonists[c_idx].active_task = Some(t);
                     return;
@@ -995,11 +1016,13 @@ impl SimulationCore {
                         self.blocked[idx] = 0;
                         self.spawn_item(ItemKind::StoneChunk, t.target_x, t.target_y, 3, false);
                         self.spawn_item(ItemKind::CopperOre, t.target_x, t.target_y, 1, false);
+                        self.pending_sfx.push("mine");
                     } else if prop == 5 {
                         self.props[idx] = 0;
                         self.blocked[idx] = 0;
                         self.spawn_item(ItemKind::IronOre, t.target_x, t.target_y, 3, false);
                         self.spawn_item(ItemKind::StoneChunk, t.target_x, t.target_y, 1, false);
+                        self.pending_sfx.push("mine");
                     }
                 }
                 self.orders.retain(|o| o.id != t.order_id);
@@ -1010,11 +1033,17 @@ impl SimulationCore {
             }
             OrderKind::BuildWoodWall => {
                 self.colonists[c_idx].activity = ColonistActivity::Building;
-                self.colonists[c_idx].equipped_tool = CopperTool::CopperShovel;
+                self.colonists[c_idx].inventory.equip_main_hand(CopperTool::CopperShovel);
                 self.colonists[c_idx].work_swing_phase += dt * 10.0;
 
                 let mut t = task;
+                let prev_t = t.work_timer;
                 t.work_timer += dt;
+                for beat in [0.25f32, 0.90, 1.50] {
+                    if prev_t < beat && t.work_timer >= beat {
+                        self.pending_sfx.push("build");
+                    }
+                }
                 if t.work_timer < 1.8 {
                     self.colonists[c_idx].active_task = Some(t);
                     return;
@@ -1027,6 +1056,7 @@ impl SimulationCore {
                         self.structures[idx] = StructureKind::WoodWall as i32;
                         self.blocked[idx] = 1;
                         self.orders.retain(|o| o.id != t.order_id);
+                        self.pending_sfx.push("build");
                     } else if self.structures[idx] != StructureKind::WoodWallBlueprint as i32 {
                         self.orders.retain(|o| o.id != t.order_id);
                     } else {
@@ -1045,7 +1075,7 @@ impl SimulationCore {
             }
             OrderKind::FarmCell => {
                 self.colonists[c_idx].activity = ColonistActivity::Farming;
-                self.colonists[c_idx].equipped_tool = CopperTool::CopperHoe;
+                self.colonists[c_idx].inventory.equip_main_hand(CopperTool::CopperHoe);
                 self.colonists[c_idx].work_swing_phase += dt * 9.5;
 
                 let mut t = task;
@@ -1102,6 +1132,7 @@ impl SimulationCore {
             }
             OrderKind::HaulItem => {
                 self.colonists[c_idx].activity = ColonistActivity::Hauling;
+                self.colonists[c_idx].inventory.stow_main_hand();
                 if task.phase == 0 {
                     // Recoger el ítem del piso
                     if let Some(pos) = self.items.iter().position(|it| it.id == task.item_id) {
@@ -1211,7 +1242,7 @@ impl SimulationCore {
         // 2. Actualizar reunión del Líder de Colonia si hay órdenes nuevas pendientes.
         self.update_leader_briefing(dt);
 
-        // 3. Actualizar cada colono.
+        // 3. Actualizar cada colono (energía, sueño en el suelo, reuniones y tareas).
         for c_idx in 0..self.colonists.len() {
             if self.colonists[c_idx].activity == ColonistActivity::ConveningMeeting
                 || self.colonists[c_idx].activity == ColonistActivity::AttendingMeeting
@@ -1219,6 +1250,44 @@ impl SimulationCore {
                 if !self.colonists[c_idx].path.is_empty() {
                     self.step_colonist_movement(c_idx, dt);
                 }
+                continue;
+            }
+
+            if self.colonists[c_idx].activity == ColonistActivity::Sleeping {
+                self.colonists[c_idx].inventory.stow_main_hand();
+                self.colonists[c_idx].energy = (self.colonists[c_idx].energy + 14.0 * dt).min(100.0);
+                if self.colonists[c_idx].energy >= 96.0 {
+                    self.colonists[c_idx].activity = ColonistActivity::Resting;
+                    self.colonists[c_idx].wait_timer = 0.2;
+                    let role = self.colonists[c_idx].role.clone();
+                    let is_leader = self.colonists[c_idx].is_leader;
+                    self.colonists[c_idx]
+                        .inventory
+                        .equip_main_hand(CopperTool::default_for_role(&role, is_leader));
+                }
+                continue;
+            }
+
+            let drain_rate = match self.colonists[c_idx].activity {
+                ColonistActivity::Chopping
+                | ColonistActivity::Mining
+                | ColonistActivity::Building
+                | ColonistActivity::Farming => 2.0,
+                ColonistActivity::MovingToTask
+                | ColonistActivity::Hauling
+                | ColonistActivity::Wandering
+                | ColonistActivity::Scouting => 0.95,
+                _ => 0.25,
+            };
+            self.colonists[c_idx].energy = (self.colonists[c_idx].energy - drain_rate * dt).max(0.0);
+
+            if self.colonists[c_idx].energy <= 16.0
+                && !self.meeting_active
+                && self.colonists[c_idx].carrying_kind.is_none()
+            {
+                self.release_colonist_task(c_idx);
+                self.colonists[c_idx].activity = ColonistActivity::Sleeping;
+                self.colonists[c_idx].inventory.stow_main_hand();
                 continue;
             }
 
@@ -1233,13 +1302,12 @@ impl SimulationCore {
                 continue;
             }
 
-            // Sin tareas: patrullar/explorar el claro usando su herramienta de rol.
-            if self.colonists[c_idx].is_leader {
-                self.colonists[c_idx].equipped_tool = CopperTool::CopperSword;
-            } else {
-                self.colonists[c_idx].equipped_tool =
-                    CopperTool::default_for_role(&self.colonists[c_idx].role, false);
-            }
+            // Sin tareas: patrullar/explorar el claro usando su herramienta de rol en mano.
+            let role = self.colonists[c_idx].role.clone();
+            let is_leader = self.colonists[c_idx].is_leader;
+            self.colonists[c_idx]
+                .inventory
+                .equip_main_hand(CopperTool::default_for_role(&role, is_leader));
 
             if self.colonists[c_idx].wait_timer > 0.0 {
                 self.colonists[c_idx].wait_timer -= dt;
@@ -1516,16 +1584,42 @@ impl ColonySimulation {
                         .and_then(|v| v.try_to::<GString>().ok())
                         .map(|g| g.to_string())
                         .unwrap_or_else(|| "#4f6b47".to_string());
-                    let tool_code = dict
-                        .get("equipped_tool")
+                    let energy = dict
+                        .get("energy")
+                        .and_then(|v| v.try_to::<f32>().ok())
+                        .unwrap_or(92.0)
+                        .clamp(10.0, 100.0);
+                    let helmet_slot = dict
+                        .get("helmet_slot")
                         .and_then(|v| v.try_to::<GString>().ok())
                         .map(|g| g.to_string())
                         .unwrap_or_default();
-                    let equipped_tool = if tool_code.is_empty() {
-                        CopperTool::default_for_role(&role, is_leader)
-                    } else {
-                        CopperTool::from_code(&tool_code)
-                    };
+                    let armor_slot = dict
+                        .get("armor_slot")
+                        .and_then(|v| v.try_to::<GString>().ok())
+                        .map(|g| g.to_string())
+                        .unwrap_or_default();
+                    let back_code = dict
+                        .get("back_tool")
+                        .and_then(|v| v.try_to::<GString>().ok())
+                        .map(|g| g.to_string())
+                        .unwrap_or_default();
+                    let main_code = dict
+                        .get("main_hand_tool")
+                        .or_else(|| dict.get("equipped_tool"))
+                        .and_then(|v| v.try_to::<GString>().ok())
+                        .map(|g| g.to_string())
+                        .unwrap_or_default();
+
+                    let mut inventory = ColonistInventory::default_for_role(&role, is_leader);
+                    inventory.helmet_slot = helmet_slot;
+                    inventory.armor_slot = armor_slot;
+                    if !back_code.is_empty() {
+                        inventory.back_tool = CopperTool::from_code(&back_code);
+                    }
+                    if !main_code.is_empty() {
+                        inventory.main_hand = CopperTool::from_code(&main_code);
+                    }
 
                     core.colonists.push(Colonist {
                         id,
@@ -1542,6 +1636,7 @@ impl ColonySimulation {
                         speed: 2.35,
                         health,
                         mood,
+                        energy,
                         wait_timer: 0.4,
                         walk_phase: 0.0,
                         work_swing_phase: 0.0,
@@ -1551,7 +1646,7 @@ impl ColonySimulation {
                         hair_color,
                         outfit_color,
                         activity: ColonistActivity::Resting,
-                        equipped_tool,
+                        inventory,
                         carrying_kind: None,
                         carrying_amount: 0,
                         active_task: None,
@@ -1602,6 +1697,7 @@ impl ColonySimulation {
             d.set("facing_y", &c.facing_y.to_variant());
             d.set("health", &c.health.to_variant());
             d.set("mood", &c.mood.to_variant());
+            d.set("energy", &(c.energy.round() as i32).to_variant());
             d.set("walk_phase", &c.walk_phase.to_variant());
             d.set("work_swing_phase", &c.work_swing_phase.to_variant());
             let is_moving = !c.path.is_empty()
@@ -1619,15 +1715,53 @@ impl ColonySimulation {
             d.set("is_moving", &is_moving.to_variant());
             d.set("is_working", &is_working.to_variant());
             d.set(
+                "is_sleeping",
+                &(c.activity == ColonistActivity::Sleeping).to_variant(),
+            );
+            d.set(
                 "is_meeting",
                 &(c.activity == ColonistActivity::ConveningMeeting).to_variant(),
             );
             d.set("activity", &GString::from(c.activity.label_es()).to_variant());
-            d.set("equipped_tool", &GString::from(c.equipped_tool.code()).to_variant());
-            d.set("equipped_tool_label", &GString::from(c.equipped_tool.label_es()).to_variant());
+            d.set(
+                "equipped_tool",
+                &GString::from(c.inventory.main_hand.code()).to_variant(),
+            );
+            d.set(
+                "equipped_tool_label",
+                &GString::from(c.inventory.main_hand.label_es()).to_variant(),
+            );
+            d.set(
+                "main_hand_tool",
+                &GString::from(c.inventory.main_hand.code()).to_variant(),
+            );
+            d.set(
+                "main_hand_tool_label",
+                &GString::from(c.inventory.main_hand.label_es()).to_variant(),
+            );
+            d.set(
+                "back_tool",
+                &GString::from(c.inventory.back_tool.code()).to_variant(),
+            );
+            d.set(
+                "back_tool_label",
+                &GString::from(c.inventory.back_tool.label_es()).to_variant(),
+            );
+            d.set(
+                "helmet_slot",
+                &GString::from(&c.inventory.helmet_slot).to_variant(),
+            );
+            d.set(
+                "armor_slot",
+                &GString::from(&c.inventory.armor_slot).to_variant(),
+            );
             d.set(
                 "carrying_kind",
                 &GString::from(c.carrying_kind.map_or("", |k| k.code())).to_variant(),
+            );
+            d.set(
+                "carrying_label",
+                &GString::from(c.carrying_kind.map_or("", |k| k.label_es())).to_variant(),
             );
             d.set("carrying_amount", &c.carrying_amount.to_variant());
             d.set("body_style", &c.body_style.to_variant());
@@ -1732,6 +1866,12 @@ impl ColonySimulation {
             out.set("orders", &orders_arr.to_variant());
         }
 
+        let mut sfx_arr = VarArray::new();
+        for ev in core.pending_sfx.drain(..) {
+            sfx_arr.push(&GString::from(ev).to_variant());
+        }
+        out.set("sfx_events", &sfx_arr.to_variant());
+
         out
     }
 
@@ -1739,9 +1879,15 @@ impl ColonySimulation {
     #[func]
     pub fn export_save_state(&mut self) -> VarDictionary {
         let prev_dirty = self.core.as_ref().is_some_and(|c| c.world_dirty);
+        let prev_sfx = self
+            .core
+            .as_ref()
+            .map(|c| c.pending_sfx.clone())
+            .unwrap_or_default();
         let mut state = self.get_world_snapshot(true);
         if let Some(core) = &mut self.core {
             core.world_dirty = prev_dirty;
+            core.pending_sfx = prev_sfx;
         }
         state.set("colonists", &self.get_colonists_snapshot().to_variant());
         state
@@ -1834,5 +1980,40 @@ mod tests {
         let idx = (12 * 24 + 14) as usize;
         assert_eq!(core.structures[idx], StructureKind::WoodWall as i32);
         assert_eq!(core.blocked[idx], 1);
+        assert!(core.pending_sfx.contains(&"build"));
+    }
+
+    #[test]
+    fn colonist_sleeps_when_tired_and_recovers_energy() {
+        let mut core = empty_core(101, 24, 24);
+        core.spawn_initial(2);
+        core.colonists[0].energy = 14.0;
+        core.step(0.05);
+        assert_eq!(core.colonists[0].activity, ColonistActivity::Sleeping);
+        assert_eq!(core.colonists[0].inventory.main_hand, CopperTool::None);
+        assert_ne!(core.colonists[0].inventory.back_tool, CopperTool::None);
+
+        for _ in 0..160 {
+            core.step(0.05);
+        }
+        assert!(core.colonists[0].energy >= 95.0);
+        assert_ne!(core.colonists[0].activity, ColonistActivity::Sleeping);
+    }
+
+    #[test]
+    fn colonist_inventory_equips_back_and_main_hand_slots() {
+        let mut inv = ColonistInventory::default_for_role("Minero", false);
+        assert!(inv.helmet_slot.is_empty());
+        assert!(inv.armor_slot.is_empty());
+        assert_eq!(inv.main_hand, CopperTool::CopperPickaxe);
+        assert_eq!(inv.back_tool, CopperTool::CopperShovel);
+
+        inv.equip_main_hand(CopperTool::CopperShovel);
+        assert_eq!(inv.main_hand, CopperTool::CopperShovel);
+        assert_eq!(inv.back_tool, CopperTool::CopperPickaxe);
+
+        inv.stow_main_hand();
+        assert_eq!(inv.main_hand, CopperTool::None);
+        assert_eq!(inv.back_tool, CopperTool::CopperPickaxe);
     }
 }

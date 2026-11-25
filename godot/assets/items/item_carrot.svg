@@ -1,26 +1,45 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
-  <!-- Manojo de 3 zanahorias frescas con tallos unidos a cada corona -->
-  <ellipse cx="62" cy="96" rx="40" ry="13" fill="#18130e" opacity="0.30"/>
-  <!-- Zanahoria superior (raíz -> corona -> tallo propio) -->
+  <!-- Manojo compacto de 3 zanahorias bien juntas con cuerda beige dando vuelta completa y continua -->
+  <ellipse cx="59" cy="91" rx="37" ry="11" fill="#18130e" opacity="0.28"/>
+
+  <!-- Parte trasera de la cuerda (asoma rodeando el borde superior y el contorno inferior del manojo) -->
+  <path d="M68.5 43 C67.5 38 73.5 37.5 74.5 42.5 L75.5 72.5 C74.5 77.5 68.5 77 69 72 Z" fill="#b3935c" stroke="#1e1813" stroke-width="3.6" stroke-linejoin="round"/>
+
+  <!-- Zanahoria superior (bien pegada al centro) -->
   <g>
-    <path d="M74 44 C86 30 98 22 108 24 C102 34 90 42 76 48 Z" fill="#4f853a" stroke="#1e1813" stroke-width="3" stroke-linejoin="round"/>
-    <path d="M26 64 C42 52 60 40 72 38 C79 41 78 50 70 55 C52 61 34 67 26 64 Z" fill="#d16122" stroke="#1e1813" stroke-width="3.8" stroke-linejoin="round"/>
-    <path d="M38 59 C52 51 64 45 71 43" fill="none" stroke="#f29349" stroke-width="2.4" stroke-linecap="round"/>
+    <path d="M73 44 C83 32 95 25 106 26 C98 32 91 37 84 40 C94 38 103 38 109 42 C98 46 86 47 75 49 Z" fill="#477a33" stroke="#1e1813" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M26 61 C41 50 58 41 72 41 C79 42 79 51 71 55 C54 60 36 64 26 61 Z" fill="#cc591c" stroke="#1e1813" stroke-width="3.8" stroke-linejoin="round"/>
+    <path d="M38 57 C50 50 61 45 70 44" fill="none" stroke="#f59548" stroke-width="2.3" stroke-linecap="round"/>
+    <path d="M48 51 L50 56 M60 46 L62 50" stroke="#993b0f" stroke-width="2" stroke-linecap="round"/>
   </g>
-  <!-- Zanahoria inferior (raíz -> corona -> tallo propio) -->
+
+  <!-- Zanahoria inferior (bien pegada al centro) -->
   <g>
-    <path d="M80 62 C95 50 109 48 114 55 C102 60 91 63 80 65 Z" fill="#5c9844" stroke="#1e1813" stroke-width="3" stroke-linejoin="round"/>
-    <path d="M34 90 C50 79 68 66 80 60 C87 63 86 73 76 78 C58 86 41 93 34 90 Z" fill="#db6c28" stroke="#1e1813" stroke-width="3.8" stroke-linejoin="round"/>
-    <path d="M46 84 C60 76 71 69 78 65" fill="none" stroke="#f59b52" stroke-width="2.4" stroke-linecap="round"/>
+    <path d="M76 63 C89 55 101 53 111 56 C103 60 95 62 87 63 C97 64 106 66 110 71 C98 72 87 70 76 67 Z" fill="#528a3b" stroke="#1e1813" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M32 85 C47 75 63 63 76 59 C83 61 83 70 74 74 C58 81 41 88 32 85 Z" fill="#d96722" stroke="#1e1813" stroke-width="3.8" stroke-linejoin="round"/>
+    <path d="M45 80 C57 73 67 67 75 63" fill="none" stroke="#f7a054" stroke-width="2.3" stroke-linecap="round"/>
+    <path d="M53 74 L55 78 M64 67 L66 72" stroke="#993b0f" stroke-width="2" stroke-linecap="round"/>
+    <path d="M32 85 C29 86 26 87 24 86" fill="none" stroke="#1e1813" stroke-width="2.2" stroke-linecap="round"/>
   </g>
-  <!-- Zanahoria central delantera (más grande) -->
+
+  <!-- Zanahoria central delantera (unifica el manojo compacto) -->
   <g>
-    <path d="M76 52 C88 37 104 34 112 40 C100 47 89 52 78 56 Z" fill="#68a84c" stroke="#1e1813" stroke-width="3" stroke-linejoin="round"/>
-    <path d="M22 80 C42 66 64 51 77 47 C84 52 82 64 70 70 C52 79 32 85 22 80 Z" fill="#ee812f" stroke="#1e1813" stroke-width="4.2" stroke-linejoin="round"/>
-    <path d="M34 74 C50 64 64 55 74 51" fill="none" stroke="#ffad5e" stroke-width="3" stroke-linecap="round"/>
-    <path d="M51 64 L54 70 M63 57 L66 63 M40 71 L42 76" stroke="#9e4314" stroke-width="2.4" stroke-linecap="round"/>
+    <path d="M74 52 C85 38 98 31 110 32 C102 38 94 43 86 47 C97 44 108 44 115 49 C104 53 94 55 85 56 C95 57 104 59 109 64 C95 64 84 61 74 58 Z" fill="#5fa143" stroke="#1e1813" stroke-width="3.2" stroke-linejoin="round"/>
+    <path d="M76 52 C87 43 98 38 108 37 M77 54 C89 50 100 48 110 48" fill="none" stroke="#84c960" stroke-width="2" stroke-linecap="round"/>
+    <path d="M19 76 C33 67 56 51 73 47 C81 49 81 62 71 67 C54 75 31 80 19 76 Z" fill="#eb7a28" stroke="#1e1813" stroke-width="4.2" stroke-linejoin="round"/>
+    <path d="M30 75 C46 72 60 67 70 61 C75 58 76 55 76 52 C78 58 76 63 70 67 C55 74 39 77 30 75 Z" fill="#c45015" opacity="0.65"/>
+    <path d="M34 69 C48 60 61 53 71 49" fill="none" stroke="#ffba6b" stroke-width="2.8" stroke-linecap="round"/>
+    <path d="M41 67 L43 72 M52 60 L54 66 M63 54 L65 61" stroke="#993b0f" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M19 76 C15 78 12 79 10 78" fill="none" stroke="#1e1813" stroke-width="2.4" stroke-linecap="round"/>
   </g>
-  <!-- Cuerda atando los tres cuellos juntos -->
-  <path d="M72 44 C78 53 80 63 77 73" fill="none" stroke="#1e1813" stroke-width="7" stroke-linecap="round"/>
-  <path d="M72 44 C78 53 80 63 77 73" fill="none" stroke="#d6b884" stroke-width="3.6" stroke-linecap="round"/>
+
+  <!-- Parte frontal de la cuerda beige enlazada en vuelta completa y continua -->
+  <path d="M70 40 C77 48 78 65 71.5 75" fill="none" stroke="#1e1813" stroke-width="8.4" stroke-linecap="round"/>
+  <path d="M70 40 C77 48 78 65 71.5 75" fill="none" stroke="#e2c691" stroke-width="4.4" stroke-linecap="round"/>
+  <path d="M71.5 42.5 C76.5 50 77 63 72.5 72" fill="none" stroke="#f3ddb2" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- Nudo firme y puntas cortas del amarre -->
+  <path d="M75.5 58 L83 64 M75 59.5 L78.5 68.5" fill="none" stroke="#1e1813" stroke-width="4.8" stroke-linecap="round"/>
+  <path d="M75.5 58 L83 64 M75 59.5 L78.5 68.5" fill="none" stroke="#e2c691" stroke-width="2.2" stroke-linecap="round"/>
+  <circle cx="75.5" cy="57.5" r="3.6" fill="#e8cf9d" stroke="#1e1813" stroke-width="2.4"/>
 </svg>

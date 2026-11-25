@@ -1,9 +1,9 @@
 # Representación visual modular por capas de un colono estilo RimWorld.
 #
-# Lógica: Construye un peón 2D apilando sombra, torso (túnica o abrigo),
-# cabeza, rostro expresivo, cabello, insignia del Líder de Colonia, globo de
-# reunión, herramienta de cobre equipada en mano (hacha, pico, pala, azada o
-# espada) y recurso transportado al hombro cuando acarrea hacia el almacén.
+# Lógica: Construye un peón 2D apilando sombra, herramienta en la espalda, torso
+# (túnica o abrigo), cabeza, rostro expresivo, cabello, insignia del Líder de
+# Colonia, globo de reunión, herramienta equipada en la mano principal, recurso
+# transportado y animación de sueño en el suelo con partículas `.svg` de Zzz.
 
 class_name ColonistVisual
 extends Node2D
@@ -17,13 +17,24 @@ var is_leader: bool = false
 var current_activity: String = ""
 var equipped_tool_code: String = "copper_shovel"
 var equipped_tool_label: String = "Pala de cobre"
+var main_hand_tool_code: String = "copper_shovel"
+var main_hand_tool_label: String = "Pala de cobre"
+var back_tool_code: String = "copper_axe"
+var back_tool_label: String = "Hacha de cobre"
+var helmet_slot: String = ""
+var armor_slot: String = ""
 var carrying_kind: String = ""
+var carrying_label: String = ""
 var carrying_amount: int = 0
 var health_value: int = 100
 var mood_value: int = 80
+var energy_value: int = 100
+var is_sleeping: bool = false
 var is_selected: bool = false
 
 var _rig: Node2D
+var _shadow_sprite: Sprite2D
+var _back_tool_sprite: Sprite2D
 var _body_sprite: Sprite2D
 var _head_sprite: Sprite2D
 var _face_sprite: Sprite2D
@@ -33,9 +44,12 @@ var _tool_sprite: Sprite2D
 var _carry_sprite: Sprite2D
 var _leader_crown: Sprite2D
 var _meeting_bubble: Sprite2D
+var _sleep_zzz_a: Sprite2D
+var _sleep_zzz_b: Sprite2D
 var _name_label: Label
 var _selection_ring: Node2D
 
+var _sleep_anim_time: float = 0.0
 var _tool_textures: Dictionary = {}
 var _item_textures: Dictionary = {}
 
@@ -45,6 +59,7 @@ func setup_from_snapshot(data: Dictionary) -> void:
 	colonist_name = str(data.get("name", "Colono"))
 	colonist_role = str(data.get("role", "Explorador"))
 	is_leader = bool(data.get("is_leader", false))
+	_sleep_anim_time = float(colonist_id) * 0.7
 	_preload_textures()
 	_build_layers(data)
 	apply_snapshot(data)
@@ -73,15 +88,23 @@ func _build_layers(data: Dictionary) -> void:
 	_selection_ring.visible = false
 	add_child(_selection_ring)
 
-	var shadow := Sprite2D.new()
-	shadow.texture = load("res://assets/colonists/pawn_shadow.svg") as Texture2D
-	shadow.scale = Vector2(0.46, 0.46)
-	shadow.position = Vector2(0, -14)
-	add_child(shadow)
+	_shadow_sprite = Sprite2D.new()
+	_shadow_sprite.texture = load("res://assets/colonists/pawn_shadow.svg") as Texture2D
+	_shadow_sprite.scale = Vector2(0.46, 0.46)
+	_shadow_sprite.position = Vector2(0, -14)
+	add_child(_shadow_sprite)
 
 	_rig = Node2D.new()
 	_rig.position = Vector2(0, -18)
 	add_child(_rig)
+
+	# Herramienta o arma colgada en la espalda (detrás del torso)
+	_back_tool_sprite = Sprite2D.new()
+	_back_tool_sprite.scale = Vector2(0.24, 0.24)
+	_back_tool_sprite.position = Vector2(-5, -3)
+	_back_tool_sprite.rotation = -0.62
+	_back_tool_sprite.visible = false
+	_rig.add_child(_back_tool_sprite)
 
 	var body_style := int(data.get("body_style", 0))
 	var body_path := "res://assets/colonists/pawn_body_parka.svg" if body_style == 1 else "res://assets/colonists/pawn_body_tunic.svg"
@@ -115,7 +138,7 @@ func _build_layers(data: Dictionary) -> void:
 	_hair_sprite.modulate = Color(str(data.get("hair_color", "#2c221e")))
 	_rig.add_child(_hair_sprite)
 
-	# Ancla de herramienta de cobre en mano
+	# Ancla de herramienta en mano principal
 	_hand_anchor = Node2D.new()
 	_hand_anchor.position = Vector2(14, 7)
 	_rig.add_child(_hand_anchor)
@@ -148,6 +171,18 @@ func _build_layers(data: Dictionary) -> void:
 	_meeting_bubble.visible = false
 	_rig.add_child(_meeting_bubble)
 
+	# Partículas animadas de sueño (.svg Zzz) independientes de la rotación del cuerpo
+	var zzz_tex := load("res://assets/colonists/sleep_zzz.svg") as Texture2D
+	_sleep_zzz_a = Sprite2D.new()
+	_sleep_zzz_a.texture = zzz_tex
+	_sleep_zzz_a.visible = false
+	add_child(_sleep_zzz_a)
+
+	_sleep_zzz_b = Sprite2D.new()
+	_sleep_zzz_b.texture = zzz_tex
+	_sleep_zzz_b.visible = false
+	add_child(_sleep_zzz_b)
+
 	# Etiqueta de nombre estilo RimWorld bajo el colono
 	var plate := PanelContainer.new()
 	var sb := StyleBoxFlat.new()
@@ -173,6 +208,29 @@ func _build_layers(data: Dictionary) -> void:
 	plate.add_child(_name_label)
 
 
+func _process(delta: float) -> void:
+	if not is_sleeping:
+		return
+	_sleep_anim_time += delta
+	_animate_zzz_sprite(_sleep_zzz_a, fmod(_sleep_anim_time * 0.55, 1.0))
+	_animate_zzz_sprite(_sleep_zzz_b, fmod(_sleep_anim_time * 0.55 + 0.5, 1.0))
+	if _rig:
+		var breath := 1.0 + sin(_sleep_anim_time * 2.5) * 0.035
+		_rig.scale = Vector2(breath, 1.0 - (breath - 1.0) * 0.5)
+
+
+func _animate_zzz_sprite(sprite: Sprite2D, phase: float) -> void:
+	if sprite == null:
+		return
+	var rise := phase * 30.0
+	var sway := sin(phase * TAU) * 5.0
+	sprite.position = Vector2(10.0 + phase * 10.0 + sway, -18.0 - rise)
+	var sc := lerpf(0.22, 0.38, phase)
+	sprite.scale = Vector2(sc, sc)
+	var alpha := sin(phase * PI)
+	sprite.modulate = Color(1.0, 1.0, 1.0, clampf(alpha * 1.15, 0.0, 1.0))
+
+
 func apply_snapshot(data: Dictionary) -> void:
 	var tx := float(data.get("x", 0.0))
 	var ty := float(data.get("y", 0.0))
@@ -184,7 +242,12 @@ func apply_snapshot(data: Dictionary) -> void:
 
 	health_value = int(data.get("health", 100))
 	mood_value = int(data.get("mood", 80))
+	energy_value = int(data.get("energy", 100))
+	is_sleeping = bool(data.get("is_sleeping", false))
 	current_activity = str(data.get("activity", "Observando"))
+
+	helmet_slot = str(data.get("helmet_slot", ""))
+	armor_slot = str(data.get("armor_slot", ""))
 
 	var fx := float(data.get("facing_x", 0.0))
 	var fy := float(data.get("facing_y", 1.0))
@@ -197,14 +260,30 @@ func apply_snapshot(data: Dictionary) -> void:
 	var flip := fx < -0.15
 	_body_sprite.flip_h = flip
 	_hair_sprite.flip_h = flip
-	_face_sprite.visible = fy >= -0.45
+	_face_sprite.visible = fy >= -0.45 or is_sleeping
 	_face_sprite.position.x = clampf(fx * 2.5, -2.5, 2.5)
 
-	# Herramienta de cobre en mano
-	equipped_tool_code = str(data.get("equipped_tool", "copper_sword" if is_leader else "copper_shovel"))
-	equipped_tool_label = str(data.get("equipped_tool_label", "Espada de cobre"))
-	var tool_tex: Texture2D = _tool_textures.get(equipped_tool_code, null)
-	if tool_tex != null:
+	# Herramienta en la espalda
+	back_tool_code = str(data.get("back_tool", "none"))
+	back_tool_label = str(data.get("back_tool_label", "Vacío"))
+	var back_tex: Texture2D = _tool_textures.get(back_tool_code, null)
+	if back_tex != null and back_tool_code != "none":
+		_back_tool_sprite.texture = back_tex
+		_back_tool_sprite.visible = true
+		_back_tool_sprite.flip_h = not flip
+		_back_tool_sprite.position.x = 6.0 if flip else -6.0
+		_back_tool_sprite.rotation = 0.62 if flip else -0.62
+	else:
+		_back_tool_sprite.visible = false
+
+	# Herramienta en la mano principal
+	main_hand_tool_code = str(data.get("main_hand_tool", data.get("equipped_tool", "copper_shovel")))
+	main_hand_tool_label = str(data.get("main_hand_tool_label", data.get("equipped_tool_label", "Pala de cobre")))
+	equipped_tool_code = main_hand_tool_code
+	equipped_tool_label = main_hand_tool_label
+
+	var tool_tex: Texture2D = _tool_textures.get(main_hand_tool_code, null)
+	if tool_tex != null and main_hand_tool_code != "none" and not is_sleeping:
 		_tool_sprite.texture = tool_tex
 		_tool_sprite.visible = true
 	else:
@@ -218,10 +297,11 @@ func apply_snapshot(data: Dictionary) -> void:
 	else:
 		_hand_anchor.rotation = -0.18 if flip else 0.18
 
-	# Recurso cargado hacia el almacén
+	# Recurso cargado en mochila/brazos
 	carrying_kind = str(data.get("carrying_kind", ""))
+	carrying_label = str(data.get("carrying_label", ""))
 	carrying_amount = int(data.get("carrying_amount", 0))
-	if not carrying_kind.is_empty() and _item_textures.has(carrying_kind):
+	if not carrying_kind.is_empty() and carrying_amount > 0 and _item_textures.has(carrying_kind):
 		_carry_sprite.texture = _item_textures[carrying_kind]
 		_carry_sprite.visible = true
 		_carry_sprite.position.x = 13.0 if flip else -13.0
@@ -230,16 +310,36 @@ func apply_snapshot(data: Dictionary) -> void:
 
 	# Globo de reunión del líder
 	if _meeting_bubble:
-		_meeting_bubble.visible = is_meeting
+		_meeting_bubble.visible = is_meeting and not is_sleeping
 		if is_meeting:
 			_meeting_bubble.position.y = -34.0 + sin(Time.get_ticks_msec() * 0.008) * 3.0
 
-	if moving:
-		_rig.position.y = -18.0 - absf(sin(phase)) * 3.5
-		_rig.rotation = sin(phase) * 0.06
+	# Estado acostado en el suelo + Zzz animadas al dormir
+	if is_sleeping:
+		_rig.position = Vector2(0, -6.0)
+		_rig.rotation = PI * 0.5 if flip else -PI * 0.5
+		if _shadow_sprite:
+			_shadow_sprite.position = Vector2(0, -4.0)
+			_shadow_sprite.scale = Vector2(0.64, 0.36)
+		if _sleep_zzz_a:
+			_sleep_zzz_a.visible = true
+		if _sleep_zzz_b:
+			_sleep_zzz_b.visible = true
 	else:
-		_rig.position.y = -18.0
-		_rig.rotation = 0.0
+		_rig.scale = Vector2.ONE
+		if _shadow_sprite:
+			_shadow_sprite.position = Vector2(0, -14.0)
+			_shadow_sprite.scale = Vector2(0.46, 0.46)
+		if _sleep_zzz_a:
+			_sleep_zzz_a.visible = false
+		if _sleep_zzz_b:
+			_sleep_zzz_b.visible = false
+		if moving:
+			_rig.position.y = -18.0 - absf(sin(phase)) * 3.5
+			_rig.rotation = sin(phase) * 0.06
+		else:
+			_rig.position.y = -18.0
+			_rig.rotation = 0.0
 
 
 func set_selected(selected: bool) -> void:

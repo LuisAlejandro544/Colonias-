@@ -50,6 +50,10 @@ var _world_ready: bool = false
 
 var _structure_textures: Dictionary = {}
 var _item_textures: Dictionary = {}
+var _sfx_streams: Dictionary = {}
+var _sfx_players: Array[AudioStreamPlayer] = []
+var _sfx_cooldowns: Dictionary = {}
+var _sfx_rng := RandomNumberGenerator.new()
 
 # Control táctil móvil (cámara o arrastre de área según modo activo)
 var _tool_mode: String = "observe"
@@ -114,6 +118,7 @@ func start_colony_world() -> void:
 	_hud.connect("save_requested", _save_current_colony)
 	_hud.connect("follow_toggled", func(enabled: bool): _follow_selected = enabled)
 	_hud.connect("tool_mode_changed", _on_tool_mode_changed)
+	_setup_sfx_pool()
 
 	call_deferred("_initialize_world_async")
 
@@ -133,6 +138,63 @@ func _preload_world_textures() -> void:
 		"carrot_seed": load("res://assets/items/item_carrot_seeds.svg") as Texture2D,
 		"carrot": load("res://assets/items/item_carrot.svg") as Texture2D,
 	}
+	_sfx_streams = {
+		"chop": [
+			load("res://assets/audio/chop_01.ogg") as AudioStream,
+			load("res://assets/audio/chop_02.ogg") as AudioStream,
+			load("res://assets/audio/chop_03.ogg") as AudioStream,
+		],
+		"mine": [
+			load("res://assets/audio/mine_01.ogg") as AudioStream,
+			load("res://assets/audio/mine_02.ogg") as AudioStream,
+			load("res://assets/audio/mine_03.ogg") as AudioStream,
+		],
+		"build": [
+			load("res://assets/audio/build_01.ogg") as AudioStream,
+			load("res://assets/audio/build_02.ogg") as AudioStream,
+			load("res://assets/audio/build_03.ogg") as AudioStream,
+		],
+	}
+
+
+func _setup_sfx_pool() -> void:
+	_sfx_rng.randomize()
+	for i in range(8):
+		var player := AudioStreamPlayer.new()
+		player.max_polyphony = 1
+		add_child(player)
+		_sfx_players.append(player)
+
+
+func _play_world_sfx(event_name: String) -> void:
+	if not _sfx_streams.has(event_name) or _sfx_players.is_empty():
+		return
+	var master_gain := clampf(SettingsManager.master_volume / 100.0, 0.0, 1.0)
+	var ambient_gain := clampf(SettingsManager.ambient_volume / 100.0, 0.0, 1.0)
+	var gain := master_gain * ambient_gain
+	if gain <= 0.01:
+		return
+
+	var now_sec := Time.get_ticks_msec() * 0.001
+	var last_sec := float(_sfx_cooldowns.get(event_name, -10.0))
+	if now_sec - last_sec < 0.14:
+		return
+	_sfx_cooldowns[event_name] = now_sec
+
+	var variations: Array = _sfx_streams[event_name]
+	if variations.is_empty():
+		return
+	var chosen: AudioStream = variations[_sfx_rng.randi_range(0, variations.size() - 1)]
+	if chosen == null:
+		return
+
+	for p in _sfx_players:
+		if not p.playing:
+			p.stream = chosen
+			p.volume_db = linear_to_db(gain * 0.72)
+			p.pitch_scale = _sfx_rng.randf_range(0.92, 1.08)
+			p.play()
+			return
 
 
 func _on_tool_mode_changed(mode_code: String) -> void:
@@ -193,7 +255,7 @@ func _build_loading_overlay() -> void:
 	v.add_child(_loading_bar)
 
 	_loading_status = Label.new()
-	_loading_status.text = "Calculando bioma y elevación en núcleo Rust..."
+	_loading_status.text = "Explorando terreno terrestre..."
 	_loading_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_loading_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	UiTheme.style_subtitle(_loading_status, 19)
@@ -255,7 +317,7 @@ func _initialize_world_async() -> void:
 				_blocked_tiles[i] = int(saved_blocked[i])
 
 	_loading_bar.value = 45.0
-	_loading_status.text = "Preparando suelo terrestre (%dx%d)..." % [_map_width, _map_height]
+	_loading_status.text = "Preparando campamento terrestre..."
 	await get_tree().process_frame
 
 	_ground_canvas.call("configure", _map_width, _map_height, _ground_tiles, _camera)
@@ -372,11 +434,16 @@ func _convert_save_dict_for_rust(raw: Dictionary) -> Dictionary:
 					"y": float(entry.get("y", 32.0)),
 					"health": int(entry.get("health", 100)),
 					"mood": int(entry.get("mood", 80)),
+					"energy": float(entry.get("energy", 92.0)),
 					"body_style": int(entry.get("body_style", 0)),
 					"hair_style": int(entry.get("hair_style", 0)),
 					"skin_color": str(entry.get("skin_color", "#e4b892")),
 					"hair_color": str(entry.get("hair_color", "#2c221e")),
 					"outfit_color": str(entry.get("outfit_color", "#4f6b47")),
+					"helmet_slot": str(entry.get("helmet_slot", "")),
+					"armor_slot": str(entry.get("armor_slot", "")),
+					"back_tool": str(entry.get("back_tool", "")),
+					"main_hand_tool": str(entry.get("main_hand_tool", entry.get("equipped_tool", ""))),
 					"equipped_tool": str(entry.get("equipped_tool", "")),
 				})
 		out["colonists"] = cols_clean
@@ -476,6 +543,11 @@ func _sync_world_snapshot(force_full: bool) -> void:
 		return
 	var snap: Dictionary = snap_var
 	_hud.call("update_world_summary", snap, _colonist_nodes.size() if not _colonist_nodes.is_empty() else GameSession.initial_colonists)
+
+	var sfx_events = snap.get("sfx_events", [])
+	if sfx_events is Array:
+		for ev in sfx_events:
+			_play_world_sfx(str(ev))
 
 	if not bool(snap.get("dirty", false)):
 		return

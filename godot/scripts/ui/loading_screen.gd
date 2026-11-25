@@ -55,12 +55,7 @@ func _build_ui() -> void:
 	vbox.add_child(title)
 
 	var meta := Label.new()
-	meta.text = "Bioma: %s  •  Mapa %dx%d  •  Semilla %d" % [
-		SaveManager.biome_label_es(GameSession.biome_code),
-		GameSession.map_size,
-		GameSession.map_size,
-		GameSession.seed_value,
-	]
+	meta.text = "Expedición terrestre • %d colonos listos para descender" % GameSession.initial_colonists
 	meta.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	meta.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	UiTheme.style_subtitle(meta, 19)

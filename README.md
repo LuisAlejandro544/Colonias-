@@ -6,14 +6,16 @@ Juego 2D móvil en vista centinela sobre gestión y supervivencia de colonias hu
 
 ---
 
-## Características implementadas (v0.2.0)
+## Características implementadas (v0.3.0)
 
-- **Líder de Colonia y reuniones de órdenes:** Al fundar una colonia se elige aleatoriamente a un **Líder de Colonia** (distinguido con corona dorada y espada de cobre). Las órdenes marcadas por el jugador no se ejecutan de forma mágica: el líder convoca una reunión o se acerca personalmente a los colonos para comunicar las instrucciones antes de que trabajen.
-- **Herramientas de cobre en mano:** Catálogo nativo en Rust con `.svg` independientes y animación de golpe para **Hacha de cobre**, **Pico de cobre**, **Pala de cobre**, **Azada de cobre** y **Espada de cobre**.
-- **Tala, minería y recursos sueltos en el piso:** Selección táctil por área para talar árboles y minar rocas de granito o hierro, soltando **troncos de madera**, **bloques de piedra**, **mena de hierro** y **mena de cobre** que los colonos recogen y transportan al almacén.
-- **Zona de Almacenamiento y Construcción de madera:** Designación de áreas de almacén y planos de **bloques/paredes de madera** que consumen madera para construir refugios sólidos que bloquean el paso y obligan al pathfinding A* a rodearlos.
-- **Zona de Cultivo (Zanahorias):** Designación de áreas agrícolas donde los colonos aran la tierra con la azada de cobre, siembran **semillas de zanahoria**, ven crecer los brotes en 4 etapas visuales `.svg` y cosechan **zanahorias** y nuevas semillas.
-- **Menú principal, multipantalla y guardado completo:** Portada con diorama vivo, pantallas independientes para **Nueva Partida**, **Ranuras de Partidas Guardadas** (3 ranuras JSON con zonas, cultivos, paredes, ítems y líder) y **Ajustes del Juego** persistentes en `user://settings.cfg`.
+- **Líder de Colonia y reuniones de órdenes:** Al fundar una colonia se elige aleatoriamente a un **Líder de Colonia** (distinguido con corona dorada y espada de cobre). Las órdenes marcadas por el jugador no se ejecutan de forma mágica: el líder reúne o se acerca personalmente a los colonos para comunicar las instrucciones antes de que trabajen.
+- **Menú de Construcción y Zonas:** Panel dedicado accesible desde el botón **Construir** en el HUD inferior para elegir entre **Zona de Almacenamiento**, **Zona de Cultivo (Zanahorias)** y planos de **Pared de Madera** (`2` troncos por bloque, bloqueando el paso y obligando al pathfinding A* a rodearlas).
+- **Inventario personal y ranuras de colono:** Cada colono tiene ranuras propias en Rust y un panel visual de **Inventario** en el HUD con espacios reservados para **Casco (futuro)** y **Armadura (futura)**, ranura visible en la **Espalda** (pico, azada, hacha, pala o espada), **Mano principal** activa y **Mochila / carga actual**.
+- **Sueño en el suelo y animación `Zzz` (`.svg`):** Los colonos gastan energía al trabajar o caminar y se acuestan en el suelo al agotarse, mostrando partículas vectoriales `.svg` animadas de `Zzz` hasta recuperar energía.
+- **Tala, minería, cultivo de zanahorias y recursos en el piso:** Selección táctil por área para talar árboles, minar rocas de granito o hierro, arar tierra fértil, sembrar semillas de zanahoria (4 etapas visuales `.svg`), cosechar y almacenar automáticamente.
+- **Generación aleatoria oculta del mundo:** La semilla, el bioma terrestre y las dimensiones del terreno se generan de forma aleatoria e invisible al crear una colonia, sin mostrarse en menús, pantalla de carga, ranuras ni HUD.
+- **Efectos de sonido de trabajo (CC0):** Sonidos `.ogg` reales para talar, picar y construir sincronizados con cada golpe de herramienta en Rust y regulados por los ajustes de volumen.
+- **Menú principal, multipantalla y guardado completo:** Portada con diorama vivo, pantallas independientes para **Nueva Partida**, **Ranuras de Partidas Guardadas** (3 ranuras JSON) y **Ajustes del Juego** persistentes en `user://settings.cfg`.
 - **Compilación Android de 32 y 64 bits:** Exportación separada de APKs Debug firmados para `arm64-v8a` y `armeabi-v7a` mediante GitHub Actions.
 
 ---
