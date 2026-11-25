@@ -59,14 +59,20 @@ cargo build --target armv7-linux-androideabi "${CARGO_FLAGS[@]}"
 
 popd >/dev/null
 
-echo "[4/4] Copiando binarios .so al proyecto Godot..."
-mkdir -p "$GODOT_DIR/bin/aarch64" "$GODOT_DIR/bin/armv7"
+echo "[4/5] Compilando librería anfitrión Linux para validación GDExtension en Godot..."
+pushd "$RUST_DIR" >/dev/null
+cargo build "${CARGO_FLAGS[@]}"
+popd >/dev/null
+
+echo "[5/5] Copiando binarios .so al proyecto Godot..."
+mkdir -p "$GODOT_DIR/bin/aarch64" "$GODOT_DIR/bin/armv7" "$GODOT_DIR/bin/linux"
 cp "$RUST_DIR/target/aarch64-linux-android/${TARGET_SUBDIR}/libcolonia_core.so" "$GODOT_DIR/bin/aarch64/"
 cp "$RUST_DIR/target/armv7-linux-androideabi/${TARGET_SUBDIR}/libcolonia_core.so" "$GODOT_DIR/bin/armv7/"
+cp "$RUST_DIR/target/${TARGET_SUBDIR}/libcolonia_core.so" "$GODOT_DIR/bin/linux/"
 
 if command -v godot >/dev/null 2>&1; then
   mkdir -p "$ROOT_DIR/build"
-  echo "Importando recursos SVG y GDExtension en Godot..."
+  echo "Importando recursos SVG, ETC2/ASTC y GDExtension en Godot..."
   godot --headless --path "$GODOT_DIR" --import || true
 
   echo "Exportando APK Debug para arm64-v8a (64 bits)..."
