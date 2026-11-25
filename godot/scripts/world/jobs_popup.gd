@@ -179,7 +179,7 @@ func _refresh_colonist_tabs() -> void:
 		var cname := str(c.get("colonist_name"))
 		var is_leader := bool(c.get("is_leader"))
 		var roles_arr = c.get("assigned_roles_labels")
-		var r_count := roles_arr.size() if roles_arr is Array else 0
+		var r_count: int = (roles_arr as Array).size() if roles_arr is Array else 0
 
 		var btn := Button.new()
 		btn.text = "%s%s (%d/5)" % ["★ " if is_leader else "", cname, r_count]
