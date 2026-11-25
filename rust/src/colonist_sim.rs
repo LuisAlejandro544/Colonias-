@@ -96,12 +96,12 @@ impl SimulationCore {
         }
     }
 
-    pub fn is_tile_blocked(&self, tx: i32, ty: i32) -> bool {
-        if tx < 1 || ty < 1 || tx >= self.map_width - 1 || ty >= self.map_height - 1 {
+    fn tile_blocked(map_width: i32, map_height: i32, blocked: &[i32], tx: i32, ty: i32) -> bool {
+        if tx < 1 || ty < 1 || tx >= map_width - 1 || ty >= map_height - 1 {
             return true;
         }
-        let idx = (ty * self.map_width + tx) as usize;
-        self.blocked.get(idx).copied().unwrap_or(1) != 0
+        let idx = (ty * map_width + tx) as usize;
+        blocked.get(idx).copied().unwrap_or(1) != 0
     }
 
     /// Crea los colonos iniciales distribuidos en el claro central del mapa.
@@ -178,8 +178,7 @@ impl SimulationCore {
                     let oy = self.rng.range_i32(-6, 6);
                     let nx = (colonist.x.round() as i32 + ox).clamp(2, w - 3);
                     let ny = (colonist.y.round() as i32 + oy).clamp(2, h - 3);
-                    let idx = (ny * w + nx) as usize;
-                    if blocked.get(idx).copied().unwrap_or(1) == 0 {
+                    if !Self::tile_blocked(w, h, blocked, nx, ny) {
                         colonist.target_x = nx as f32 + 0.5;
                         colonist.target_y = ny as f32 + 0.5;
                         colonist.activity = if self.rng.next_f32() < 0.35 {
@@ -211,12 +210,7 @@ impl SimulationCore {
 
             let tile_x = next_x.floor() as i32;
             let tile_y = next_y.floor() as i32;
-            let idx = (tile_y * w + tile_x) as usize;
-            let hits_obstacle = tile_x < 1
-                || tile_y < 1
-                || tile_x >= w - 1
-                || tile_y >= h - 1
-                || blocked.get(idx).copied().unwrap_or(1) != 0;
+            let hits_obstacle = Self::tile_blocked(w, h, blocked, tile_x, tile_y);
 
             if hits_obstacle {
                 // Si tropieza con un árbol o roca, detiene este trayecto y elige otro luego.
@@ -411,7 +405,13 @@ mod tests {
             core.step(0.05);
         }
         for c in &core.colonists {
-            assert!(!core.is_tile_blocked(c.x.floor() as i32, c.y.floor() as i32));
+            assert!(!SimulationCore::tile_blocked(
+                core.map_width,
+                core.map_height,
+                &core.blocked,
+                c.x.floor() as i32,
+                c.y.floor() as i32
+            ));
         }
     }
 }
