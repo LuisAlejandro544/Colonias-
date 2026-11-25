@@ -1,10 +1,10 @@
 # Escena principal jugable: Mundo 2D terrestre en vista centinela (estilo RimWorld).
 #
-# Lógica: Conecta directamente con los nodos nativos en Rust (`WorldGenerator` y
-# `ColonySimulation`), muestra un overlay de progreso mientras genera el terreno
-# y distribuye árboles, arbolitos, rocas y piedras por lotes sin bloquear la
-# pantalla, y gestiona la cámara táctil (arrastre, pellizco y selección). Si la
-# librería nativa `colonia_core` no estuviera cargada, muestra un aviso claro.
+# Lógica: Carga módulos mediante `preload` directo (sin depender de caché global
+# de `class_name`) y se enlaza con los nodos nativos Rust (`WorldGenerator` y
+# `ColonySimulation`). Muestra un overlay de progreso mientras genera el terreno
+# y distribuye árboles, arbolitos, rocas y piedras por lotes sin congelar la
+# pantalla, además de gestionar la cámara táctil y el guardado de la colonia.
 
 extends Node2D
 
@@ -12,6 +12,10 @@ const TILE_PX := 64.0
 const MIN_ZOOM := 0.55
 const MAX_ZOOM := 1.85
 const PROPS_PER_FRAME := 240
+
+const WorldHudScript := preload("res://scripts/world/world_hud.gd")
+const ColonistVisualScript := preload("res://scripts/world/colonist_visual.gd")
+const GroundCanvasScript := preload("res://scripts/world/ground_canvas.gd")
 
 var _world_gen: Node
 var _colony_sim: Node
@@ -21,10 +25,10 @@ var _map_height: int = 64
 var _ground_tiles: PackedInt32Array
 var _blocked_tiles: PackedInt32Array
 
-var _ground_canvas: _GroundCanvas
+var _ground_canvas: Node2D
 var _entities_layer: Node2D
 var _camera: Camera2D
-var _hud: WorldHud
+var _hud: CanvasLayer
 
 var _loading_layer: CanvasLayer
 var _loading_title: Label
@@ -47,6 +51,12 @@ var _last_pinch_dist: float = 0.0
 
 
 func _ready() -> void:
+	start_colony_world()
+
+
+func start_colony_world() -> void:
+	if _loading_layer != null:
+		return
 	_build_loading_overlay()
 
 	if not ClassDB.class_exists(&"WorldGenerator") or not ClassDB.class_exists(&"ColonySimulation"):
@@ -72,19 +82,19 @@ func _ready() -> void:
 	add_child(_camera)
 	_camera.make_current()
 
-	_ground_canvas = _GroundCanvas.new()
+	_ground_canvas = GroundCanvasScript.new() as Node2D
 	add_child(_ground_canvas)
 
 	_entities_layer = Node2D.new()
 	_entities_layer.y_sort_enabled = true
 	add_child(_entities_layer)
 
-	_hud = WorldHud.new()
+	_hud = WorldHudScript.new() as CanvasLayer
 	add_child(_hud)
-	_hud.speed_changed.connect(func(spd: float): _sim_speed = spd)
-	_hud.zoom_step_requested.connect(_apply_zoom_delta)
-	_hud.save_requested.connect(_save_current_colony)
-	_hud.follow_toggled.connect(func(enabled: bool): _follow_selected = enabled)
+	_hud.connect("speed_changed", func(spd: float): _sim_speed = spd)
+	_hud.connect("zoom_step_requested", _apply_zoom_delta)
+	_hud.connect("save_requested", _save_current_colony)
+	_hud.connect("follow_toggled", func(enabled: bool): _follow_selected = enabled)
 
 	call_deferred("_initialize_world_async")
 
@@ -122,7 +132,7 @@ func _build_loading_overlay() -> void:
 	_loading_bar = ProgressBar.new()
 	_loading_bar.min_value = 0.0
 	_loading_bar.max_value = 100.0
-	_loading_bar.value = 18.0
+	_loading_bar.value = 35.0
 	_loading_bar.show_percentage = false
 	_loading_bar.custom_minimum_size = Vector2(0, 30)
 
@@ -168,13 +178,18 @@ func _show_core_error(msg: String) -> void:
 func _initialize_world_async() -> void:
 	await get_tree().process_frame
 
-	var data: Dictionary = _world_gen.call(
+	var data_var: Variant = _world_gen.call(
 		"generate_world",
 		GameSession.seed_value,
 		GameSession.map_size,
 		GameSession.map_size,
 		GameSession.biome_code
 	)
+	if not (data_var is Dictionary):
+		_show_core_error("El núcleo nativo no devolvió datos válidos del terreno.")
+		return
+
+	var data: Dictionary = data_var
 	_map_width = int(data.get("width", GameSession.map_size))
 	_map_height = int(data.get("height", GameSession.map_size))
 	_ground_tiles = data.get("ground", PackedInt32Array())
@@ -185,11 +200,11 @@ func _initialize_world_async() -> void:
 		_show_core_error("El generador procedural devolvió un terreno vacío.")
 		return
 
-	_loading_bar.value = 35.0
+	_loading_bar.value = 45.0
 	_loading_status.text = "Preparando suelo terrestre (%dx%d)..." % [_map_width, _map_height]
 	await get_tree().process_frame
 
-	_ground_canvas.configure(_map_width, _map_height, _ground_tiles, _camera)
+	_ground_canvas.call("configure", _map_width, _map_height, _ground_tiles, _camera)
 	_camera.limit_left = 0
 	_camera.limit_top = 0
 	_camera.limit_right = int(_map_width * TILE_PX)
@@ -198,7 +213,7 @@ func _initialize_world_async() -> void:
 
 	await _spawn_world_props_async(props)
 
-	_loading_bar.value = 92.0
+	_loading_bar.value = 94.0
 	_loading_status.text = "Desplegando colonos en el claro central..."
 	await get_tree().process_frame
 
@@ -293,7 +308,7 @@ func _spawn_world_props_async(props: PackedInt32Array) -> void:
 			spawned_in_batch += 1
 			if spawned_in_batch >= PROPS_PER_FRAME:
 				spawned_in_batch = 0
-				var pct := 35.0 + (float(idx) / maxf(1.0, float(total_tiles))) * 55.0
+				var pct := 45.0 + (float(idx) / maxf(1.0, float(total_tiles))) * 47.0
 				_loading_bar.value = pct
 				_loading_status.text = "Colocando bosques y rocas (%d%%)..." % int(round(pct))
 				await get_tree().process_frame
@@ -308,28 +323,31 @@ func _process(delta: float) -> void:
 	_ground_canvas.queue_redraw()
 
 	if _follow_selected and _colonist_nodes.has(_selected_colonist_id):
-		var target := _colonist_nodes[_selected_colonist_id] as ColonistVisual
+		var target := _colonist_nodes[_selected_colonist_id] as Node2D
 		_camera.position = target.position
 
 
 func _sync_colonist_visuals() -> void:
-	var snapshots: Array = _colony_sim.call("get_colonists_snapshot")
+	var snapshots_var: Variant = _colony_sim.call("get_colonists_snapshot")
+	if not (snapshots_var is Array):
+		return
+	var snapshots: Array = snapshots_var
 	for snap in snapshots:
 		if not (snap is Dictionary):
 			continue
 		var cid := int(snap.get("id", 0))
-		var node: ColonistVisual
+		var node: Node2D
 		if _colonist_nodes.has(cid):
 			node = _colonist_nodes[cid]
-			node.apply_snapshot(snap)
+			node.call("apply_snapshot", snap)
 		else:
-			node = ColonistVisual.new()
-			node.setup_from_snapshot(snap)
+			node = ColonistVisualScript.new() as Node2D
+			node.call("setup_from_snapshot", snap)
 			_entities_layer.add_child(node)
 			_colonist_nodes[cid] = node
 
 		if cid == _selected_colonist_id:
-			_hud.show_colonist_info(node)
+			_hud.call("show_colonist_info", node)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -414,28 +432,29 @@ func _handle_world_tap(screen_pos: Vector2) -> void:
 	var best_dist := 54.0
 
 	for cid in _colonist_nodes.keys():
-		var c := _colonist_nodes[cid] as ColonistVisual
+		var c := _colonist_nodes[cid] as Node2D
 		var d := (c.position + Vector2(0, -16)).distance_to(world_pos)
 		if d < best_dist:
 			best_dist = d
 			best_id = cid
 
 	for cid in _colonist_nodes.keys():
-		(_colonist_nodes[cid] as ColonistVisual).set_selected(cid == best_id)
+		(_colonist_nodes[cid] as Node2D).call("set_selected", cid == best_id)
 
 	_selected_colonist_id = best_id
 	if best_id > 0:
 		UiTheme.trigger_touch_feedback()
-		_hud.show_colonist_info(_colonist_nodes[best_id])
+		_hud.call("show_colonist_info", _colonist_nodes[best_id])
 	else:
 		_follow_selected = false
-		_hud.show_colonist_info(null)
+		_hud.call("show_colonist_info", null)
 
 
 func _save_current_colony() -> void:
 	if _colony_sim == null:
 		return
-	var snapshots: Array = _colony_sim.call("get_colonists_snapshot")
+	var snapshots_var: Variant = _colony_sim.call("get_colonists_snapshot")
+	var snapshots: Array = snapshots_var if snapshots_var is Array else []
 	var payload := {
 		"colony_name": GameSession.colony_name,
 		"seed": GameSession.seed_value,
@@ -445,56 +464,6 @@ func _save_current_colony() -> void:
 		"colonists": snapshots,
 	}
 	if SaveManager.save_game(GameSession.active_slot, payload):
-		_hud.show_toast("Colonia guardada en Ranura %d" % GameSession.active_slot)
+		_hud.call("show_toast", "Colonia guardada en Ranura %d" % GameSession.active_slot)
 	else:
-		_hud.show_toast("No se pudo guardar en Ranura %d" % GameSession.active_slot)
-
-
-class _GroundCanvas extends Node2D:
-	var _w: int = 0
-	var _h: int = 0
-	var _tiles: PackedInt32Array
-	var _cam: Camera2D
-	var _textures: Array[Texture2D] = []
-
-	func configure(w: int, h: int, tiles: PackedInt32Array, cam: Camera2D) -> void:
-		_w = w
-		_h = h
-		_tiles = tiles
-		_cam = cam
-		_textures.clear()
-		_textures.append(load("res://assets/ground/ground_grass.svg") as Texture2D)
-		_textures.append(load("res://assets/ground/ground_fertile.svg") as Texture2D)
-		_textures.append(load("res://assets/ground/ground_dirt.svg") as Texture2D)
-		_textures.append(load("res://assets/ground/ground_gravel.svg") as Texture2D)
-		_textures.append(load("res://assets/ground/ground_stone.svg") as Texture2D)
-		queue_redraw()
-
-	func _draw() -> void:
-		if _w <= 0 or _h <= 0 or _tiles.is_empty() or _cam == null or _textures.is_empty():
-			return
-
-		var vp_size := get_viewport_rect().size / _cam.zoom
-		var top_left := _cam.position - vp_size * 0.55
-		var bottom_right := _cam.position + vp_size * 0.55
-
-		var min_x := maxi(0, int(floor(top_left.x / TILE_PX)) - 1)
-		var min_y := maxi(0, int(floor(top_left.y / TILE_PX)) - 1)
-		var max_x := mini(_w - 1, int(ceil(bottom_right.x / TILE_PX)) + 1)
-		var max_y := mini(_h - 1, int(ceil(bottom_right.y / TILE_PX)) + 1)
-
-		var draw_grid := SettingsManager.show_terrain_grid
-		var grid_col := Color(0.15, 0.12, 0.08, 0.18)
-
-		for y in range(min_y, max_y + 1):
-			for x in range(min_x, max_x + 1):
-				var kind := clampi(_tiles[y * _w + x], 0, _textures.size() - 1)
-				var tex := _textures[kind]
-				if tex == null:
-					continue
-				var rect := Rect2(x * TILE_PX, y * TILE_PX, TILE_PX + 0.5, TILE_PX + 0.5)
-				# Ligera variación orgánica de tono para evitar repetición uniforme
-				var shade := 0.96 + float(((x * 37 + y * 17) & 7)) * 0.01
-				draw_texture_rect(tex, rect, false, Color(shade, shade, shade, 1.0))
-				if draw_grid:
-					draw_rect(rect, grid_col, false, 1.0)
+		_hud.call("show_toast", "No se pudo guardar en Ranura %d" % GameSession.active_slot)

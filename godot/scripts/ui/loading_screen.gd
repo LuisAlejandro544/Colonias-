@@ -1,9 +1,9 @@
 # Pantalla de transición y carga del mundo 2D terrestre.
 #
 # Lógica: Muestra inmediatamente una interfaz cálida con el resumen de la colonia,
-# barra de progreso y estado mientras carga en segundo plano la escena
-# `colony_world.tscn` mediante `ResourceLoader.load_threaded_request`, evitando
-# pantallas grises vacías o congelamientos al entrar al mundo.
+# barra de progreso y estado mientras carga `colony_world.tscn` y verifica que la
+# escena y su script se instancien correctamente antes de entregar el control,
+# evitando quedar atrapado en una pantalla oscura vacía si ocurre algún fallo.
 
 extends Control
 
@@ -69,7 +69,7 @@ func _build_ui() -> void:
 	_progress_bar = ProgressBar.new()
 	_progress_bar.min_value = 0.0
 	_progress_bar.max_value = 100.0
-	_progress_bar.value = 15.0
+	_progress_bar.value = 18.0
 	_progress_bar.show_percentage = false
 	_progress_bar.custom_minimum_size = Vector2(0, 30)
 
@@ -105,36 +105,60 @@ func _build_ui() -> void:
 
 
 func _process(_delta: float) -> void:
-	if _finished:
+	if _finished or _load_started:
 		return
 
-	if not _load_started:
-		_frames_waited += 1
-		if _frames_waited >= 2:
-			_load_started = true
-			var err := ResourceLoader.load_threaded_request(WORLD_SCENE_PATH)
-			if err != OK:
-				_show_load_error("No se pudo iniciar la carga del mundo (código %d)." % err)
+	_frames_waited += 1
+	if _frames_waited < 3:
+		_progress_bar.value = 20.0 + _frames_waited * 10.0
 		return
 
-	var progress_arr: Array = []
-	var status := ResourceLoader.load_threaded_get_status(WORLD_SCENE_PATH, progress_arr)
-	match status:
-		ResourceLoader.THREAD_LOAD_IN_PROGRESS:
-			var pct := float(progress_arr[0]) * 70.0 + 15.0 if progress_arr.size() > 0 else 45.0
-			_progress_bar.value = clampf(pct, 15.0, 88.0)
-			_status_label.text = "Cargando recursos del mapa terrestre..."
-		ResourceLoader.THREAD_LOAD_LOADED:
-			_finished = true
-			_progress_bar.value = 95.0
-			_status_label.text = "Iniciando generación procedural del terreno..."
-			var res := ResourceLoader.load_threaded_get(WORLD_SCENE_PATH)
-			if res is PackedScene:
-				get_tree().change_scene_to_packed(res as PackedScene)
-			else:
-				_show_load_error("La escena del mundo no es válida.")
-		ResourceLoader.THREAD_LOAD_FAILED, ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
-			_show_load_error("Error al cargar la escena del mundo (`colony_world.tscn`).")
+	_load_started = true
+	_load_world_safely()
+
+
+func _load_world_safely() -> void:
+	_progress_bar.value = 45.0
+	_status_label.text = "Abriendo escena del mundo..."
+	await get_tree().process_frame
+
+	if not ResourceLoader.exists(WORLD_SCENE_PATH):
+		_show_load_error("No se encontró `colony_world.tscn` dentro del paquete.")
+		return
+
+	var packed := ResourceLoader.load(WORLD_SCENE_PATH) as PackedScene
+	if packed == null or not packed.can_instantiate():
+		_show_load_error("No se pudo cargar o instanciar `colony_world.tscn`.")
+		return
+
+	_progress_bar.value = 65.0
+	_status_label.text = "Verificando controlador del mundo..."
+	await get_tree().process_frame
+
+	var world_node := packed.instantiate()
+	if world_node == null:
+		_show_load_error("Error interno al instanciar el nodo raíz del mundo.")
+		return
+
+	if world_node.get_script() == null or not world_node.has_method("start_colony_world"):
+		world_node.queue_free()
+		_show_load_error(
+			"El script del mundo (`colony_world.gd`) no pudo compilarse en este dispositivo.\n" +
+			"Revisa los scripts en `godot/scripts/world/`."
+		)
+		return
+
+	_progress_bar.value = 80.0
+	_status_label.text = "Entrando al mapa terrestre..."
+	await get_tree().process_frame
+
+	_finished = true
+	var root := get_tree().root
+	var old_scene := get_tree().current_scene
+	root.add_child(world_node)
+	get_tree().current_scene = world_node
+	if old_scene and is_instance_valid(old_scene):
+		old_scene.queue_free()
 
 
 func _show_load_error(msg: String) -> void:

@@ -83,6 +83,24 @@ if command -v godot >/dev/null 2>&1; then
     godot --headless --path "$GODOT_DIR" --import || true
   fi
 
+  echo "Verificando sintaxis GDScript en scripts críticos..."
+  for gd_script in \
+    "res://scripts/autoload/ui_theme.gd" \
+    "res://scripts/autoload/settings_manager.gd" \
+    "res://scripts/autoload/save_manager.gd" \
+    "res://scripts/autoload/game_session.gd" \
+    "res://scripts/ui/main_menu.gd" \
+    "res://scripts/ui/new_game_screen.gd" \
+    "res://scripts/ui/save_slots_screen.gd" \
+    "res://scripts/ui/settings_screen.gd" \
+    "res://scripts/ui/loading_screen.gd" \
+    "res://scripts/world/ground_canvas.gd" \
+    "res://scripts/world/world_hud.gd" \
+    "res://scripts/world/colonist_visual.gd" \
+    "res://scripts/world/colony_world.gd"; do
+    godot --headless --path "$GODOT_DIR" --check-only --script "$gd_script"
+  done
+
   APK_ARM64="$ROOT_DIR/build/colonia_centinela-arm64-v8a-${BUILD_MODE}.apk"
   APK_ARMV7="$ROOT_DIR/build/colonia_centinela-armeabi-v7a-${BUILD_MODE}.apk"
 

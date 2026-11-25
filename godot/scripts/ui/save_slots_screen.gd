@@ -66,6 +66,7 @@ func _build_ui() -> void:
 	_slots_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_slots_box.add_theme_constant_override("separation", 16)
 	scroll.add_child(_slots_box)
+	UiTheme.enable_touch_scroll(scroll)
 
 	_build_confirm_popup()
 
@@ -188,6 +189,8 @@ func _refresh_slots() -> void:
 				get_tree().change_scene_to_file("res://scenes/ui/new_game_screen.tscn")
 			)
 			actions.add_child(create_btn)
+
+	UiTheme.make_scroll_pass(_slots_box)
 
 
 func _on_load_slot(slot_idx: int) -> void:

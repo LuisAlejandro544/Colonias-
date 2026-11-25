@@ -61,6 +61,7 @@ Arquitectura modular separada en núcleo nativo (**Rust**), motor de escenas/UI 
 │       │   └── loading_screen.gd        # Carga asíncrona con progreso hacia el mundo 2D
 │       └── world/
 │           ├── colony_world.gd          # Orquestador del mapa, props, cámara táctil y snapshots Rust
+│           ├── ground_canvas.gd         # Lienzo optimizado del suelo terrestre visible en cámara
 │           ├── colonist_visual.gd       # Ensamblado visual por capas de cada colono
 │           └── world_hud.gd             # Barra superior, inspector de colono y menú popup en partida
 ├── rust/

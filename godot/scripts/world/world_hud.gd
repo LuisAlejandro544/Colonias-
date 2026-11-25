@@ -271,18 +271,18 @@ func _toggle_menu(open: bool) -> void:
 	_menu_backdrop.visible = open
 
 
-func show_colonist_info(colonist: ColonistVisual) -> void:
+func show_colonist_info(colonist: Node) -> void:
 	if colonist == null:
 		_inspector_panel.visible = false
 		_following = false
 		UiTheme.style_button(_follow_btn, "secondary", 52, 19)
 		return
 	_inspector_panel.visible = true
-	_inspector_name.text = "%s — %s" % [colonist.colonist_name, colonist.colonist_role]
+	_inspector_name.text = "%s — %s" % [str(colonist.get("colonist_name")), str(colonist.get("colonist_role"))]
 	_inspector_meta.text = "Actividad: %s\nSalud: %d%%  •  Ánimo: %d%%" % [
-		colonist.current_activity,
-		colonist.health_value,
-		colonist.mood_value,
+		str(colonist.get("current_activity")),
+		int(colonist.get("health_value")),
+		int(colonist.get("mood_value")),
 	]
 
 

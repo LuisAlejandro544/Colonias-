@@ -233,6 +233,7 @@ func _build_ui() -> void:
 	footer.add_child(start_btn)
 
 	_refresh_selection_styles()
+	UiTheme.enable_touch_scroll(scroll)
 
 
 func _section_label(txt: String) -> Label:

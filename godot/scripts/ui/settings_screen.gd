@@ -162,6 +162,7 @@ func _build_ui() -> void:
 	_zoom_slider = rz["slider"]
 	_zoom_val = rz["label"]
 	mob_v.add_child(rz["row"])
+	UiTheme.enable_touch_scroll(scroll)
 
 	# Pie de acciones
 	var footer := HBoxContainer.new()
