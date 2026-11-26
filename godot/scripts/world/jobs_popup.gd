@@ -1,10 +1,10 @@
 # Popup modular de gestión de Trabajos, Roles (máx. 5) y Niveles (1 al 10).
 #
-# Lógica: Permite seleccionar a cualquier colono de la colonia, ver los 8 roles
+# Lógica: Permite seleccionar a cualquier colono de la colonia, ver los 9 roles
 # disponibles (Leñador, Minero, Transportador, Constructor, Agricultor, Botánico,
-# Explorador y Líder de Colonia), activar o desactivar hasta 5 roles por colono y
-# consultar en tiempo real su nivel (1 a 10), barra de experiencia y bonificaciones
-# de velocidad, carga y rendimiento.
+# Explorador, Líder de Colonia y Carpintero), activar o desactivar hasta 5 roles
+# por colono y consultar en tiempo real su nivel (1 a 10), barra de experiencia y
+# bonificaciones de velocidad, carga y rendimiento.
 
 class_name JobsPopup
 extends ColorRect
@@ -111,7 +111,7 @@ func _build_ui() -> void:
 	_feedback_label.add_theme_font_size_override("font_size", UiTheme.scaled_px(15))
 	status_row.add_child(_feedback_label)
 
-	# Lista desplazable con los 8 roles
+	# Lista desplazable con los 9 roles
 	_scroll = ScrollContainer.new()
 	_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_scroll.custom_minimum_size = Vector2(0, 340)

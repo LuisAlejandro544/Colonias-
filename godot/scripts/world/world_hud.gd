@@ -1,11 +1,11 @@
-# Interfaz superpuesta (HUD) del mundo 2D en vista centinela para móvil.
+# Coordinador modular de la interfaz superpuesta (HUD) del mundo 2D en vista centinela.
 #
 # Lógica: Muestra la barra superior (colonia, día, estado del Líder de Colonia,
-# inventario de recursos, velocidad y zoom), la barra inferior de acciones
-# (Observar, Talar, Minar, Construir, Trabajos y Cancelar), el popup dedicado del
-# Menú de Construcción (Almacén, Cultivo de Zanahorias y Pared de Madera), el
-# popup modular de Trabajos (8 roles, máx. 5 por colono, niveles 1 a 10), el
-# inspector del colono tocado con su popup de Inventario/Equipo y el menú modal.
+# inventario global incluyendo carpintería, velocidad y zoom), la barra inferior
+# de acciones (Observar, Talar, Minar, Construir, Trabajos y Cancelar) y las
+# notificaciones toast, delegando los paneles y popups complejos a módulos
+# dedicados: `BuildMenuPopup`, `ColonistInspectorPanel`, `ColonistInventoryPopup`,
+# `ColonistStatsPopup`, `CarpenterBenchPopup`, `JobsPopup` y `PauseMenuPopup`.
 
 class_name WorldHud
 extends CanvasLayer
@@ -19,6 +19,12 @@ signal jobs_opened
 signal role_toggle_requested(colonist_id: int, role_code: String, enabled: bool)
 
 const JobsPopupScript := preload("res://scripts/world/jobs_popup.gd")
+const BuildMenuPopupScript := preload("res://scripts/world/build_menu_popup.gd")
+const ColonistInventoryPopupScript := preload("res://scripts/world/colonist_inventory_popup.gd")
+const ColonistStatsPopupScript := preload("res://scripts/world/colonist_stats_popup.gd")
+const CarpenterBenchPopupScript := preload("res://scripts/world/carpenter_bench_popup.gd")
+const ColonistInspectorPanelScript := preload("res://scripts/world/colonist_inspector_panel.gd")
+const PauseMenuPopupScript := preload("res://scripts/world/pause_menu_popup.gd")
 
 var _colony_label: Label
 var _stats_label: Label
@@ -32,36 +38,15 @@ var _active_tool_mode: String = "observe"
 var _mode_hint_panel: PanelContainer
 var _mode_hint_label: Label
 
-# Popup del Menú de Construcción y Zonas
-var _build_backdrop: ColorRect
-var _build_option_buttons: Dictionary = {}
-
-# Inspector inferior izquierdo del colono
+var _build_popup: ColorRect
 var _inspector_panel: PanelContainer
-var _inspector_name: Label
-var _inspector_meta: Label
-var _follow_btn: Button
-var _inv_open_btn: Button
-var _jobs_open_btn: Button
-var _following: bool = false
-var _inspected_colonist: Node = null
+var _inv_popup: ColorRect
+var _stats_popup: ColorRect
+var _bench_popup: ColorRect
 var _jobs_popup: ColorRect
+var _pause_popup: ColorRect
 
-# Popup de Inventario y Ranuras de Equipo del colono
-var _inv_backdrop: ColorRect
-var _inv_title_label: Label
-var _inv_helmet_val: Label
-var _inv_armor_val: Label
-var _inv_back_val: Label
-var _inv_back_icon: TextureRect
-var _inv_hand_val: Label
-var _inv_hand_icon: TextureRect
-var _inv_carry_val: Label
-var _inv_carry_icon: TextureRect
-
-# Popup modal del menú en partida
-var _menu_backdrop: ColorRect
-var _menu_popup: PanelContainer
+var _inspected_colonist: Node = null
 var _toast_label: Label
 var _toast_timer: float = 0.0
 
@@ -89,6 +74,10 @@ func _preload_icons() -> void:
 		"copper_ore": load("res://assets/items/item_copper_ore.svg") as Texture2D,
 		"carrot_seed": load("res://assets/items/item_carrot_seeds.svg") as Texture2D,
 		"carrot": load("res://assets/items/item_carrot.svg") as Texture2D,
+		"wood_plank": load("res://assets/items/item_wood_planks.svg") as Texture2D,
+		"wood_bucket": load("res://assets/items/item_wood_bucket.svg") as Texture2D,
+		"wood_door_item": load("res://assets/items/item_wood_door.svg") as Texture2D,
+		"wood_crate": load("res://assets/items/item_wood_crate.svg") as Texture2D,
 	}
 
 
@@ -105,7 +94,59 @@ func _build_hud() -> void:
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root)
 
-	# Barra superior compacta estilo pergamino/madera
+	_build_top_bar(root)
+	_build_bottom_bar(root)
+
+	_inspector_panel = ColonistInspectorPanelScript.new() as PanelContainer
+	root.add_child(_inspector_panel)
+	_inspector_panel.connect("inventory_requested", func():
+		if _inv_popup and _inspected_colonist != null:
+			_inv_popup.call("open_for_colonist", _inspected_colonist, _tool_icons, _item_icons)
+	)
+	_inspector_panel.connect("stats_requested", func():
+		if _stats_popup and _inspected_colonist != null:
+			_stats_popup.call("open_for_colonist", _inspected_colonist)
+	)
+	_inspector_panel.connect("jobs_requested", func(): jobs_opened.emit())
+	_inspector_panel.connect("follow_toggled", func(enabled: bool): follow_toggled.emit(enabled))
+
+	_toast_label = Label.new()
+	_toast_label.visible = false
+	_toast_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	_toast_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_toast_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_toast_label.offset_top = 128
+	_toast_label.add_theme_color_override("font_color", Color("#f6eccf"))
+	_toast_label.add_theme_font_size_override("font_size", UiTheme.scaled_px(19))
+	root.add_child(_toast_label)
+
+	_build_popup = BuildMenuPopupScript.new() as ColorRect
+	root.add_child(_build_popup)
+	_build_popup.connect("build_mode_selected", func(code: String): _set_active_tool_mode(code))
+
+	_inv_popup = ColonistInventoryPopupScript.new() as ColorRect
+	root.add_child(_inv_popup)
+
+	_stats_popup = ColonistStatsPopupScript.new() as ColorRect
+	root.add_child(_stats_popup)
+
+	_bench_popup = CarpenterBenchPopupScript.new() as ColorRect
+	root.add_child(_bench_popup)
+
+	_jobs_popup = JobsPopupScript.new() as ColorRect
+	root.add_child(_jobs_popup)
+	_jobs_popup.connect("role_toggled", func(cid: int, r_code: String, enabled: bool):
+		role_toggle_requested.emit(cid, r_code, enabled)
+	)
+
+	_pause_popup = PauseMenuPopupScript.new() as ColorRect
+	root.add_child(_pause_popup)
+	_pause_popup.connect("save_requested", func(): save_requested.emit())
+
+	_set_active_tool_mode("observe")
+
+
+func _build_top_bar(root: Control) -> void:
 	var top_margin := MarginContainer.new()
 	top_margin.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
 	top_margin.add_theme_constant_override("margin_left", 14)
@@ -119,7 +160,6 @@ func _build_hud() -> void:
 	top_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	top_margin.add_child(top_row)
 
-	# Tarjeta izquierda: colonia, líder e inventario
 	var info_panel := PanelContainer.new()
 	UiTheme.apply_panel_style(info_panel, Color(0.16, 0.13, 0.10, 0.93), UiTheme.BORDER_BRASS, 12, 16, 9)
 	top_row.add_child(info_panel)
@@ -154,9 +194,9 @@ func _build_hud() -> void:
 	info_v.add_child(_stats_label)
 
 	_inventory_label = Label.new()
-	_inventory_label.text = "Madera: 0  •  Piedra: 0  •  Hierro: 0  •  Cobre: 0  •  Semillas: 0  •  Zanahorias: 0"
+	_inventory_label.text = "Madera: 0 • Piedra: 0 • Hierro: 0 • Cobre: 0 • Semillas: 0 • Zanahorias: 0\nTablones: 0 • Cubos: 0 • Puertas: 0 • Arcones: 0"
 	_inventory_label.add_theme_color_override("font_color", Color("#e5d7be"))
-	_inventory_label.add_theme_font_size_override("font_size", UiTheme.scaled_px(15))
+	_inventory_label.add_theme_font_size_override("font_size", UiTheme.scaled_px(14))
 	info_v.add_child(_inventory_label)
 
 	var spacer := Control.new()
@@ -164,7 +204,6 @@ func _build_hud() -> void:
 	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	top_row.add_child(spacer)
 
-	# Controles de velocidad y zoom (cómodos para dedos)
 	var controls_panel := PanelContainer.new()
 	controls_panel.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	UiTheme.apply_panel_style(controls_panel, Color(0.16, 0.13, 0.10, 0.93), UiTheme.BORDER_BRASS, 12, 10, 8)
@@ -213,13 +252,24 @@ func _build_hud() -> void:
 	UiTheme.style_button(menu_btn, "amber", 48, 18)
 	menu_btn.pressed.connect(func():
 		UiTheme.trigger_touch_feedback()
-		_toggle_menu(true)
+		if _pause_popup:
+			_pause_popup.call("open_popup")
 	)
 	ctrl_row.add_child(menu_btn)
 
-	# Barra inferior principal (Observar, Talar, Minar, Construir, Cancelar)
+
+func _build_bottom_bar(root: Control) -> void:
 	var bottom_margin := MarginContainer.new()
-	bottom_margin.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	bottom_margin.anchor_left = 0.0
+	bottom_margin.anchor_top = 1.0
+	bottom_margin.anchor_right = 1.0
+	bottom_margin.anchor_bottom = 1.0
+	bottom_margin.offset_left = 0.0
+	bottom_margin.offset_top = 0.0
+	bottom_margin.offset_right = 0.0
+	bottom_margin.offset_bottom = 0.0
+	bottom_margin.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	bottom_margin.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	bottom_margin.add_theme_constant_override("margin_left", 14)
 	bottom_margin.add_theme_constant_override("margin_right", 14)
 	bottom_margin.add_theme_constant_override("margin_bottom", 12)
@@ -271,7 +321,8 @@ func _build_hud() -> void:
 	_build_menu_btn.text = "Construir"
 	_build_menu_btn.pressed.connect(func():
 		UiTheme.trigger_touch_feedback()
-		_toggle_build_menu(true)
+		if _build_popup:
+			_build_popup.call("open_popup")
 	)
 	tool_row.add_child(_build_menu_btn)
 
@@ -293,397 +344,6 @@ func _build_hud() -> void:
 	tool_row.add_child(cancel_btn)
 	_tool_buttons["cancel"] = cancel_btn
 
-	# Inspector inferior izquierdo del colono tocado
-	_inspector_panel = PanelContainer.new()
-	_inspector_panel.visible = false
-	_inspector_panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
-	_inspector_panel.offset_left = 18
-	_inspector_panel.offset_bottom = -96
-	_inspector_panel.offset_right = 590
-	_inspector_panel.offset_top = -304
-	UiTheme.apply_panel_style(_inspector_panel, Color(0.16, 0.13, 0.10, 0.95), UiTheme.BORDER_LIGHT, 14, 18, 14)
-	root.add_child(_inspector_panel)
-
-	var insp_row := HBoxContainer.new()
-	insp_row.add_theme_constant_override("separation", 12)
-	_inspector_panel.add_child(insp_row)
-
-	var insp_v := VBoxContainer.new()
-	insp_v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	insp_v.add_theme_constant_override("separation", 5)
-	insp_row.add_child(insp_v)
-
-	_inspector_name = Label.new()
-	_inspector_name.add_theme_color_override("font_color", UiTheme.TEXT_PARCHMENT)
-	_inspector_name.add_theme_font_size_override("font_size", UiTheme.scaled_px(20))
-	insp_v.add_child(_inspector_name)
-
-	_inspector_meta = Label.new()
-	_inspector_meta.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_inspector_meta.add_theme_color_override("font_color", UiTheme.TEXT_MUTED)
-	_inspector_meta.add_theme_font_size_override("font_size", UiTheme.scaled_px(15))
-	insp_v.add_child(_inspector_meta)
-
-	var insp_btns := VBoxContainer.new()
-	insp_btns.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	insp_btns.add_theme_constant_override("separation", 8)
-	insp_row.add_child(insp_btns)
-
-	_inv_open_btn = Button.new()
-	_inv_open_btn.text = "Inventario"
-	UiTheme.style_button(_inv_open_btn, "primary", 46, 17)
-	_inv_open_btn.pressed.connect(func():
-		UiTheme.trigger_touch_feedback()
-		_toggle_colonist_inventory(true)
-	)
-	insp_btns.add_child(_inv_open_btn)
-
-	_jobs_open_btn = Button.new()
-	_jobs_open_btn.text = "Trabajos"
-	UiTheme.style_button(_jobs_open_btn, "amber", 46, 17)
-	_jobs_open_btn.pressed.connect(func():
-		UiTheme.trigger_touch_feedback()
-		jobs_opened.emit()
-	)
-	insp_btns.add_child(_jobs_open_btn)
-
-	_follow_btn = Button.new()
-	_follow_btn.text = "Seguir"
-	UiTheme.style_button(_follow_btn, "secondary", 46, 17)
-	_follow_btn.pressed.connect(func():
-		UiTheme.trigger_touch_feedback()
-		_following = not _following
-		UiTheme.style_button(_follow_btn, "amber" if _following else "secondary", 46, 17)
-		follow_toggled.emit(_following)
-	)
-	insp_btns.add_child(_follow_btn)
-
-	# Notificación flotante de acciones y guardado
-	_toast_label = Label.new()
-	_toast_label.visible = false
-	_toast_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-	_toast_label.offset_top = 112
-	_toast_label.add_theme_color_override("font_color", Color("#f6eccf"))
-	_toast_label.add_theme_font_size_override("font_size", UiTheme.scaled_px(19))
-	root.add_child(_toast_label)
-
-	_build_construction_menu_popup(root)
-	_build_colonist_inventory_popup(root)
-	_jobs_popup = JobsPopupScript.new() as ColorRect
-	root.add_child(_jobs_popup)
-	_jobs_popup.connect("role_toggled", func(cid: int, r_code: String, enabled: bool):
-		role_toggle_requested.emit(cid, r_code, enabled)
-	)
-	_build_pause_menu_popup(root)
-	_set_active_tool_mode("observe")
-
-
-func _build_construction_menu_popup(root: Control) -> void:
-	_build_backdrop = ColorRect.new()
-	_build_backdrop.visible = false
-	_build_backdrop.color = Color(0.05, 0.04, 0.03, 0.68)
-	_build_backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	root.add_child(_build_backdrop)
-
-	var center := CenterContainer.new()
-	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_build_backdrop.add_child(center)
-
-	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(720, 0)
-	UiTheme.apply_panel_style(panel, UiTheme.BG_PANEL, UiTheme.BORDER_LIGHT, 16, 26, 22)
-	center.add_child(panel)
-
-	var v := VBoxContainer.new()
-	v.add_theme_constant_override("separation", 14)
-	panel.add_child(v)
-
-	var head_row := HBoxContainer.new()
-	head_row.add_theme_constant_override("separation", 12)
-	v.add_child(head_row)
-
-	var title_v := VBoxContainer.new()
-	title_v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title_v.add_theme_constant_override("separation", 4)
-	head_row.add_child(title_v)
-
-	var title := Label.new()
-	title.text = "Menú de Construcción y Zonas"
-	UiTheme.style_title(title, 28)
-	title_v.add_child(title)
-
-	var sub := Label.new()
-	sub.text = "Elige dónde almacenar recursos, sembrar zanahorias o levantar paredes de madera."
-	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	UiTheme.style_subtitle(sub, 16)
-	title_v.add_child(sub)
-
-	var close_btn := Button.new()
-	close_btn.text = "Cerrar"
-	UiTheme.style_button(close_btn, "secondary", 48, 18)
-	close_btn.pressed.connect(func():
-		UiTheme.trigger_touch_feedback()
-		_toggle_build_menu(false)
-	)
-	head_row.add_child(close_btn)
-
-	var build_items := [
-		{
-			"code": "storage",
-			"title": "Zona de Almacenamiento",
-			"desc": "Punto de acopio para madera, piedra, menas y cosechas recolectadas.",
-			"cost": "Sin costo de materiales",
-			"icon": "res://assets/items/item_wood_logs.svg",
-		},
-		{
-			"code": "farm",
-			"title": "Zona de Cultivo (Zanahorias)",
-			"desc": "Área agrícola para arar con azada de cobre, sembrar semillas y cosechar.",
-			"cost": "Usa semillas de zanahoria al sembrar",
-			"icon": "res://assets/items/item_carrot.svg",
-		},
-		{
-			"code": "build_wall",
-			"title": "Pared de Madera",
-			"desc": "Bloques sólidos para refugios y muros que protegen y cierran espacios.",
-			"cost": "Costo: 2 troncos de madera por bloque",
-			"icon": "res://assets/structures/wall_wood.svg",
-		},
-	]
-
-	for item in build_items:
-		var card := PanelContainer.new()
-		UiTheme.apply_panel_style(card, UiTheme.BG_PANEL_ALT, UiTheme.BORDER_BRASS, 12, 16, 12)
-		v.add_child(card)
-
-		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 14)
-		card.add_child(row)
-
-		var icon_box := PanelContainer.new()
-		icon_box.custom_minimum_size = Vector2(64, 64)
-		UiTheme.apply_panel_style(icon_box, Color("#1b1510"), UiTheme.BORDER_BRASS, 10, 8, 8)
-		row.add_child(icon_box)
-
-		var icon := TextureRect.new()
-		icon.texture = load(item["icon"]) as Texture2D
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.custom_minimum_size = Vector2(46, 46)
-		icon_box.add_child(icon)
-
-		var txt_v := VBoxContainer.new()
-		txt_v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		txt_v.add_theme_constant_override("separation", 3)
-		row.add_child(txt_v)
-
-		var lbl_t := Label.new()
-		lbl_t.text = item["title"]
-		UiTheme.style_title(lbl_t, 20)
-		txt_v.add_child(lbl_t)
-
-		var lbl_d := Label.new()
-		lbl_d.text = item["desc"]
-		lbl_d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		UiTheme.style_subtitle(lbl_d, 15)
-		txt_v.add_child(lbl_d)
-
-		var lbl_c := Label.new()
-		lbl_c.text = item["cost"]
-		lbl_c.add_theme_color_override("font_color", UiTheme.TEXT_ACCENT)
-		lbl_c.add_theme_font_size_override("font_size", UiTheme.scaled_px(14))
-		txt_v.add_child(lbl_c)
-
-		var code: String = item["code"]
-		var pick_btn := Button.new()
-		pick_btn.text = "Seleccionar"
-		pick_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		pick_btn.pressed.connect(func():
-			UiTheme.trigger_touch_feedback()
-			_set_active_tool_mode(code)
-			_toggle_build_menu(false)
-		)
-		row.add_child(pick_btn)
-		_build_option_buttons[code] = pick_btn
-
-
-func _build_colonist_inventory_popup(root: Control) -> void:
-	_inv_backdrop = ColorRect.new()
-	_inv_backdrop.visible = false
-	_inv_backdrop.color = Color(0.05, 0.04, 0.03, 0.72)
-	_inv_backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	root.add_child(_inv_backdrop)
-
-	var center := CenterContainer.new()
-	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_inv_backdrop.add_child(center)
-
-	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(700, 0)
-	UiTheme.apply_panel_style(panel, UiTheme.BG_PANEL, UiTheme.BORDER_LIGHT, 16, 26, 22)
-	center.add_child(panel)
-
-	var v := VBoxContainer.new()
-	v.add_theme_constant_override("separation", 14)
-	panel.add_child(v)
-
-	var head := HBoxContainer.new()
-	head.add_theme_constant_override("separation", 12)
-	v.add_child(head)
-
-	_inv_title_label = Label.new()
-	_inv_title_label.text = "Inventario del Colono"
-	_inv_title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	UiTheme.style_title(_inv_title_label, 26)
-	head.add_child(_inv_title_label)
-
-	var close_btn := Button.new()
-	close_btn.text = "Cerrar"
-	UiTheme.style_button(close_btn, "secondary", 48, 18)
-	close_btn.pressed.connect(func():
-		UiTheme.trigger_touch_feedback()
-		_toggle_colonist_inventory(false)
-	)
-	head.add_child(close_btn)
-
-	var grid := GridContainer.new()
-	grid.columns = 2
-	grid.add_theme_constant_override("h_separation", 12)
-	grid.add_theme_constant_override("v_separation", 12)
-	v.add_child(grid)
-
-	var helmet_slot := _make_equipment_slot("Casco (Futuro)", "Ranura vacía")
-	_inv_helmet_val = helmet_slot["val"]
-	grid.add_child(helmet_slot["card"])
-
-	var armor_slot := _make_equipment_slot("Armadura (Futura)", "Ranura vacía")
-	_inv_armor_val = armor_slot["val"]
-	grid.add_child(armor_slot["card"])
-
-	var back_slot := _make_equipment_slot("Espalda", "Vacío")
-	_inv_back_val = back_slot["val"]
-	_inv_back_icon = back_slot["icon"]
-	grid.add_child(back_slot["card"])
-
-	var hand_slot := _make_equipment_slot("Mano Principal", "Vacío")
-	_inv_hand_val = hand_slot["val"]
-	_inv_hand_icon = hand_slot["icon"]
-	grid.add_child(hand_slot["card"])
-
-	var carry_slot := _make_equipment_slot("Mochila / Carga Actual", "Sin carga")
-	_inv_carry_val = carry_slot["val"]
-	_inv_carry_icon = carry_slot["icon"]
-	v.add_child(carry_slot["card"])
-
-
-func _make_equipment_slot(slot_title: String, default_text: String) -> Dictionary:
-	var card := PanelContainer.new()
-	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	UiTheme.apply_panel_style(card, UiTheme.BG_PANEL_ALT, UiTheme.BORDER_BRASS, 12, 14, 10)
-
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 12)
-	card.add_child(row)
-
-	var icon_box := PanelContainer.new()
-	icon_box.custom_minimum_size = Vector2(54, 54)
-	UiTheme.apply_panel_style(icon_box, Color("#1b1510"), UiTheme.BORDER_BRASS, 8, 6, 6)
-	row.add_child(icon_box)
-
-	var icon := TextureRect.new()
-	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.custom_minimum_size = Vector2(40, 40)
-	icon_box.add_child(icon)
-
-	var txt_v := VBoxContainer.new()
-	txt_v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	txt_v.add_theme_constant_override("separation", 2)
-	row.add_child(txt_v)
-
-	var lbl_head := Label.new()
-	lbl_head.text = slot_title
-	UiTheme.style_section_label(lbl_head, 15)
-	txt_v.add_child(lbl_head)
-
-	var lbl_val := Label.new()
-	lbl_val.text = default_text
-	lbl_val.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	lbl_val.add_theme_color_override("font_color", UiTheme.TEXT_PARCHMENT)
-	lbl_val.add_theme_font_size_override("font_size", UiTheme.scaled_px(17))
-	txt_v.add_child(lbl_val)
-
-	return {"card": card, "val": lbl_val, "icon": icon}
-
-
-func _build_pause_menu_popup(root: Control) -> void:
-	_menu_backdrop = ColorRect.new()
-	_menu_backdrop.visible = false
-	_menu_backdrop.color = Color(0.05, 0.04, 0.03, 0.72)
-	_menu_backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	root.add_child(_menu_backdrop)
-
-	_menu_popup = PanelContainer.new()
-	_menu_popup.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	_menu_popup.custom_minimum_size = Vector2(450, 0)
-	UiTheme.apply_panel_style(_menu_popup, UiTheme.BG_PANEL, UiTheme.BORDER_LIGHT, 16, 28, 24)
-	_menu_backdrop.add_child(_menu_popup)
-
-	var mv := VBoxContainer.new()
-	mv.add_theme_constant_override("separation", 14)
-	_menu_popup.add_child(mv)
-
-	var mtitle := Label.new()
-	mtitle.text = "Menú de Colonia"
-	mtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	UiTheme.style_title(mtitle, 28)
-	mv.add_child(mtitle)
-
-	var resume_btn := Button.new()
-	resume_btn.text = "Continuar jugando"
-	UiTheme.style_button(resume_btn, "primary", 56, 20)
-	resume_btn.pressed.connect(func(): _toggle_menu(false))
-	mv.add_child(resume_btn)
-
-	var save_btn := Button.new()
-	save_btn.text = "Guardar en Ranura %d" % GameSession.active_slot
-	UiTheme.style_button(save_btn, "amber", 56, 20)
-	save_btn.pressed.connect(func():
-		UiTheme.trigger_touch_feedback()
-		save_requested.emit()
-		_toggle_menu(false)
-	)
-	mv.add_child(save_btn)
-
-	var slots_btn := Button.new()
-	slots_btn.text = "Ranuras de Partidas"
-	UiTheme.style_button(slots_btn, "secondary", 56, 20)
-	slots_btn.pressed.connect(func():
-		save_requested.emit()
-		GameSession.return_scene_path = "res://scenes/world/colony_world.tscn"
-		get_tree().change_scene_to_file("res://scenes/ui/save_slots_screen.tscn")
-	)
-	mv.add_child(slots_btn)
-
-	var settings_btn := Button.new()
-	settings_btn.text = "Ajustes del Juego"
-	UiTheme.style_button(settings_btn, "secondary", 56, 20)
-	settings_btn.pressed.connect(func():
-		save_requested.emit()
-		GameSession.return_scene_path = "res://scenes/world/colony_world.tscn"
-		get_tree().change_scene_to_file("res://scenes/ui/settings_screen.tscn")
-	)
-	mv.add_child(settings_btn)
-
-	var main_btn := Button.new()
-	main_btn.text = "Volver al Menú Principal"
-	UiTheme.style_button(main_btn, "danger", 56, 20)
-	main_btn.pressed.connect(func():
-		save_requested.emit()
-		get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
-	)
-	mv.add_child(main_btn)
-
 
 func _set_active_speed(val: float) -> void:
 	for k in _speed_buttons.keys():
@@ -698,16 +358,12 @@ func _set_active_tool_mode(mode_code: String) -> void:
 			variant = "danger" if code == "cancel" else "amber"
 		UiTheme.style_button(_tool_buttons[code], variant, 48, 17)
 
-	var is_build_mode: bool = mode_code in ["storage", "farm", "build_wall"]
+	var is_build_mode: bool = mode_code in ["storage", "farm", "build_wall", "build_door", "build_carpenter_bench"]
 	if _build_menu_btn:
 		UiTheme.style_button(_build_menu_btn, "amber" if is_build_mode else "primary", 48, 17)
 
-	for b_code in _build_option_buttons.keys():
-		var b_code_str: String = str(b_code)
-		var b_btn: Button = _build_option_buttons[b_code]
-		var selected: bool = (b_code_str == mode_code)
-		b_btn.text = "Activo" if selected else "Seleccionar"
-		UiTheme.style_button(b_btn, "amber" if selected else "primary", 46, 17)
+	if _build_popup:
+		_build_popup.call("update_selected_mode", mode_code)
 
 	match mode_code:
 		"chop":
@@ -718,13 +374,19 @@ func _set_active_tool_mode(mode_code: String) -> void:
 			_mode_hint_label.text = "Minar: arrastra sobre rocas o vetas de hierro • El líder comunicará la orden"
 		"storage":
 			_mode_hint_panel.visible = true
-			_mode_hint_label.text = "Construir Almacén: arrastra donde guardar madera, piedra, menas y cosechas"
+			_mode_hint_label.text = "Construir Almacén: arrastra donde guardar madera, piedra, menas, piezas y cosechas"
 		"farm":
 			_mode_hint_panel.visible = true
 			_mode_hint_label.text = "Construir Cultivo (Zanahorias): arrastra tierra o pasto para arar y sembrar"
 		"build_wall":
 			_mode_hint_panel.visible = true
-			_mode_hint_label.text = "Construir Pared de Madera (2 madera/bloque): arrastra para colocar planos"
+			_mode_hint_label.text = "Construir Pared de Madera (2 troncos/bloque): arrastra para colocar planos"
+		"build_door":
+			_mode_hint_panel.visible = true
+			_mode_hint_label.text = "Instalar Puerta de Madera (1 puerta fabricada): arrastra o toca un hueco entre muros"
+		"build_carpenter_bench":
+			_mode_hint_panel.visible = true
+			_mode_hint_label.text = "Mesa de Carpintero (6 troncos): toca una casilla para levantar el taller"
 		"cancel":
 			_mode_hint_panel.visible = true
 			_mode_hint_label.text = "Cancelar: arrastra sobre áreas, planos o marcas para limpiarlas"
@@ -732,22 +394,6 @@ func _set_active_tool_mode(mode_code: String) -> void:
 			_mode_hint_panel.visible = false
 
 	tool_mode_changed.emit(mode_code)
-
-
-func _toggle_build_menu(open: bool) -> void:
-	if _build_backdrop:
-		_build_backdrop.visible = open
-
-
-func _toggle_colonist_inventory(open: bool) -> void:
-	if _inv_backdrop:
-		_inv_backdrop.visible = open
-		if open and _inspected_colonist != null:
-			_refresh_inventory_popup(_inspected_colonist)
-
-
-func _toggle_menu(open: bool) -> void:
-	_menu_backdrop.visible = open
 
 
 func update_world_summary(snap: Dictionary, colonist_count: int) -> void:
@@ -776,100 +422,49 @@ func update_world_summary(snap: Dictionary, colonist_count: int) -> void:
 	var inv_var = snap.get("inventory", {})
 	if inv_var is Dictionary:
 		var inv: Dictionary = inv_var
-		_inventory_label.text = "Madera: %d  •  Piedra: %d  •  Hierro: %d  •  Cobre: %d  •  Semillas: %d  •  Zanahorias: %d" % [
+		_inventory_label.text = "Madera: %d • Piedra: %d • Hierro: %d • Cobre: %d • Semillas: %d • Zanahorias: %d\nTablones: %d • Cubos: %d • Puertas: %d • Arcones: %d" % [
 			int(inv.get("wood", 0)),
 			int(inv.get("stone", 0)),
 			int(inv.get("iron", 0)),
 			int(inv.get("copper", 0)),
 			int(inv.get("carrot_seeds", 0)),
 			int(inv.get("carrots", 0)),
+			int(inv.get("wood_planks", 0)),
+			int(inv.get("wood_buckets", 0)),
+			int(inv.get("wood_doors", 0)),
+			int(inv.get("wood_crates", 0)),
 		]
 
 
 func show_colonist_info(colonist: Node) -> void:
 	_inspected_colonist = colonist
+	if _inspector_panel:
+		_inspector_panel.call("show_colonist", colonist)
 	if colonist == null:
-		_inspector_panel.visible = false
-		_following = false
-		UiTheme.style_button(_follow_btn, "secondary", 46, 17)
-		if _inv_backdrop:
-			_inv_backdrop.visible = false
+		if _inv_popup:
+			_inv_popup.call("close_popup")
+		if _stats_popup:
+			_stats_popup.call("close_popup")
 		return
-
-	_inspector_panel.visible = true
-	var leader_tag := " [Líder]" if bool(colonist.get("is_leader")) else ""
-	_inspector_name.text = "%s%s — %s" % [
-		str(colonist.get("colonist_name")),
-		leader_tag,
-		str(colonist.get("colonist_role")),
-	]
-	var hand_txt := str(colonist.get("main_hand_tool_label"))
-	var back_txt := str(colonist.get("back_tool_label"))
-	var carry_kind := str(colonist.get("carrying_kind"))
-	var carry_amt := int(colonist.get("carrying_amount"))
-	var carry_line := ""
-	if not carry_kind.is_empty() and carry_amt > 0:
-		carry_line = "  •  Carga: x%d" % carry_amt
-
-	var roles_var = colonist.get("assigned_roles_labels")
-	var roles_txt := "Sin roles"
-	var roles_count := 0
-	if roles_var is Array and not roles_var.is_empty():
-		roles_count = roles_var.size()
-		var joined := ""
-		for i in range(roles_count):
-			if i > 0:
-				joined += ", "
-			joined += str(roles_var[i])
-		roles_txt = joined
-
-	_inspector_meta.text = "Roles (%d/5): %s\nActividad: %s\nMano: %s  •  Espalda: %s%s\nEnergía: %d%%  •  Salud: %d%%  •  Ánimo: %d%%" % [
-		roles_count,
-		roles_txt,
-		str(colonist.get("current_activity")),
-		hand_txt,
-		back_txt,
-		carry_line,
-		int(colonist.get("energy_value")),
-		int(colonist.get("health_value")),
-		int(colonist.get("mood_value")),
-	]
-
-	if _inv_backdrop and _inv_backdrop.visible:
-		_refresh_inventory_popup(colonist)
+	if _inv_popup:
+		_inv_popup.call("refresh_if_visible", colonist, _tool_icons, _item_icons)
+	if _stats_popup:
+		_stats_popup.call("refresh_if_visible", colonist)
 
 
-func _refresh_inventory_popup(colonist: Node) -> void:
-	if colonist == null:
-		return
-	var leader_tag := " [Líder]" if bool(colonist.get("is_leader")) else ""
-	_inv_title_label.text = "Inventario de %s%s" % [str(colonist.get("colonist_name")), leader_tag]
+func open_carpenter_bench(tile_x: int, tile_y: int, colony_sim: Node) -> bool:
+	if _bench_popup == null or colony_sim == null:
+		return false
+	var bench_var: Variant = colony_sim.call("get_carpentry_bench_at", tile_x, tile_y)
+	if bench_var is Dictionary and bool((bench_var as Dictionary).get("found", false)):
+		_bench_popup.call("open_for_bench", bench_var as Dictionary, colony_sim, _item_icons)
+		return true
+	return false
 
-	var helmet := str(colonist.get("helmet_slot"))
-	_inv_helmet_val.text = helmet if not helmet.is_empty() else "Vacío (Ranura lista para futuros cascos)"
 
-	var armor := str(colonist.get("armor_slot"))
-	_inv_armor_val.text = armor if not armor.is_empty() else "Vacío (Ranura lista para futuras armaduras)"
-
-	var back_code := str(colonist.get("back_tool_code"))
-	var back_label := str(colonist.get("back_tool_label"))
-	_inv_back_val.text = back_label if back_code != "none" else "Vacío"
-	_inv_back_icon.texture = _tool_icons.get(back_code, null)
-
-	var hand_code := str(colonist.get("main_hand_tool_code"))
-	var hand_label := str(colonist.get("main_hand_tool_label"))
-	_inv_hand_val.text = hand_label if hand_code != "none" else "Manos libres"
-	_inv_hand_icon.texture = _tool_icons.get(hand_code, null)
-
-	var carry_kind := str(colonist.get("carrying_kind"))
-	var carry_label := str(colonist.get("carrying_label"))
-	var carry_amt := int(colonist.get("carrying_amount"))
-	if not carry_kind.is_empty() and carry_amt > 0:
-		_inv_carry_val.text = "%s (x%d)" % [carry_label if not carry_label.is_empty() else carry_kind, carry_amt]
-		_inv_carry_icon.texture = _item_icons.get(carry_kind, null)
-	else:
-		_inv_carry_val.text = "Mochila vacía"
-		_inv_carry_icon.texture = null
+func refresh_carpenter_bench_if_visible() -> void:
+	if _bench_popup:
+		_bench_popup.call("refresh_if_visible")
 
 
 func open_jobs_popup(colonists: Array, focus_colonist_id: int, colony_sim: Node) -> void:

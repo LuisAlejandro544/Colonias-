@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Arcón / caja reforzada de madera (carpintería compleja INT 4+) -->
+  <ellipse cx="64" cy="100" rx="44" ry="14" fill="#18130e" opacity="0.32"/>
+  <!-- Cuerpo principal del arcón -->
+  <rect x="24" y="48" width="80" height="48" rx="4" fill="#8d5d36" stroke="#1e1813" stroke-width="4"/>
+  <!-- Tapa superior del arcón -->
+  <path d="M22 48 L32 32 L96 32 L106 48 Z" fill="#b48052" stroke="#1e1813" stroke-width="4" stroke-linejoin="round"/>
+  <!-- Tablones y listón diagonal frontal -->
+  <path d="M44 48 L44 96 M64 48 L64 96 M84 48 L84 96" stroke="#664021" stroke-width="2.5"/>
+  <rect x="24" y="48" width="80" height="10" fill="#774c2a" stroke="#1e1813" stroke-width="3.2"/>
+  <!-- Bandas de refuerzo de hierro y cerradura de cobre -->
+  <rect x="33" y="34" width="10" height="62" rx="2" fill="#4f565e" stroke="#1e1813" stroke-width="2.8"/>
+  <rect x="85" y="34" width="10" height="62" rx="2" fill="#4f565e" stroke="#1e1813" stroke-width="2.8"/>
+  <rect x="57" y="47" width="14" height="18" rx="3" fill="#d9944e" stroke="#1e1813" stroke-width="2.8"/>
+  <circle cx="64" cy="56" r="2.6" fill="#1e1813"/>
+</svg>

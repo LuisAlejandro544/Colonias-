@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Mesa de carpintero 2.5D estilo RimWorld con tablero de roble, prensa y sierra -->
+  <ellipse cx="64" cy="108" rx="54" ry="12" fill="#18130e" opacity="0.32"/>
+  <!-- Patas traseras y travesaño inferior -->
+  <rect x="20" y="68" width="14" height="36" rx="2" fill="#5b391f" stroke="#1e1813" stroke-width="3.6"/>
+  <rect x="94" y="68" width="14" height="36" rx="2" fill="#5b391f" stroke="#1e1813" stroke-width="3.6"/>
+  <rect x="24" y="84" width="80" height="11" rx="2" fill="#6b4426" stroke="#1e1813" stroke-width="3.2"/>
+  <!-- Frente del tablero grueso -->
+  <rect x="12" y="54" width="104" height="20" rx="3" fill="#6f4828" stroke="#1e1813" stroke-width="4"/>
+  <!-- Superficie iluminada del banco de trabajo -->
+  <rect x="12" y="30" width="104" height="30" rx="4" fill="#a87549" stroke="#1e1813" stroke-width="4"/>
+  <path d="M16 40 L112 40 M16 50 L112 50" stroke="#855832" stroke-width="2.2" opacity="0.68"/>
+  <!-- Prensa lateral de carpintería -->
+  <rect x="8" y="48" width="12" height="24" rx="2" fill="#7a512f" stroke="#1e1813" stroke-width="3.2"/>
+  <circle cx="14" cy="60" r="4" fill="#c79b52" stroke="#1e1813" stroke-width="2.5"/>
+  <!-- Tablón en proceso sobre la mesa -->
+  <rect x="24" y="35" width="44" height="12" rx="2" fill="#d9b27c" stroke="#1e1813" stroke-width="3"/>
+  <line x1="30" y1="41" x2="62" y2="41" stroke="#b38852" stroke-width="2"/>
+  <!-- Escuadra metálica y sierra de mano apoyada -->
+  <path d="M76 34 L102 34 L102 52 L96 52 L96 40 L76 40 Z" fill="#8b96a0" stroke="#1e1813" stroke-width="2.8" stroke-linejoin="round"/>
+  <path d="M72 48 L96 68 L88 74 L65 53 Z" fill="#b7c0c8" stroke="#1e1813" stroke-width="2.8" stroke-linejoin="round"/>
+  <path d="M62 43 L74 48 L69 57 L57 52 Z" fill="#8f532c" stroke="#1e1813" stroke-width="2.8" stroke-linejoin="round"/>
+  <!-- Virutas de madera en el tablero y suelo -->
+  <path d="M40 53 C44 49 48 55 52 51" fill="none" stroke="#e8c896" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M48 102 C53 98 57 104 62 100 M74 103 C78 99 82 104 86 101" fill="none" stroke="#cfa872" stroke-width="2.6" stroke-linecap="round"/>
+</svg>

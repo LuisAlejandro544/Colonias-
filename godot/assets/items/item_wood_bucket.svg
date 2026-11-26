@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Cubo / balde de madera con aros metálicos en el piso -->
+  <ellipse cx="64" cy="103" rx="34" ry="11" fill="#18130e" opacity="0.32"/>
+  <!-- Asa arqueada trasera -->
+  <path d="M32 48 C34 18 94 18 96 48" fill="none" stroke="#1e1813" stroke-width="8" stroke-linecap="round"/>
+  <path d="M32 48 C34 18 94 18 96 48" fill="none" stroke="#6f7882" stroke-width="3.8" stroke-linecap="round"/>
+  <!-- Cuerpo cónico de duelas de madera -->
+  <path d="M30 48 L38 98 C39 104 89 104 90 98 L98 48 Z" fill="#9b6a3f" stroke="#1e1813" stroke-width="4" stroke-linejoin="round"/>
+  <!-- Líneas de duelas -->
+  <path d="M48 54 L51 101 M64 55 L64 102 M80 54 L77 101" stroke="#6c4526" stroke-width="2.6" stroke-linecap="round"/>
+  <!-- Aros metálicos de refuerzo -->
+  <path d="M32 62 C44 68 84 68 96 62 L95 70 C83 76 45 76 33 70 Z" fill="#4f565e" stroke="#1e1813" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M35 84 C46 90 82 90 93 84 L92 92 C81 97 47 97 36 92 Z" fill="#4f565e" stroke="#1e1813" stroke-width="3" stroke-linejoin="round"/>
+  <!-- Boca superior del cubo -->
+  <ellipse cx="64" cy="48" rx="34" ry="11" fill="#c79563" stroke="#1e1813" stroke-width="4"/>
+  <ellipse cx="64" cy="48" rx="26" ry="7.5" fill="#4d321c" stroke="#1e1813" stroke-width="2.6"/>
+  <!-- Soportes laterales del asa -->
+  <circle cx="32" cy="50" r="4" fill="#c98647" stroke="#1e1813" stroke-width="2.4"/>
+  <circle cx="96" cy="50" r="4" fill="#c98647" stroke="#1e1813" stroke-width="2.4"/>
+</svg>

@@ -17,22 +17,22 @@ Menús Godot (scripts/ui/*.gd)
    ▼
 Escena del Mundo (godot/scripts/world/colony_world.gd)
    ├── Llama a WorldGenerator (rust/src/world_gen.rs) -> terreno + obstáculos (semilla/bioma aleatorios ocultos)
-   ├── Llama a ColonySimulation (rust/src/colonist_sim.rs + roles.rs) -> 8 roles (máx. 5), niveles 1..=10, líder, reuniones, A*, cultivos, muros, ítems, energía/sueño, inventario y sfx_events
+   ├── Llama a ColonySimulation (rust/src/colonist_sim.rs + roles.rs + stats.rs) -> 9 roles (máx. 5), niveles 1..=10, 5 atributos (INT/FUE/DES/RES/CAR), líder, reuniones, A*, cultivos, muros/puertas/mesas, carpintería, ítems, energía/sueño, inventario y sfx_events
    ├── WorldOverlay (world_overlay.gd) -> zonas, etapas de zanahorias, marcas y selección táctil
-   ├── WorldHud (world_hud.gd) + JobsPopup (jobs_popup.gd) -> barra superior, selector inferior, menú de construcción, popup de Trabajos, inspector e inventario de colono
-   └── Dibuja suelo SVG, props/muros/ítems Y-sorted, ColonistVisual (mano, espalda y Zzz SVG) y reproduce SFX .ogg
+   ├── WorldHud (world_hud.gd) + popups -> barra superior, selector inferior, menú de construcción, Trabajos, Atributos, Inventario y Mesa de Carpintero
+   └── SaveBridge (save_bridge.gd) + renderizadores -> suelo SVG, props/muros/puertas/mesas/ítems Y-sorted, ColonistVisual y SFX .ogg
 ```
 
 ## 3. Cómo añadir nuevas mecánicas limpiamente
 
 - **Nuevo bioma, cultivo o estructura:**
-  1. Agrega las variantes en `rust/src/world_gen.rs` o `rust/src/colony_types.rs` y la lógica en `rust/src/colonist_sim.rs`.
+  1. Agrega las variantes en `rust/src/world_gen.rs` o `rust/src/colony_types.rs` y la lógica en `rust/src/colonist_sim/`.
   2. Crea los `.svg` correspondientes en `godot/assets/` (sin pixel art, contorno `#1e1813`) y revísalos renderizándolos a `.png`.
-  3. Registra las texturas y el mapeo en `godot/scripts/world/colony_world.gd` o `godot/scripts/world/world_overlay.gd` y mantén la conversión de guardado en `_convert_save_dict_for_rust` (incluyendo `assigned_roles`, `role_levels`, `role_xp` y `tend_cooldown`, sin exponer semilla ni parámetros de terreno al jugador).
-- **Nuevas herramientas, roles, armaduras/cascos, tareas o necesidades de colonos:**
-  1. Extiende `rust/src/tools.rs`, `rust/src/roles.rs`, `ColonistInventory` en `rust/src/colony_types.rs` o crea un submódulo dedicado en `rust/src/` y expón métodos limpios en `ColonySimulation`.
+  3. Registra las texturas y el mapeo en `godot/scripts/world/world_entities_renderer.gd`, `world_hud.gd` o `world_overlay.gd` y mantén la conversión de guardado en `save_bridge.gd` (incluyendo `assigned_roles`, `role_levels`, `role_xp`, `stats`, `stat_xp`, `max_health`, `benches` y `tend_cooldown`, sin exponer semilla ni parámetros de terreno al jugador).
+- **Nuevas herramientas, roles, atributos, recetas, armaduras/cascos o necesidades:**
+  1. Extiende `rust/src/tools.rs`, `rust/src/roles.rs`, `rust/src/stats.rs`, `ColonistInventory` en `rust/src/colony_types.rs` o crea un submódulo dedicado en `rust/src/` y expón métodos limpios en `ColonySimulation`.
   2. Añade pruebas unitarias `#[cfg(test)]` en Rust para la lógica pura.
-  3. Mantén la serialización compatible con JSON en `SaveManager` (`user://saves/slot_N.json`), convirtiendo enteros y floats parseados por `JSON.parse()` antes de pasarlos a `gdext`.
+  3. Mantén la serialización compatible con JSON en `SaveManager` (`user://saves/slot_N.json`), convirtiendo enteros y floats parseados por `JSON.parse()` en `save_bridge.gd` antes de pasarlos a `gdext`.
 
 ## 4. Checklist antes de terminar cualquier cambio
 

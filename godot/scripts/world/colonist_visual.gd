@@ -28,8 +28,16 @@ var carrying_kind: String = ""
 var carrying_label: String = ""
 var carrying_amount: int = 0
 var health_value: int = 100
+var max_health_value: int = 100
 var mood_value: int = 80
 var energy_value: int = 100
+var stat_int: int = 3
+var stat_str: int = 4
+var stat_dex: int = 4
+var stat_end: int = 4
+var stat_cha: int = 3
+var craft_tier_label: String = ""
+var stats_detail: Array = []
 var is_sleeping: bool = false
 var is_selected: bool = false
 
@@ -81,6 +89,10 @@ func _preload_textures() -> void:
 		"copper_ore": load("res://assets/items/item_copper_ore.svg") as Texture2D,
 		"carrot_seed": load("res://assets/items/item_carrot_seeds.svg") as Texture2D,
 		"carrot": load("res://assets/items/item_carrot.svg") as Texture2D,
+		"wood_plank": load("res://assets/items/item_wood_planks.svg") as Texture2D,
+		"wood_bucket": load("res://assets/items/item_wood_bucket.svg") as Texture2D,
+		"wood_door_item": load("res://assets/items/item_wood_door.svg") as Texture2D,
+		"wood_crate": load("res://assets/items/item_wood_crate.svg") as Texture2D,
 	}
 
 
@@ -249,8 +261,18 @@ func apply_snapshot(data: Dictionary) -> void:
 		_name_label.add_theme_color_override("font_color", Color("#ffe39a") if is_leader else Color("#f5ebd6"))
 
 	health_value = int(data.get("health", 100))
+	max_health_value = int(data.get("max_health", 100))
 	mood_value = int(data.get("mood", 80))
 	energy_value = int(data.get("energy", 100))
+	stat_int = int(data.get("stat_int", 3))
+	stat_str = int(data.get("stat_str", 4))
+	stat_dex = int(data.get("stat_dex", 4))
+	stat_end = int(data.get("stat_end", 4))
+	stat_cha = int(data.get("stat_cha", 3))
+	craft_tier_label = str(data.get("craft_tier_label", ""))
+	var sd_var = data.get("stats_detail", [])
+	if sd_var is Array:
+		stats_detail = sd_var
 	is_sleeping = bool(data.get("is_sleeping", false))
 	current_activity = str(data.get("activity", "Observando"))
 
@@ -268,8 +290,8 @@ func apply_snapshot(data: Dictionary) -> void:
 	var flip := fx < -0.15
 	_body_sprite.flip_h = flip
 	_hair_sprite.flip_h = flip
-	_face_sprite.visible = fy >= -0.45 or is_sleeping
-	_face_sprite.position.x = clampf(fx * 2.5, -2.5, 2.5)
+	_face_sprite.visible = true
+	_face_sprite.position = Vector2(clampf(fx * 2.5, -2.5, 2.5), clampf(fy * 1.2, -1.5, 1.5))
 
 	# Herramienta en la espalda
 	back_tool_code = str(data.get("back_tool", "none"))

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Puerta de madera suelta en el piso lista para transportar e instalar -->
+  <ellipse cx="64" cy="96" rx="46" ry="16" fill="#18130e" opacity="0.32"/>
+  <!-- Canto grueso de la puerta recostada -->
+  <polygon points="22,68 88,36 108,58 42,90" fill="#7c522f" stroke="#1e1813" stroke-width="4" stroke-linejoin="round"/>
+  <polygon points="22,68 42,90 42,99 22,77" fill="#5e3c20" stroke="#1e1813" stroke-width="3.6" stroke-linejoin="round"/>
+  <polygon points="42,90 108,58 108,67 42,99" fill="#6d4727" stroke="#1e1813" stroke-width="3.6" stroke-linejoin="round"/>
+  <!-- Cara principal de la puerta sobre el piso -->
+  <polygon points="22,64 88,32 108,54 42,86" fill="#ae7a4c" stroke="#1e1813" stroke-width="4" stroke-linejoin="round"/>
+  <!-- Líneas de tablones diagonales -->
+  <path d="M38 56 L58 78 M55 48 L75 70 M72 40 L92 62" stroke="#754c2a" stroke-width="2.6"/>
+  <!-- Travesaños de refuerzo -->
+  <polygon points="34,58 44,53 64,75 54,80" fill="#8b5c36" stroke="#1e1813" stroke-width="2.6" stroke-linejoin="round"/>
+  <polygon points="68,42 78,37 98,59 88,64" fill="#8b5c36" stroke="#1e1813" stroke-width="2.6" stroke-linejoin="round"/>
+  <!-- Bisagras de hierro y picaporte de cobre -->
+  <ellipse cx="44" cy="60" rx="4.5" ry="3" fill="#4f565e" stroke="#1e1813" stroke-width="2.2"/>
+  <ellipse cx="78" cy="44" rx="4.5" ry="3" fill="#4f565e" stroke="#1e1813" stroke-width="2.2"/>
+  <circle cx="80" cy="62" r="4.5" fill="#df9e5b" stroke="#1e1813" stroke-width="2.4"/>
+</svg>

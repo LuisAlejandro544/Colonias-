@@ -33,14 +33,26 @@ func _draw() -> void:
 	if _w <= 0 or _h <= 0 or _tiles.is_empty() or _cam == null or _textures.is_empty():
 		return
 
-	var vp_size := get_viewport_rect().size / _cam.zoom
-	var top_left := _cam.position - vp_size * 0.55
-	var bottom_right := _cam.position + vp_size * 0.55
+	var vp := get_viewport()
+	var top_left: Vector2
+	var bottom_right: Vector2
+	if vp != null:
+		var inv := vp.get_canvas_transform().affine_inverse()
+		var vp_rect := vp.get_visible_rect()
+		var p0 := inv * vp_rect.position
+		var p1 := inv * (vp_rect.position + vp_rect.size)
+		top_left = Vector2(minf(p0.x, p1.x), minf(p0.y, p1.y))
+		bottom_right = Vector2(maxf(p0.x, p1.x), maxf(p0.y, p1.y))
+	else:
+		var vp_size := get_viewport_rect().size / _cam.zoom
+		var cam_center := _cam.get_screen_center_position()
+		top_left = cam_center - vp_size * 0.55
+		bottom_right = cam_center + vp_size * 0.55
 
-	var min_x := maxi(0, int(floor(top_left.x / TILE_PX)) - 1)
-	var min_y := maxi(0, int(floor(top_left.y / TILE_PX)) - 1)
-	var max_x := mini(_w - 1, int(ceil(bottom_right.x / TILE_PX)) + 1)
-	var max_y := mini(_h - 1, int(ceil(bottom_right.y / TILE_PX)) + 1)
+	var min_x := maxi(0, int(floor(top_left.x / TILE_PX)) - 2)
+	var min_y := maxi(0, int(floor(top_left.y / TILE_PX)) - 2)
+	var max_x := mini(_w - 1, int(ceil(bottom_right.x / TILE_PX)) + 2)
+	var max_y := mini(_h - 1, int(ceil(bottom_right.y / TILE_PX)) + 2)
 
 	var draw_grid := SettingsManager.show_terrain_grid
 	var grid_col := Color(0.15, 0.12, 0.08, 0.18)

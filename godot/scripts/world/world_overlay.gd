@@ -58,14 +58,26 @@ func _draw() -> void:
 	if _w <= 0 or _h <= 0 or _cam == null:
 		return
 
-	var vp_size := get_viewport_rect().size / _cam.zoom
-	var top_left := _cam.position - vp_size * 0.55
-	var bottom_right := _cam.position + vp_size * 0.55
+	var vp := get_viewport()
+	var top_left: Vector2
+	var bottom_right: Vector2
+	if vp != null:
+		var inv := vp.get_canvas_transform().affine_inverse()
+		var vp_rect := vp.get_visible_rect()
+		var p0 := inv * vp_rect.position
+		var p1 := inv * (vp_rect.position + vp_rect.size)
+		top_left = Vector2(minf(p0.x, p1.x), minf(p0.y, p1.y))
+		bottom_right = Vector2(maxf(p0.x, p1.x), maxf(p0.y, p1.y))
+	else:
+		var vp_size := get_viewport_rect().size / _cam.zoom
+		var cam_center := _cam.get_screen_center_position()
+		top_left = cam_center - vp_size * 0.55
+		bottom_right = cam_center + vp_size * 0.55
 
-	var min_x := maxi(0, int(floor(top_left.x / TILE_PX)) - 1)
-	var min_y := maxi(0, int(floor(top_left.y / TILE_PX)) - 1)
-	var max_x := mini(_w - 1, int(ceil(bottom_right.x / TILE_PX)) + 1)
-	var max_y := mini(_h - 1, int(ceil(bottom_right.y / TILE_PX)) + 1)
+	var min_x := maxi(0, int(floor(top_left.x / TILE_PX)) - 2)
+	var min_y := maxi(0, int(floor(top_left.y / TILE_PX)) - 2)
+	var max_x := mini(_w - 1, int(ceil(bottom_right.x / TILE_PX)) + 2)
+	var max_y := mini(_h - 1, int(ceil(bottom_right.y / TILE_PX)) + 2)
 
 	# 1. Zonas designadas (Almacén y Cultivo)
 	if not _zones.is_empty():
@@ -144,6 +156,10 @@ func _draw() -> void:
 				preview_col = Color(0.54, 0.82, 0.38, 0.90)
 			"build_wall":
 				preview_col = Color(0.55, 0.78, 0.96, 0.90)
+			"build_door":
+				preview_col = Color(0.62, 0.86, 0.96, 0.90)
+			"build_carpenter_bench":
+				preview_col = Color(0.88, 0.74, 0.42, 0.90)
 			"cancel":
 				preview_col = Color(0.86, 0.34, 0.30, 0.90)
 		draw_rect(sel_rect, Color(preview_col.r, preview_col.g, preview_col.b, 0.22), true)

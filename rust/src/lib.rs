@@ -5,7 +5,8 @@
 //! - `noise`: ruido procedural determinista multiplataforma (32 y 64 bits).
 //! - `world_gen`: generación del terreno terrestre, árboles, arbolitos, rocas y piedras.
 //! - `tools`: catálogo de herramientas de cobre (hacha, pico, pala, azada y espada).
-//! - `roles`: sistema de 8 roles (máx. 5 por colono) y progresión de niveles 1 al 10.
+//! - `roles`: sistema de 9 roles (máx. 5 por colono) y progresión de niveles 1 al 10.
+//! - `stats`: estadísticas personales (INT, FUE, DES, RES, CAR) con requisitos de fabricación.
 //! - `colony_types`: modelos puros de zonas, cultivos, construcciones, ítems y órdenes.
 //! - `pathfinding`: búsqueda de rutas A* sobre el mapa dinámico.
 //! - `colonist_sim`: simulación de colonos, líder de colonia, reuniones y persistencia.
@@ -15,6 +16,7 @@ mod colony_types;
 mod noise;
 mod pathfinding;
 mod roles;
+mod stats;
 mod tools;
 mod world_gen;
 

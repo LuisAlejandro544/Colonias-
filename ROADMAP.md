@@ -27,14 +27,16 @@ Hoja de ruta modular para llevar **Colonia Centinela** desde la base técnica ac
 
 ## Fase 3 — Construcción Modular, Cultivo de Zanahorias y Navegación A* *(En progreso)*
 
-- [x] **Menú de Construcción y Zonas:** Popup dedicado para elegir **Zona de Almacenamiento**, **Zona de Cultivo (Zanahorias)** y planos de **Pared de Madera** (`2` de madera por bloque) que bloquean el paso.
+- [x] **Menú de Construcción y Zonas:** Popup dedicado para elegir **Zona de Almacenamiento**, **Zona de Cultivo (Zanahorias)**, **Pared de Madera** (`2` de madera por bloque), **Puerta de Madera** (`1` puerta fabricada, transitable) y **Mesa de Carpintero** (`6` de madera).
 - [x] **Zona de cultivo agrícola (Zanahorias):** Arado con azada de cobre, siembra de semillas de zanahoria, 4 etapas de crecimiento `.svg` y cosecha con recuperación de semillas.
 - [x] **Inventario personal por ranuras en colonos:** Espacios para futuro casco, futura armadura, herramienta en la **espalda** (visible detrás del colono), **mano principal** y carga en mochila, con popup de inspección en el HUD.
+- [x] **Atributos de colonos (`INT`, `FUE`, `DES`, `RES`, `CAR`) y puertas por inteligencia:** 5 estadísticas base (`1..=20`) con mejora por práctica, popup **Atributos** en el inspector y requisito de **Inteligencia (`INT`)** mínima para recetas complejas.
+- [x] **Mesa de Carpintero y Carpintería:** Estación con cola de pedidos (`CarpenterBenchPopup`) para procesar madera en **Tablones** (`INT 1+`), **Cubo de madera** (`INT 2+`), **Puerta de madera** (`INT 3+`, diseño en piso + instalada) y **Arcón de madera** (`INT 4+`).
 - [x] **Energía y sueño en el suelo:** Gasto de energía al trabajar o caminar y descanso en el suelo al fatigarse, con postura acostada y partículas `.svg` `Zzz` animadas.
-- [x] **Navegación inteligente (*pathfinding* A* en Rust)** sobre la grilla dinámica al construir muros o despejar árboles/rocas.
-- [x] **Sistema de 8 Roles (máx. 5 por colono) y Niveles 1 al 10:** Asignación modular desde el popup **Trabajos** (**Leñador**, **Minero**, **Transportador**, **Constructor**, **Agricultor**, **Botánico**, **Explorador** y **Líder de Colonia**) con progresión gradual y escalado de velocidad, capacidad de carga, rendimiento y alcance.
-- [ ] Puertas de madera, suelos construidos, fogatas, camas y mesas de trabajo, además de cascos y armaduras equipables.
-- [ ] Necesidades pendientes: hambre (consumo de zanahorias), salud y estado de ánimo con pensamientos terrestres.
+- [x] **Navegación inteligente (*pathfinding* A* en Rust)** sobre la grilla dinámica al construir muros, puertas transitables o despejar árboles/rocas.
+- [x] **Sistema de 9 Roles (máx. 5 por colono) y Niveles 1 al 10:** Asignación modular desde el popup **Trabajos** (**Leñador**, **Minero**, **Transportador**, **Constructor**, **Agricultor**, **Botánico**, **Explorador**, **Líder de Colonia** y **Carpintero**) con progresión gradual y escalado de velocidad, capacidad de carga, rendimiento y alcance.
+- [ ] Suelos construidos, fogatas, camas y estaciones de metalurgia, además de cascos y armaduras equipables.
+- [ ] Necesidades pendientes: hambre (consumo de zanahorias), daño en combate y estado de ánimo con pensamientos terrestres.
 - [ ] Ciclo día/noche visual y estaciones terrestres (lluvia, temperatura ambiente, crecimiento de arbolitos).
 
 ---
