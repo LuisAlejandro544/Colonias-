@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Remolachas carmesí frescas con tallos rojizos y hojas verdes -->
+  <ellipse cx="64" cy="99" rx="38" ry="11" fill="#18130e" opacity="0.28"/>
+  <!-- Remolacha trasera -->
+  <g>
+    <path d="M84 48 C82 32 90 20 98 24 C102 32 96 42 88 49 Z" fill="#4f893b" stroke="#1e1813" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M64 68 C62 52 72 44 85 45 C98 46 104 58 98 72 C92 84 78 90 78 94 C73 86 65 78 64 68 Z" fill="#7c1d3c" stroke="#1e1813" stroke-width="3.8" stroke-linejoin="round"/>
+  </g>
+  <!-- Remolacha principal delantera -->
+  <g>
+    <path d="M52 46 C40 31 28 24 22 30 C24 41 36 48 48 51 Z" fill="#599842" stroke="#1e1813" stroke-width="3.2" stroke-linejoin="round"/>
+    <path d="M53 46 C48 26 56 16 64 20 C68 29 63 40 56 48 Z" fill="#67ad4d" stroke="#1e1813" stroke-width="3.2" stroke-linejoin="round"/>
+    <path d="M56 47 C64 31 76 26 80 33 C76 42 66 48 58 50 Z" fill="#497f36" stroke="#1e1813" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M36 42 L51 49 M58 31 L54 47 M72 35 L57 49" stroke="#b33859" stroke-width="2.4" stroke-linecap="round"/>
+    <!-- Bulbo carmesí -->
+    <path d="M30 67 C30 50 42 43 55 44 C69 45 79 54 78 70 C77 83 62 91 54 101 C47 91 30 82 30 67 Z" fill="#9c244b" stroke="#1e1813" stroke-width="4.2" stroke-linejoin="round"/>
+    <path d="M40 55 C46 50 56 50 62 54" fill="none" stroke="#cf4c76" stroke-width="3" stroke-linecap="round"/>
+    <path d="M54 97 L53 107" stroke="#6f1935" stroke-width="2.8" stroke-linecap="round"/>
+  </g>
+</svg>

@@ -25,19 +25,19 @@ Hoja de ruta modular para llevar **Colonia Centinela** desde la base técnica ac
 
 ---
 
-## Fase 3 — Construcción Modular, Cultivo de Zanahorias y Navegación A* *(En progreso)*
+## Fase 3 — Construcción Modular, Cultivos Estacionales, Hidratación y Fauna *(En progreso)*
 
-- [x] **Menú de Construcción y Zonas:** Popup dedicado para elegir **Zona de Almacenamiento**, **Zona de Cultivo (Zanahorias)**, **Pared de Madera** (`2` de madera por bloque), **Puerta de Madera** (`1` puerta fabricada, transitable) y **Mesa de Carpintero** (`6` de madera).
-- [x] **Zona de cultivo agrícola (Zanahorias):** Arado con azada de cobre, siembra de semillas de zanahoria, 4 etapas de crecimiento `.svg` y cosecha con recuperación de semillas.
-- [x] **Inventario personal por ranuras en colonos:** Espacios para futuro casco, futura armadura, herramienta en la **espalda** (visible detrás del colono), **mano principal** y carga en mochila, con popup de inspección en el HUD.
-- [x] **Atributos de colonos (`INT`, `FUE`, `DES`, `RES`, `CAR`) y puertas por inteligencia:** 5 estadísticas base (`1..=20`) con mejora por práctica, popup **Atributos** en el inspector y requisito de **Inteligencia (`INT`)** mínima para recetas complejas.
-- [x] **Mesa de Carpintero y Carpintería:** Estación con cola de pedidos (`CarpenterBenchPopup`) para procesar madera en **Tablones** (`INT 1+`), **Cubo de madera** (`INT 2+`), **Puerta de madera** (`INT 3+`, diseño en piso + instalada) y **Arcón de madera** (`INT 4+`).
-- [x] **Energía y sueño en el suelo:** Gasto de energía al trabajar o caminar y descanso en el suelo al fatigarse, con postura acostada y partículas `.svg` `Zzz` animadas.
-- [x] **Navegación inteligente (*pathfinding* A* en Rust)** sobre la grilla dinámica al construir muros, puertas transitables o despejar árboles/rocas.
-- [x] **Sistema de 9 Roles (máx. 5 por colono) y Niveles 1 al 10:** Asignación modular desde el popup **Trabajos** (**Leñador**, **Minero**, **Transportador**, **Constructor**, **Agricultor**, **Botánico**, **Explorador**, **Líder de Colonia** y **Carpintero**) con progresión gradual y escalado de velocidad, capacidad de carga, rendimiento y alcance.
-- [ ] Suelos construidos, fogatas, camas y estaciones de metalurgia, además de cascos y armaduras equipables.
-- [ ] Necesidades pendientes: hambre (consumo de zanahorias), daño en combate y estado de ánimo con pensamientos terrestres.
-- [ ] Ciclo día/noche visual y estaciones terrestres (lluvia, temperatura ambiente, crecimiento de arbolitos).
+- [x] **Bloques naturales de montaña conectables:** Macizos de piedra, cobre y carbón conectables casilla a casilla (`MountainStone`, `MountainCopper`, `MountainCoal`), minables y con actualización dinámica de caras al excavar.
+- [x] **Sistema de Sed, Ríos, Vasos Vacíos/Llenos y Pozos de Agua:** Ríos con vados de grava, rechazo a beber agua cruda en cubos, sprite propio para vaso vacío (`item_wood_cup_empty.svg`) vs lleno (`item_wood_cup.svg`) y **Pozos de Agua** (`1 cubo + 4 troncos + 6 piedras`).
+- [x] **Riego de cultivos con Cubos de Madera:** El Botánico llena un cubo en el pozo o río sin consumirlo y riega parcelas `3×3` (`1.60x` fuera de temporada, `+1.45x` adicional en temporada).
+- [x] **Rol de El Masón (`Masón`), Horno de Piedra y Ladrillo y Mampostería:** Décimo rol con Mesa de Masón (**Ladrillos de piedra** con `item_stone_bricks.svg`, **Mortero**, **Piedra de molino**, **Estatuilla**), **Horno de Piedra y Ladrillo** (fundición de **Lingotes de cobre** con cobre y carbón), **Pared de Piedra y Ladrillo** conectable, **Suelo de Ladrillos** (`+18%` velocidad) y **Brasero de Piedra y Ladrillo** *(diseño de ladrillos de arcilla conservado en `item_clay_bricks.svg`)*.
+- [x] **Menú de Construcción y Zonas:** Popup dedicado para almacén, 4 cultivos, muros (madera y piedra/ladrillo), puerta, suelo de ladrillos, pozo, brasero, Mesa de Carpintero, Mesa de Masón y Horno.
+- [x] **Cultivos múltiples, Temporada de Cultivos y Fauna:** Zanahoria, papa, trigo y remolacha en ciclo de 6 días; cerditos, pollos, ovejas y vacas por bioma con caza y huesos.
+- [x] **Inventario personal, Atributos (`INT`..`CAR`), Carpintería y 10 Roles (máx. 5, niveles 1 al 10).**
+- [ ] Extracción de arcilla en orillas de río y cocción de **Ladrillos de arcilla** (`item_clay_bricks.svg`) en el horno.
+- [ ] Fogatas/cocina (hervir agua en cubos, sopa de huesos y carnes cocidas), camas, cascos y armaduras equipables.
+- [ ] Necesidades pendientes: hambre (consumo de cosechas y carnes cocidas), daño en combate y estado de ánimo con pensamientos terrestres.
+- [ ] Ciclo día/noche visual y clima terrestre (lluvia, temperatura ambiente, crecimiento de arbolitos).
 
 ---
 
@@ -52,6 +52,6 @@ Hoja de ruta modular para llevar **Colonia Centinela** desde la base técnica ac
 
 ## Fase 5 — Eventos, Audio y Distribución APK
 
-- [ ] Eventos dinámicos terrestres (caravanas comerciales, brotes de clima extremo, fauna local, incursiones con uso de la espada de cobre).
+- [ ] Eventos dinámicos terrestres (caravanas comerciales, brotes de clima extremo, incursiones hostiles con uso de la espada de cobre).
 - [x] Efectos de sonido de talar, picar y construir (`.ogg` CC0) sincronizados desde Rust y conectados a `SettingsManager` *(pendiente: música ambiental acústica)*.
 - [ ] Generación de APKs Release optimizados y firmados listos para publicación en Uptodown y descarga directa.

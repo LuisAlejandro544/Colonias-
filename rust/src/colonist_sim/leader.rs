@@ -314,12 +314,21 @@ impl SimulationCore {
                         .has_role(ColonyRole::Miner),
                     OrderKind::BuildWoodWall
                     | OrderKind::BuildWoodDoor
-                    | OrderKind::BuildCarpenterBench => !self.colonists[c_idx]
+                    | OrderKind::BuildCarpenterBench
+                    | OrderKind::BuildWaterWell
+                    | OrderKind::BuildMasonBench
+                    | OrderKind::BuildStoneFurnace
+                    | OrderKind::BuildStoneWall
+                    | OrderKind::BuildStoneFloor
+                    | OrderKind::BuildStoneBrazier => !self.colonists[c_idx]
                         .role_profile
                         .has_role(ColonyRole::Constructor),
                     OrderKind::CarpentryJob => !self.colonists[c_idx]
                         .role_profile
                         .has_role(ColonyRole::Carpenter),
+                    OrderKind::MasonryJob => !self.colonists[c_idx]
+                        .role_profile
+                        .has_role(ColonyRole::Mason),
                     OrderKind::FarmCell => {
                         if task.phase == 1 {
                             !self.colonists[c_idx]
@@ -331,6 +340,12 @@ impl SimulationCore {
                                 .has_role(ColonyRole::Farmer)
                         }
                     }
+                    OrderKind::WaterCrops => !self.colonists[c_idx]
+                        .role_profile
+                        .has_role(ColonyRole::Botanist)
+                        && !self.colonists[c_idx]
+                            .role_profile
+                            .has_role(ColonyRole::Farmer),
                     OrderKind::HaulItem => {
                         task.phase == 0
                             && self.colonists[c_idx].carrying_kind.is_none()
@@ -338,6 +353,13 @@ impl SimulationCore {
                                 .role_profile
                                 .has_role(ColonyRole::Hauler)
                     }
+                    OrderKind::HuntAnimal => {
+                        !self.colonists[c_idx].role_profile.has_role(ColonyRole::Scout)
+                            && !self.colonists[c_idx]
+                                .role_profile
+                                .has_role(ColonyRole::ColonyLeader)
+                    }
+                    OrderKind::DrinkWater => false,
                 }
             } else {
                 false

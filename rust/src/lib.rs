@@ -8,9 +8,11 @@
 //! - `roles`: sistema de 9 roles (máx. 5 por colono) y progresión de niveles 1 al 10.
 //! - `stats`: estadísticas personales (INT, FUE, DES, RES, CAR) con requisitos de fabricación.
 //! - `colony_types`: modelos puros de zonas, cultivos, construcciones, ítems y órdenes.
+//! - `animals`: fauna terrestre por bioma (cerditos, pollos, ovejas y vacas), carnes y huesos.
 //! - `pathfinding`: búsqueda de rutas A* sobre el mapa dinámico.
 //! - `colonist_sim`: simulación de colonos, líder de colonia, reuniones y persistencia.
 
+mod animals;
 mod colonist_sim;
 mod colony_types;
 mod noise;

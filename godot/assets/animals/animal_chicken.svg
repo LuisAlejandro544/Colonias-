@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Pollo / gallina cálida en vista centinela -->
+  <ellipse cx="64" cy="100" rx="24" ry="9" fill="#18130e" opacity="0.28"/>
+  <!-- Patitas anaranjadas -->
+  <path d="M56 84 L56 97 M51 98 L61 98 M71 84 L71 97 M66 98 L76 98" stroke="#d47b2a" stroke-width="3.4" stroke-linecap="round"/>
+  <!-- Plumas de cola -->
+  <path d="M35 66 L21 52 L34 56 L26 42 L43 56 Z" fill="#efe3cf" stroke="#1e1813" stroke-width="3.4" stroke-linejoin="round"/>
+  <!-- Cuerpo redondo -->
+  <ellipse cx="61" cy="70" rx="26" ry="20" fill="#f7eedc" stroke="#1e1813" stroke-width="4"/>
+  <!-- Ala -->
+  <path d="M46 66 C56 60 72 64 73 75 C64 81 50 79 46 66 Z" fill="#e4d4b7" stroke="#1e1813" stroke-width="3"/>
+  <!-- Cabeza -->
+  <circle cx="84" cy="49" r="13" fill="#f7eedc" stroke="#1e1813" stroke-width="3.8"/>
+  <!-- Cresta roja -->
+  <path d="M77 37 C77 30 83 29 84 34 C86 28 92 30 91 36 C95 34 96 40 91 42 Z" fill="#c94336" stroke="#1e1813" stroke-width="2.6" stroke-linejoin="round"/>
+  <!-- Barbilla roja -->
+  <ellipse cx="90" cy="59" rx="4" ry="5" fill="#c94336" stroke="#1e1813" stroke-width="2.4"/>
+  <!-- Pico -->
+  <polygon points="96,47 108,51 96,55" fill="#e5972d" stroke="#1e1813" stroke-width="2.8" stroke-linejoin="round"/>
+  <!-- Ojo -->
+  <circle cx="88" cy="47" r="2.6" fill="#1e1813"/>
+  <circle cx="89" cy="46" r="0.8" fill="#ffffff"/>
+</svg>

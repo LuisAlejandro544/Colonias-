@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Muslo de pollo crudo con hueso expuesto -->
+  <ellipse cx="64" cy="97" rx="36" ry="11" fill="#18130e" opacity="0.28"/>
+  <!-- Extremo del hueso -->
+  <g stroke="#1e1813" stroke-width="3.6" stroke-linejoin="round">
+    <circle cx="96" cy="40" r="7" fill="#efe6d3"/>
+    <circle cx="102" cy="48" r="7" fill="#efe6d3"/>
+    <path d="M72 56 L94 42 L99 49 L77 63 Z" fill="#efe6d3"/>
+  </g>
+  <circle cx="96" cy="41" r="5" fill="#efe6d3"/>
+  <circle cx="101" cy="48" r="5" fill="#efe6d3"/>
+  <!-- Carne carnosa del muslo -->
+  <path d="M24 80 C16 64 28 46 48 44 C64 42 78 48 82 58 C86 68 74 84 54 88 C38 92 28 88 24 80 Z" fill="#eba996" stroke="#1e1813" stroke-width="4.2" stroke-linejoin="round"/>
+  <!-- Sombra inferior y grasa -->
+  <path d="M30 82 C44 88 68 80 76 66 C64 76 44 82 30 82 Z" fill="#cf836f" opacity="0.7"/>
+  <path d="M36 58 Q50 50 66 53" fill="none" stroke="#ffd5c7" stroke-width="2.8" stroke-linecap="round"/>
+</svg>

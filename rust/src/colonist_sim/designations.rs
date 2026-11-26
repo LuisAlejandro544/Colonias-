@@ -2,7 +2,9 @@
 //!
 //! # Lógica del módulo
 //! Agrupa las operaciones sobre el mapa de la colonia:
-//! - Marcar o cancelar áreas de tala, minería, almacenamiento, cultivo, muros, puertas y mesas (`designate_area`).
+//! - Marcar o cancelar áreas de tala, minería (granito, hierro, cobre y carbón),
+//!   caza de fauna, almacenamiento, cultivos (zanahoria, papa, trigo y remolacha),
+//!   muros, puertas y mesas (`designate_area`).
 //! - Apilar y generar recursos sueltos en el piso (`spawn_item`).
 //! - Contabilizar inventario total y almacenado (`compute_inventory`) y consumir recursos (`consume_item_from_world`).
 //! - Buscar casillas de almacén (`find_storage_tile`), casillas cercanas para soltar piezas y gestionar colas de carpintería.
@@ -10,7 +12,8 @@
 use super::core::SimulationCore;
 use crate::colony_types::{
     CarpentryBenchState, CarpentryRecipe, ColonistActivity, ColonyInventory, ColonyOrder,
-    CropCell, CropStage, GroundItem, ItemKind, OrderKind, OrderStatus, StructureKind, ZoneKind,
+    CropCell, CropKind, CropStage, GroundItem, ItemKind, MasonryRecipe, OrderKind, OrderStatus,
+    StructureKind, WorkshopStationState, ZoneKind,
 };
 
 pub const MAX_CARPENTRY_QUEUE: usize = 12;
@@ -44,89 +47,51 @@ impl SimulationCore {
         self.world_dirty = true;
     }
 
+    fn accumulate_item_into(inv: &mut ColonyInventory, kind: ItemKind, amount: i32) {
+        match kind {
+            ItemKind::WoodLogs => inv.wood += amount,
+            ItemKind::StoneChunk => inv.stone += amount,
+            ItemKind::IronOre => inv.iron += amount,
+            ItemKind::CopperOre => inv.copper += amount,
+            ItemKind::Coal => inv.coal += amount,
+            ItemKind::CopperIngot => inv.copper_ingots += amount,
+            ItemKind::CarrotSeed => inv.carrot_seeds += amount,
+            ItemKind::Carrot => inv.carrots += amount,
+            ItemKind::PotatoSeed => inv.potato_seeds += amount,
+            ItemKind::Potato => inv.potatoes += amount,
+            ItemKind::WheatSeed => inv.wheat_seeds += amount,
+            ItemKind::Wheat => inv.wheat += amount,
+            ItemKind::BeetSeed => inv.beet_seeds += amount,
+            ItemKind::Beet => inv.beets += amount,
+            ItemKind::AnimalBones => inv.animal_bones += amount,
+            ItemKind::WoodPlank => inv.wood_planks += amount,
+            ItemKind::WoodBucket => inv.wood_buckets += amount,
+            ItemKind::WoodCup => inv.wood_cups += amount,
+            ItemKind::WoodDoorItem => inv.wood_doors += amount,
+            ItemKind::WoodCrate => inv.wood_crates += amount,
+            ItemKind::StoneBricks => inv.stone_bricks += amount,
+            ItemKind::StoneMortar => inv.stone_mortars += amount,
+            ItemKind::StoneMillstone => inv.stone_millstones += amount,
+            ItemKind::StoneStatuette => inv.stone_statuettes += amount,
+            k if k.is_meat_cut() => inv.meat_cuts += amount,
+            _ => {}
+        }
+    }
+
     /// Calcula el inventario actual contabilizando todos los recursos presentes en el mapa
     /// (almacenados + sueltos en el piso) y diferenciando los almacenados.
     pub fn compute_inventory(&self) -> (ColonyInventory, ColonyInventory) {
         let mut total = ColonyInventory::default();
         let mut stored = ColonyInventory::default();
         for it in &self.items {
-            match it.kind {
-                ItemKind::WoodLogs => {
-                    total.wood += it.amount;
-                    if it.stored {
-                        stored.wood += it.amount;
-                    }
-                }
-                ItemKind::StoneChunk => {
-                    total.stone += it.amount;
-                    if it.stored {
-                        stored.stone += it.amount;
-                    }
-                }
-                ItemKind::IronOre => {
-                    total.iron += it.amount;
-                    if it.stored {
-                        stored.iron += it.amount;
-                    }
-                }
-                ItemKind::CopperOre => {
-                    total.copper += it.amount;
-                    if it.stored {
-                        stored.copper += it.amount;
-                    }
-                }
-                ItemKind::CarrotSeed => {
-                    total.carrot_seeds += it.amount;
-                    if it.stored {
-                        stored.carrot_seeds += it.amount;
-                    }
-                }
-                ItemKind::Carrot => {
-                    total.carrots += it.amount;
-                    if it.stored {
-                        stored.carrots += it.amount;
-                    }
-                }
-                ItemKind::WoodPlank => {
-                    total.wood_planks += it.amount;
-                    if it.stored {
-                        stored.wood_planks += it.amount;
-                    }
-                }
-                ItemKind::WoodBucket => {
-                    total.wood_buckets += it.amount;
-                    if it.stored {
-                        stored.wood_buckets += it.amount;
-                    }
-                }
-                ItemKind::WoodDoorItem => {
-                    total.wood_doors += it.amount;
-                    if it.stored {
-                        stored.wood_doors += it.amount;
-                    }
-                }
-                ItemKind::WoodCrate => {
-                    total.wood_crates += it.amount;
-                    if it.stored {
-                        stored.wood_crates += it.amount;
-                    }
-                }
+            Self::accumulate_item_into(&mut total, it.kind, it.amount);
+            if it.stored {
+                Self::accumulate_item_into(&mut stored, it.kind, it.amount);
             }
         }
         for c in &self.colonists {
             if let Some(k) = c.carrying_kind {
-                match k {
-                    ItemKind::WoodLogs => total.wood += c.carrying_amount,
-                    ItemKind::StoneChunk => total.stone += c.carrying_amount,
-                    ItemKind::IronOre => total.iron += c.carrying_amount,
-                    ItemKind::CopperOre => total.copper += c.carrying_amount,
-                    ItemKind::CarrotSeed => total.carrot_seeds += c.carrying_amount,
-                    ItemKind::Carrot => total.carrots += c.carrying_amount,
-                    ItemKind::WoodPlank => total.wood_planks += c.carrying_amount,
-                    ItemKind::WoodBucket => total.wood_buckets += c.carrying_amount,
-                    ItemKind::WoodDoorItem => total.wood_doors += c.carrying_amount,
-                    ItemKind::WoodCrate => total.wood_crates += c.carrying_amount,
-                }
+                Self::accumulate_item_into(&mut total, k, c.carrying_amount);
             }
         }
         (total, stored)
@@ -163,8 +128,18 @@ impl SimulationCore {
         true
     }
 
+    fn farm_crop_kind_for_mode(mode: &str) -> Option<CropKind> {
+        match mode {
+            "farm" | "farm_carrot" => Some(CropKind::Carrot),
+            "farm_potato" => Some(CropKind::Potato),
+            "farm_wheat" => Some(CropKind::Wheat),
+            "farm_beet" => Some(CropKind::Beet),
+            _ => None,
+        }
+    }
+
     /// Designa un rectángulo de órdenes o zonas sobre el mapa.
-    /// Devuelve la cantidad de casillas afectadas.
+    /// Devuelve la cantidad de casillas u objetivos afectados.
     pub fn designate_area(&mut self, mode: &str, x0: i32, y0: i32, x1: i32, y1: i32) -> i32 {
         let min_x = x0.min(x1).clamp(1, self.map_width - 2);
         let max_x = x0.max(x1).clamp(1, self.map_width - 2);
@@ -173,11 +148,89 @@ impl SimulationCore {
 
         let mut affected = 0i32;
 
+        if mode == "hunt" {
+            let rx0 = min_x as f32 - 0.35;
+            let rx1 = (max_x + 1) as f32 + 0.35;
+            let ry0 = min_y as f32 - 0.35;
+            let ry1 = (max_y + 1) as f32 + 0.35;
+            for animal in &mut self.animals {
+                if animal.x >= rx0
+                    && animal.x <= rx1
+                    && animal.y >= ry0
+                    && animal.y <= ry1
+                    && !self
+                        .orders
+                        .iter()
+                        .any(|o| o.kind == OrderKind::HuntAnimal && o.target_id == animal.id)
+                {
+                    animal.marked_for_hunt = true;
+                    let id = self.next_order_id;
+                    self.next_order_id += 1;
+                    self.orders.push(ColonyOrder {
+                        id,
+                        kind: OrderKind::HuntAnimal,
+                        x: animal.x.floor() as i32,
+                        y: animal.y.floor() as i32,
+                        target_id: animal.id,
+                        status: OrderStatus::PendingBriefing,
+                        assigned_colonist_id: 0,
+                    });
+                    self.briefing_pending = true;
+                    affected += 1;
+                }
+            }
+            if affected > 0 {
+                self.world_dirty = true;
+            }
+            return affected;
+        }
+
+        let farm_crop = Self::farm_crop_kind_for_mode(mode);
+
         for y in min_y..=max_y {
             for x in min_x..=max_x {
                 let Some(idx) = self.idx(x, y) else {
                     continue;
                 };
+                if let Some(crop_kind) = farm_crop {
+                    let ground_kind = self.ground[idx];
+                    if self.blocked[idx] == 0
+                        && self.structures[idx] == StructureKind::None as i32
+                        && ground_kind != 4
+                        && ground_kind != 5
+                    {
+                        if self.zones[idx] != ZoneKind::Farm as i32 {
+                            self.zones[idx] = ZoneKind::Farm as i32;
+                            if !self.crops.iter().any(|c| c.x == x && c.y == y) {
+                                self.crops.push(CropCell {
+                                    x,
+                                    y,
+                                    crop_kind,
+                                    stage: CropStage::None,
+                                    progress: 0.0,
+                                    tend_cooldown: 0.0,
+                                    watered_timer: 0.0,
+                                });
+                            }
+                            self.farm_approved = false;
+                            self.briefing_pending = true;
+                            affected += 1;
+                        } else if let Some(existing) =
+                            self.crops.iter_mut().find(|c| c.x == x && c.y == y)
+                        {
+                            if existing.crop_kind != crop_kind
+                                && matches!(existing.stage, CropStage::None | CropStage::Tilled)
+                            {
+                                existing.crop_kind = crop_kind;
+                                self.farm_approved = false;
+                                self.briefing_pending = true;
+                                affected += 1;
+                            }
+                        }
+                    }
+                    continue;
+                }
+
                 match mode {
                     "chop" => {
                         let p = self.props[idx];
@@ -194,6 +247,7 @@ impl SimulationCore {
                                 kind: OrderKind::ChopTree,
                                 x,
                                 y,
+                                target_id: 0,
                                 status: OrderStatus::PendingBriefing,
                                 assigned_colonist_id: 0,
                             });
@@ -203,7 +257,7 @@ impl SimulationCore {
                     }
                     "mine" => {
                         let p = self.props[idx];
-                        if (p == 4 || p == 5)
+                        if matches!(p, 4 | 5 | 7 | 8 | 9 | 10 | 11)
                             && !self
                                 .orders
                                 .iter()
@@ -216,6 +270,7 @@ impl SimulationCore {
                                 kind: OrderKind::MineRock,
                                 x,
                                 y,
+                                target_id: 0,
                                 status: OrderStatus::PendingBriefing,
                                 assigned_colonist_id: 0,
                             });
@@ -225,6 +280,7 @@ impl SimulationCore {
                     }
                     "storage" => {
                         if self.blocked[idx] == 0
+                            && self.ground[idx] != 5
                             && self.structures[idx] == StructureKind::None as i32
                             && self.zones[idx] != ZoneKind::Storage as i32
                         {
@@ -240,30 +296,9 @@ impl SimulationCore {
                             affected += 1;
                         }
                     }
-                    "farm" => {
-                        let ground_kind = self.ground[idx];
-                        if self.blocked[idx] == 0
-                            && self.structures[idx] == StructureKind::None as i32
-                            && ground_kind != 4
-                            && self.zones[idx] != ZoneKind::Farm as i32
-                        {
-                            self.zones[idx] = ZoneKind::Farm as i32;
-                            if !self.crops.iter().any(|c| c.x == x && c.y == y) {
-                                self.crops.push(CropCell {
-                                    x,
-                                    y,
-                                    stage: CropStage::None,
-                                    progress: 0.0,
-                                    tend_cooldown: 0.0,
-                                });
-                            }
-                            self.farm_approved = false;
-                            self.briefing_pending = true;
-                            affected += 1;
-                        }
-                    }
                     "build_wall" => {
                         if self.blocked[idx] == 0
+                            && self.ground[idx] != 5
                             && self.structures[idx] == StructureKind::None as i32
                             && !self
                                 .orders
@@ -280,6 +315,7 @@ impl SimulationCore {
                                 kind: OrderKind::BuildWoodWall,
                                 x,
                                 y,
+                                target_id: 0,
                                 status: OrderStatus::PendingBriefing,
                                 assigned_colonist_id: 0,
                             });
@@ -289,6 +325,7 @@ impl SimulationCore {
                     }
                     "build_door" => {
                         if self.blocked[idx] == 0
+                            && self.ground[idx] != 5
                             && self.structures[idx] == StructureKind::None as i32
                             && !self
                                 .orders
@@ -305,6 +342,7 @@ impl SimulationCore {
                                 kind: OrderKind::BuildWoodDoor,
                                 x,
                                 y,
+                                target_id: 0,
                                 status: OrderStatus::PendingBriefing,
                                 assigned_colonist_id: 0,
                             });
@@ -314,6 +352,7 @@ impl SimulationCore {
                     }
                     "build_carpenter_bench" => {
                         if self.blocked[idx] == 0
+                            && self.ground[idx] != 5
                             && self.structures[idx] == StructureKind::None as i32
                             && !self.orders.iter().any(|o| {
                                 o.x == x && o.y == y && o.kind == OrderKind::BuildCarpenterBench
@@ -329,6 +368,165 @@ impl SimulationCore {
                                 kind: OrderKind::BuildCarpenterBench,
                                 x,
                                 y,
+                                target_id: 0,
+                                status: OrderStatus::PendingBriefing,
+                                assigned_colonist_id: 0,
+                            });
+                            self.briefing_pending = true;
+                            affected += 1;
+                        }
+                    }
+                    "build_well" => {
+                        if self.blocked[idx] == 0
+                            && self.ground[idx] != 5
+                            && self.structures[idx] == StructureKind::None as i32
+                            && !self
+                                .orders
+                                .iter()
+                                .any(|o| o.x == x && o.y == y && o.kind == OrderKind::BuildWaterWell)
+                        {
+                            self.zones[idx] = ZoneKind::None as i32;
+                            self.crops.retain(|c| !(c.x == x && c.y == y));
+                            self.structures[idx] = StructureKind::WaterWellBlueprint as i32;
+                            let id = self.next_order_id;
+                            self.next_order_id += 1;
+                            self.orders.push(ColonyOrder {
+                                id,
+                                kind: OrderKind::BuildWaterWell,
+                                x,
+                                y,
+                                target_id: 0,
+                                status: OrderStatus::PendingBriefing,
+                                assigned_colonist_id: 0,
+                            });
+                            self.briefing_pending = true;
+                            affected += 1;
+                        }
+                    }
+                    "build_mason_bench" => {
+                        if self.blocked[idx] == 0
+                            && self.ground[idx] != 5
+                            && self.structures[idx] == StructureKind::None as i32
+                            && !self.orders.iter().any(|o| {
+                                o.x == x && o.y == y && o.kind == OrderKind::BuildMasonBench
+                            })
+                        {
+                            self.zones[idx] = ZoneKind::None as i32;
+                            self.crops.retain(|c| !(c.x == x && c.y == y));
+                            self.structures[idx] = StructureKind::MasonBenchBlueprint as i32;
+                            let id = self.next_order_id;
+                            self.next_order_id += 1;
+                            self.orders.push(ColonyOrder {
+                                id,
+                                kind: OrderKind::BuildMasonBench,
+                                x,
+                                y,
+                                target_id: 0,
+                                status: OrderStatus::PendingBriefing,
+                                assigned_colonist_id: 0,
+                            });
+                            self.briefing_pending = true;
+                            affected += 1;
+                        }
+                    }
+                    "build_furnace" => {
+                        if self.blocked[idx] == 0
+                            && self.ground[idx] != 5
+                            && self.structures[idx] == StructureKind::None as i32
+                            && !self.orders.iter().any(|o| {
+                                o.x == x && o.y == y && o.kind == OrderKind::BuildStoneFurnace
+                            })
+                        {
+                            self.zones[idx] = ZoneKind::None as i32;
+                            self.crops.retain(|c| !(c.x == x && c.y == y));
+                            self.structures[idx] = StructureKind::StoneFurnaceBlueprint as i32;
+                            let id = self.next_order_id;
+                            self.next_order_id += 1;
+                            self.orders.push(ColonyOrder {
+                                id,
+                                kind: OrderKind::BuildStoneFurnace,
+                                x,
+                                y,
+                                target_id: 0,
+                                status: OrderStatus::PendingBriefing,
+                                assigned_colonist_id: 0,
+                            });
+                            self.briefing_pending = true;
+                            affected += 1;
+                        }
+                    }
+                    "build_stone_wall" => {
+                        if self.blocked[idx] == 0
+                            && self.ground[idx] != 5
+                            && self.structures[idx] == StructureKind::None as i32
+                            && !self
+                                .orders
+                                .iter()
+                                .any(|o| o.x == x && o.y == y && o.kind == OrderKind::BuildStoneWall)
+                        {
+                            self.zones[idx] = ZoneKind::None as i32;
+                            self.crops.retain(|c| !(c.x == x && c.y == y));
+                            self.structures[idx] = StructureKind::StoneWallBlueprint as i32;
+                            let id = self.next_order_id;
+                            self.next_order_id += 1;
+                            self.orders.push(ColonyOrder {
+                                id,
+                                kind: OrderKind::BuildStoneWall,
+                                x,
+                                y,
+                                target_id: 0,
+                                status: OrderStatus::PendingBriefing,
+                                assigned_colonist_id: 0,
+                            });
+                            self.briefing_pending = true;
+                            affected += 1;
+                        }
+                    }
+                    "build_stone_floor" => {
+                        if self.blocked[idx] == 0
+                            && self.ground[idx] != 5
+                            && self.structures[idx] == StructureKind::None as i32
+                            && !self.orders.iter().any(|o| {
+                                o.x == x && o.y == y && o.kind == OrderKind::BuildStoneFloor
+                            })
+                        {
+                            self.zones[idx] = ZoneKind::None as i32;
+                            self.crops.retain(|c| !(c.x == x && c.y == y));
+                            self.structures[idx] = StructureKind::StoneFloorBlueprint as i32;
+                            let id = self.next_order_id;
+                            self.next_order_id += 1;
+                            self.orders.push(ColonyOrder {
+                                id,
+                                kind: OrderKind::BuildStoneFloor,
+                                x,
+                                y,
+                                target_id: 0,
+                                status: OrderStatus::PendingBriefing,
+                                assigned_colonist_id: 0,
+                            });
+                            self.briefing_pending = true;
+                            affected += 1;
+                        }
+                    }
+                    "build_stone_brazier" => {
+                        if self.blocked[idx] == 0
+                            && self.ground[idx] != 5
+                            && self.structures[idx] == StructureKind::None as i32
+                            && !self.orders.iter().any(|o| {
+                                o.x == x && o.y == y && o.kind == OrderKind::BuildStoneBrazier
+                            })
+                        {
+                            self.zones[idx] = ZoneKind::None as i32;
+                            self.crops.retain(|c| !(c.x == x && c.y == y));
+                            self.structures[idx] = StructureKind::StoneBrazierBlueprint as i32;
+                            let id = self.next_order_id;
+                            self.next_order_id += 1;
+                            self.orders.push(ColonyOrder {
+                                id,
+                                kind: OrderKind::BuildStoneBrazier,
+                                x,
+                                y,
+                                target_id: 0,
                                 status: OrderStatus::PendingBriefing,
                                 assigned_colonist_id: 0,
                             });
@@ -348,6 +546,12 @@ impl SimulationCore {
                             s if s == StructureKind::WoodWallBlueprint as i32
                                 || s == StructureKind::WoodDoorBlueprint as i32
                                 || s == StructureKind::CarpenterBenchBlueprint as i32
+                                || s == StructureKind::WaterWellBlueprint as i32
+                                || s == StructureKind::MasonBenchBlueprint as i32
+                                || s == StructureKind::StoneFurnaceBlueprint as i32
+                                || s == StructureKind::StoneWallBlueprint as i32
+                                || s == StructureKind::StoneFloorBlueprint as i32
+                                || s == StructureKind::StoneBrazierBlueprint as i32
                         ) {
                             self.structures[idx] = StructureKind::None as i32;
                             changed = true;
@@ -366,6 +570,40 @@ impl SimulationCore {
             }
         }
 
+        if mode == "cancel" {
+            let rx0 = min_x as f32 - 0.35;
+            let rx1 = (max_x + 1) as f32 + 0.35;
+            let ry0 = min_y as f32 - 0.35;
+            let ry1 = (max_y + 1) as f32 + 0.35;
+            let mut cancelled_ids: Vec<i32> = Vec::new();
+            for animal in &mut self.animals {
+                if animal.marked_for_hunt
+                    && animal.x >= rx0
+                    && animal.x <= rx1
+                    && animal.y >= ry0
+                    && animal.y <= ry1
+                {
+                    animal.marked_for_hunt = false;
+                    cancelled_ids.push(animal.id);
+                    affected += 1;
+                }
+            }
+            if !cancelled_ids.is_empty() {
+                self.orders.retain(|o| {
+                    !(o.kind == OrderKind::HuntAnimal && cancelled_ids.contains(&o.target_id))
+                });
+                for c in &mut self.colonists {
+                    if let Some(t) = &c.active_task {
+                        if t.kind == OrderKind::HuntAnimal && cancelled_ids.contains(&t.item_id) {
+                            c.active_task = None;
+                            c.path.clear();
+                            c.activity = ColonistActivity::Resting;
+                        }
+                    }
+                }
+            }
+        }
+
         if affected > 0 {
             if mode == "cancel" {
                 for c in &mut self.colonists {
@@ -377,6 +615,8 @@ impl SimulationCore {
                         if in_rect
                             && t.kind != OrderKind::HaulItem
                             && t.kind != OrderKind::CarpentryJob
+                            && t.kind != OrderKind::MasonryJob
+                            && t.kind != OrderKind::HuntAnimal
                         {
                             c.active_task = None;
                             c.path.clear();
@@ -435,6 +675,64 @@ impl SimulationCore {
         for c in &mut self.colonists {
             if let Some(task) = &mut c.active_task {
                 if task.kind == OrderKind::CarpentryJob && task.order_id == bench_id {
+                    let q_i = queue_index as i32;
+                    if task.phase == q_i {
+                        c.active_task = None;
+                        c.path.clear();
+                        c.activity = ColonistActivity::Resting;
+                    } else if task.phase > q_i {
+                        task.phase -= 1;
+                    }
+                }
+            }
+        }
+        self.world_dirty = true;
+        true
+    }
+
+    pub fn find_workshop_near(&self, tile_x: i32, tile_y: i32) -> Option<&WorkshopStationState> {
+        if let Some(exact) = self
+            .workshops
+            .iter()
+            .find(|w| w.x == tile_x && w.y == tile_y)
+        {
+            return Some(exact);
+        }
+        self.workshops
+            .iter()
+            .find(|w| (w.x - tile_x).abs() <= 1 && (w.y - tile_y).abs() <= 1)
+    }
+
+    pub fn queue_masonry_recipe(
+        &mut self,
+        workshop_id: i32,
+        recipe: MasonryRecipe,
+    ) -> Result<(), &'static str> {
+        let Some(ws) = self.workshops.iter_mut().find(|w| w.id == workshop_id) else {
+            return Err("Taller de cantería u horno no encontrado.");
+        };
+        if recipe.station() != ws.kind {
+            return Err("Esta receta pertenece a otra estación de trabajo.");
+        }
+        if ws.queue.len() >= MAX_CARPENTRY_QUEUE {
+            return Err("La cola de este taller está llena (máx. 12 piezas).");
+        }
+        ws.queue.push(recipe);
+        self.world_dirty = true;
+        Ok(())
+    }
+
+    pub fn cancel_masonry_queue_item(&mut self, workshop_id: i32, queue_index: usize) -> bool {
+        let Some(ws) = self.workshops.iter_mut().find(|w| w.id == workshop_id) else {
+            return false;
+        };
+        if queue_index >= ws.queue.len() {
+            return false;
+        }
+        ws.queue.remove(queue_index);
+        for c in &mut self.colonists {
+            if let Some(task) = &mut c.active_task {
+                if task.kind == OrderKind::MasonryJob && task.order_id == workshop_id {
                     let q_i = queue_index as i32;
                     if task.phase == q_i {
                         c.active_task = None;

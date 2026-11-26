@@ -1,10 +1,9 @@
-# Capa de superposición del mundo 2D: zonas, cultivos de zanahoria, marcas y selección táctil.
+# Capa de superposición del mundo 2D: zonas, cultivos multi-especie, riego y selección táctil.
 #
 # Lógica: Dibuja de forma optimizada (solo dentro de la vista de cámara) las zonas
-# de almacenamiento y cultivo, las etapas visuales `.svg` de las zanahorias desde
-# tierra arada hasta cosecha lista, los marcadores de tala/minería (diferenciando
-# si esperan reunión del líder o ya fueron aprobados) y el rectángulo de arrastre
-# táctil al seleccionar áreas en pantalla.
+# de almacenamiento y cultivo, las etapas visuales `.svg` de zanahoria, papa,
+# trigo y remolacha con su indicador de humedad/riego, los marcadores de
+# tala/minería y el rectángulo de arrastre táctil para todas las órdenes y construcciones.
 
 extends Node2D
 
@@ -25,11 +24,15 @@ var _drag_mode: String = "observe"
 
 
 func _ready() -> void:
-	_crop_textures[1] = load("res://assets/crops/soil_tilled.svg") as Texture2D
-	_crop_textures[2] = load("res://assets/crops/carrot_stage_1_seeded.svg") as Texture2D
-	_crop_textures[3] = load("res://assets/crops/carrot_stage_2_sprout.svg") as Texture2D
-	_crop_textures[4] = load("res://assets/crops/carrot_stage_3_growing.svg") as Texture2D
-	_crop_textures[5] = load("res://assets/crops/carrot_stage_4_ready.svg") as Texture2D
+	var tilled := load("res://assets/crops/soil_tilled.svg") as Texture2D
+	for crop_kind in ["carrot", "potato", "wheat", "beet"]:
+		_crop_textures[crop_kind] = {
+			1: tilled,
+			2: load("res://assets/crops/%s_stage_1_seeded.svg" % crop_kind) as Texture2D,
+			3: load("res://assets/crops/%s_stage_2_sprout.svg" % crop_kind) as Texture2D,
+			4: load("res://assets/crops/%s_stage_3_growing.svg" % crop_kind) as Texture2D,
+			5: load("res://assets/crops/%s_stage_4_ready.svg" % crop_kind) as Texture2D,
+		}
 
 
 func configure(w: int, h: int, cam: Camera2D) -> void:
@@ -96,7 +99,7 @@ func _draw() -> void:
 					draw_rect(rect, Color(0.38, 0.58, 0.26, 0.18), true)
 					draw_rect(rect, Color(0.55, 0.78, 0.36, 0.65), false, 2.0)
 
-	# 2. Etapas visuales de cultivo de zanahoria (.svg)
+	# 2. Etapas visuales de cultivos (.svg por especie)
 	for crop_var in _crops:
 		if not (crop_var is Dictionary):
 			continue
@@ -108,10 +111,19 @@ func _draw() -> void:
 		var stage := int(crop.get("stage", 0))
 		if stage <= 0:
 			continue
-		var tex: Texture2D = _crop_textures.get(stage, null)
+		var rect := Rect2(cx * TILE_PX, cy * TILE_PX, TILE_PX, TILE_PX)
+		if bool(crop.get("watered", false)):
+			draw_rect(rect.grow(-3.0), Color(0.14, 0.34, 0.44, 0.22), true)
+		var crop_kind := str(crop.get("crop_kind", "carrot"))
+		var kind_map: Dictionary = _crop_textures.get(crop_kind, _crop_textures.get("carrot", {}))
+		var tex: Texture2D = kind_map.get(stage, null)
 		if tex != null:
-			var rect := Rect2(cx * TILE_PX, cy * TILE_PX, TILE_PX, TILE_PX)
 			draw_texture_rect(tex, rect, false)
+		if bool(crop.get("watered", false)):
+			var drop_center := Vector2((cx + 0.80) * TILE_PX, (cy + 0.22) * TILE_PX)
+			draw_circle(drop_center, 6.2, Color("#1e1813"))
+			draw_circle(drop_center, 4.6, Color("#56b4dc"))
+			draw_circle(drop_center + Vector2(-1.3, -1.3), 1.5, Color("#d9f3ff"))
 
 	# 3. Marcadores de órdenes (Talar, Minar, Construir)
 	for order_var in _orders:
@@ -150,16 +162,36 @@ func _draw() -> void:
 				preview_col = Color(0.90, 0.48, 0.30, 0.90)
 			"mine":
 				preview_col = Color(0.75, 0.68, 0.56, 0.90)
+			"hunt":
+				preview_col = Color(0.92, 0.38, 0.30, 0.90)
 			"storage":
 				preview_col = Color(0.92, 0.72, 0.32, 0.90)
 			"farm":
 				preview_col = Color(0.54, 0.82, 0.38, 0.90)
+			"farm_potato":
+				preview_col = Color(0.76, 0.72, 0.34, 0.90)
+			"farm_wheat":
+				preview_col = Color(0.90, 0.78, 0.32, 0.90)
+			"farm_beet":
+				preview_col = Color(0.78, 0.38, 0.52, 0.90)
 			"build_wall":
 				preview_col = Color(0.55, 0.78, 0.96, 0.90)
 			"build_door":
 				preview_col = Color(0.62, 0.86, 0.96, 0.90)
 			"build_carpenter_bench":
 				preview_col = Color(0.88, 0.74, 0.42, 0.90)
+			"build_well":
+				preview_col = Color(0.35, 0.72, 0.90, 0.90)
+			"build_mason_bench":
+				preview_col = Color(0.76, 0.72, 0.66, 0.90)
+			"build_furnace":
+				preview_col = Color(0.88, 0.48, 0.28, 0.90)
+			"build_stone_wall":
+				preview_col = Color(0.68, 0.72, 0.78, 0.90)
+			"build_stone_floor":
+				preview_col = Color(0.78, 0.56, 0.44, 0.90)
+			"build_stone_brazier":
+				preview_col = Color(0.95, 0.68, 0.28, 0.90)
 			"cancel":
 				preview_col = Color(0.86, 0.34, 0.30, 0.90)
 		draw_rect(sel_rect, Color(preview_col.r, preview_col.g, preview_col.b, 0.22), true)

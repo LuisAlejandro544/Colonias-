@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Bloque aislado de montaña con vetas de carbón 2.5D estilo RimWorld -->
+  <rect x="0" y="0" width="128" height="128" fill="#504d49"/>
+  <rect x="0" y="0" width="128" height="72" fill="#76726c"/>
+  <polygon points="0,0 74,0 56,36 0,28" fill="#858079"/>
+  <polygon points="74,0 128,0 128,44 86,52 56,36" fill="#6b6761"/>
+  <polygon points="56,36 86,52 128,44 128,72 44,72" fill="#66625c"/>
+  <path d="M18 16 L54 22 L70 10 M34 46 L68 50 L96 36" fill="none" stroke="#43403c" stroke-width="2.6" stroke-linecap="round"/>
+  <!-- Vetas de carbón en corona -->
+  <polygon points="20,24 46,18 52,36 26,42" fill="#272524" stroke="#151312" stroke-width="2.4" stroke-linejoin="round"/>
+  <polygon points="26,27 42,23 44,30 29,34" fill="#464341"/>
+  <polygon points="78,18 104,22 108,40 82,38" fill="#232120" stroke="#151312" stroke-width="2.4" stroke-linejoin="round"/>
+  <polygon points="84,23 100,26 100,32 86,30" fill="#43403e"/>
+  <polygon points="56,48 78,44 82,60 60,64" fill="#2b2827" stroke="#151312" stroke-width="2.2" stroke-linejoin="round"/>
+  <!-- Frente vertical de montaña -->
+  <rect x="0" y="72" width="128" height="56" fill="#524f4b"/>
+  <polygon points="44,72 92,72 80,128 34,128" fill="#494642"/>
+  <polygon points="92,72 128,72 128,128 80,128" fill="#403e3a"/>
+  <path d="M22 86 L28 118 M60 82 L64 116 M102 88 L96 120" fill="none" stroke="#33302d" stroke-width="2.6" stroke-linecap="round"/>
+  <!-- Vetas de carbón en pared frontal -->
+  <polygon points="22,86 52,80 56,100 28,106" fill="#252322" stroke="#151312" stroke-width="2.4" stroke-linejoin="round"/>
+  <polygon points="28,90 46,86 48,93 31,97" fill="#454240"/>
+  <polygon points="82,86 108,84 112,106 86,108" fill="#211f1e" stroke="#151312" stroke-width="2.4" stroke-linejoin="round"/>
+  <polygon points="88,91 103,90 104,97 90,98" fill="#413e3c"/>
+  <path d="M0 72 L36 70 L74 74 L128 71" fill="none" stroke="#1e1813" stroke-width="3.6" stroke-linejoin="round"/>
+  <rect x="2" y="2" width="124" height="124" fill="none" stroke="#1e1813" stroke-width="4"/>
+</svg>

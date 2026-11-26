@@ -2,8 +2,8 @@
 #
 # Lógica: Construye un peón 2D apilando sombra, herramienta en la espalda, torso
 # (túnica o abrigo), cabeza, rostro expresivo, cabello, insignia del Líder de
-# Colonia, globo de reunión, herramienta equipada en la mano principal, recurso
-# transportado y animación de sueño en el suelo con partículas `.svg` de Zzz.
+# Colonia, globo de reunión, herramienta equipada o cubo de riego/vaso con agua
+# en la mano principal, recurso transportado y animación de sueño Zzz.
 
 class_name ColonistVisual
 extends Node2D
@@ -31,6 +31,7 @@ var health_value: int = 100
 var max_health_value: int = 100
 var mood_value: int = 80
 var energy_value: int = 100
+var hydration_value: int = 100
 var stat_int: int = 3
 var stat_str: int = 4
 var stat_dex: int = 4
@@ -39,6 +40,8 @@ var stat_cha: int = 3
 var craft_tier_label: String = ""
 var stats_detail: Array = []
 var is_sleeping: bool = false
+var is_drinking: bool = false
+var is_watering: bool = false
 var is_selected: bool = false
 
 var _rig: Node2D
@@ -87,12 +90,35 @@ func _preload_textures() -> void:
 		"stone_chunk": load("res://assets/items/item_stone_chunk.svg") as Texture2D,
 		"iron_ore": load("res://assets/items/item_iron_ore.svg") as Texture2D,
 		"copper_ore": load("res://assets/items/item_copper_ore.svg") as Texture2D,
+		"coal": load("res://assets/items/item_coal.svg") as Texture2D,
+		"copper_ingot": load("res://assets/items/item_copper_ingot.svg") as Texture2D,
 		"carrot_seed": load("res://assets/items/item_carrot_seeds.svg") as Texture2D,
 		"carrot": load("res://assets/items/item_carrot.svg") as Texture2D,
+		"potato_seed": load("res://assets/items/item_potato_seeds.svg") as Texture2D,
+		"potato": load("res://assets/items/item_potato.svg") as Texture2D,
+		"wheat_seed": load("res://assets/items/item_wheat_seeds.svg") as Texture2D,
+		"wheat": load("res://assets/items/item_wheat.svg") as Texture2D,
+		"beet_seed": load("res://assets/items/item_beet_seeds.svg") as Texture2D,
+		"beet": load("res://assets/items/item_beet.svg") as Texture2D,
+		"raw_chicken_breast": load("res://assets/items/item_raw_chicken_breast.svg") as Texture2D,
+		"raw_chicken_thigh": load("res://assets/items/item_raw_chicken_thigh.svg") as Texture2D,
+		"raw_pork_belly": load("res://assets/items/item_raw_pork_belly.svg") as Texture2D,
+		"raw_pork_ribs": load("res://assets/items/item_raw_pork_ribs.svg") as Texture2D,
+		"raw_mutton_shoulder": load("res://assets/items/item_raw_mutton_shoulder.svg") as Texture2D,
+		"raw_mutton_leg": load("res://assets/items/item_raw_mutton_leg.svg") as Texture2D,
+		"raw_beef_sirloin": load("res://assets/items/item_raw_beef_sirloin.svg") as Texture2D,
+		"raw_beef_brisket": load("res://assets/items/item_raw_beef_brisket.svg") as Texture2D,
+		"animal_bones": load("res://assets/items/item_animal_bones.svg") as Texture2D,
 		"wood_plank": load("res://assets/items/item_wood_planks.svg") as Texture2D,
 		"wood_bucket": load("res://assets/items/item_wood_bucket.svg") as Texture2D,
+		"wood_cup": load("res://assets/items/item_wood_cup_empty.svg") as Texture2D,
+		"wood_cup_filled": load("res://assets/items/item_wood_cup.svg") as Texture2D,
 		"wood_door_item": load("res://assets/items/item_wood_door.svg") as Texture2D,
 		"wood_crate": load("res://assets/items/item_wood_crate.svg") as Texture2D,
+		"stone_bricks": load("res://assets/items/item_stone_bricks.svg") as Texture2D,
+		"stone_mortar": load("res://assets/items/item_stone_mortar.svg") as Texture2D,
+		"stone_millstone": load("res://assets/items/item_stone_millstone.svg") as Texture2D,
+		"stone_statuette": load("res://assets/items/item_stone_statuette.svg") as Texture2D,
 	}
 
 
@@ -264,6 +290,7 @@ func apply_snapshot(data: Dictionary) -> void:
 	max_health_value = int(data.get("max_health", 100))
 	mood_value = int(data.get("mood", 80))
 	energy_value = int(data.get("energy", 100))
+	hydration_value = int(data.get("hydration", 100))
 	stat_int = int(data.get("stat_int", 3))
 	stat_str = int(data.get("stat_str", 4))
 	stat_dex = int(data.get("stat_dex", 4))
@@ -274,6 +301,8 @@ func apply_snapshot(data: Dictionary) -> void:
 	if sd_var is Array:
 		stats_detail = sd_var
 	is_sleeping = bool(data.get("is_sleeping", false))
+	is_drinking = bool(data.get("is_drinking", false))
+	is_watering = bool(data.get("is_watering", false))
 	current_activity = str(data.get("activity", "Observando"))
 
 	helmet_slot = str(data.get("helmet_slot", ""))
@@ -312,16 +341,31 @@ func apply_snapshot(data: Dictionary) -> void:
 	equipped_tool_code = main_hand_tool_code
 	equipped_tool_label = main_hand_tool_label
 
-	var tool_tex: Texture2D = _tool_textures.get(main_hand_tool_code, null)
-	if tool_tex != null and main_hand_tool_code != "none" and not is_sleeping:
-		_tool_sprite.texture = tool_tex
+	var cup_tex: Texture2D = _item_textures.get("wood_cup_filled", null)
+	var bucket_tex: Texture2D = _item_textures.get("wood_bucket", null)
+	if is_drinking and not is_sleeping and cup_tex != null:
+		_tool_sprite.texture = cup_tex
+		_tool_sprite.visible = true
+	elif is_watering and not is_sleeping and bucket_tex != null:
+		_tool_sprite.texture = bucket_tex
 		_tool_sprite.visible = true
 	else:
-		_tool_sprite.visible = false
+		var tool_tex: Texture2D = _tool_textures.get(main_hand_tool_code, null)
+		if tool_tex != null and main_hand_tool_code != "none" and not is_sleeping:
+			_tool_sprite.texture = tool_tex
+			_tool_sprite.visible = true
+		else:
+			_tool_sprite.visible = false
 
 	_hand_anchor.position.x = -14.0 if flip else 14.0
 	_tool_sprite.flip_h = flip
-	if working:
+	if is_drinking and not is_sleeping:
+		var sip := sin(swing) * 0.25
+		_hand_anchor.rotation = (0.78 + sip) if flip else (-0.78 - sip)
+	elif is_watering and not is_sleeping:
+		var pour := (0.42 + sin(swing) * 0.28) if working else 0.12
+		_hand_anchor.rotation = -pour if flip else pour
+	elif working:
 		var swing_angle := sin(swing) * 0.72
 		_hand_anchor.rotation = -swing_angle if flip else swing_angle
 	else:

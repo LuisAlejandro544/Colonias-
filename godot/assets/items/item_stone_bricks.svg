@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Pila de ladrillos de piedra tallada (sillares de cantería estilo RimWorld) -->
+  <ellipse cx="64" cy="99" rx="45" ry="12" fill="#18130e" opacity="0.32"/>
+
+  <!-- Ladrillo de piedra inferior izquierdo -->
+  <polygon points="15,74 36,63 68,71 68,91 47,100 15,92" fill="#7f796f" stroke="#1e1813" stroke-width="3.8" stroke-linejoin="round"/>
+  <polygon points="15,74 36,63 68,71 47,82" fill="#a29b8f" stroke="#1e1813" stroke-width="2.4" stroke-linejoin="round"/>
+  <polygon points="47,82 68,71 68,91 47,100" fill="#615b53" stroke="#1e1813" stroke-width="2.2" stroke-linejoin="round"/>
+  <path d="M25 83 L38 86" stroke="#57524a" stroke-width="2.2" stroke-linecap="round"/>
+
+  <!-- Ladrillo de piedra inferior derecho -->
+  <polygon points="60,72 81,61 113,69 113,89 92,98 60,90" fill="#756f66" stroke="#1e1813" stroke-width="3.8" stroke-linejoin="round"/>
+  <polygon points="60,72 81,61 113,69 92,80" fill="#989185" stroke="#1e1813" stroke-width="2.4" stroke-linejoin="round"/>
+  <polygon points="92,80 113,69 113,89 92,98" fill="#59544c" stroke="#1e1813" stroke-width="2.2" stroke-linejoin="round"/>
+  <path d="M98 84 L106 80" stroke="#45413b" stroke-width="2.2" stroke-linecap="round"/>
+
+  <!-- Ladrillo de piedra superior cruzado con bisel de cantería -->
+  <polygon points="33,47 56,35 97,45 97,67 74,78 33,68" fill="#8b8479" stroke="#1e1813" stroke-width="4" stroke-linejoin="round"/>
+  <polygon points="33,47 56,35 97,45 74,57" fill="#afa89c" stroke="#1e1813" stroke-width="2.6" stroke-linejoin="round"/>
+  <polygon points="74,57 97,45 97,67 74,78" fill="#676158" stroke="#1e1813" stroke-width="2.4" stroke-linejoin="round"/>
+  <!-- Muescas y brillo de piedra labrada -->
+  <path d="M47 46 L68 51 M57 41 L79 46" stroke="#cbc4b8" stroke-width="2.4" stroke-linecap="round" opacity="0.85"/>
+  <path d="M44 61 L58 64 M81 59 L90 54" stroke="#534e47" stroke-width="2.2" stroke-linecap="round" opacity="0.75"/>
+</svg>

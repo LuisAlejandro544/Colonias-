@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Solomillo de res crudo grueso con marmoleo fino -->
+  <ellipse cx="64" cy="96" rx="40" ry="12" fill="#18130e" opacity="0.30"/>
+  <!-- Borde lateral oscuro de grosor -->
+  <path d="M22 68 L22 79 C24 91 54 96 82 88 C100 83 106 72 104 64 L104 54 Z" fill="#7d1f26" stroke="#1e1813" stroke-width="4.2" stroke-linejoin="round"/>
+  <!-- Cara superior del filete -->
+  <path d="M22 62 C20 44 44 34 70 36 C96 38 108 50 102 64 C96 76 68 82 44 79 C29 77 23 71 22 62 Z" fill="#a82d36" stroke="#1e1813" stroke-width="4.2" stroke-linejoin="round"/>
+  <!-- Borde de grasa crema y marmoleo -->
+  <path d="M68 38 C88 40 100 48 99 58 C95 52 84 44 68 38 Z" fill="#f4e6d2"/>
+  <path d="M36 52 Q52 46 66 54 M44 66 Q64 58 84 64 M56 44 L62 56" fill="none" stroke="#f0d9c4" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M33 61 Q44 57 52 60" fill="none" stroke="#d95c63" stroke-width="2.4" stroke-linecap="round"/>
+</svg>

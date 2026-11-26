@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Vaca lechera cálida con manchas marrones -->
+  <ellipse cx="64" cy="102" rx="38" ry="11" fill="#18130e" opacity="0.28"/>
+  <!-- Cola -->
+  <path d="M25 59 C17 64 16 74 19 80" fill="none" stroke="#1e1813" stroke-width="3.6" stroke-linecap="round"/>
+  <ellipse cx="19" cy="83" rx="3.5" ry="5" fill="#5f402a" stroke="#1e1813" stroke-width="2.2"/>
+  <!-- Patas -->
+  <rect x="34" y="79" width="10" height="22" rx="3.5" fill="#d9cebd" stroke="#1e1813" stroke-width="3.2"/>
+  <rect x="74" y="79" width="10" height="22" rx="3.5" fill="#d9cebd" stroke="#1e1813" stroke-width="3.2"/>
+  <rect x="42" y="81" width="10" height="22" rx="3.5" fill="#f1e8d8" stroke="#1e1813" stroke-width="3.2"/>
+  <rect x="82" y="81" width="10" height="22" rx="3.5" fill="#f1e8d8" stroke="#1e1813" stroke-width="3.2"/>
+  <!-- Cuerpo -->
+  <rect x="26" y="45" width="66" height="40" rx="18" fill="#f4ecdd" stroke="#1e1813" stroke-width="4"/>
+  <!-- Manchas marrones cálidas -->
+  <path d="M36 47 C46 47 52 56 47 64 C41 69 30 65 30 55 Z" fill="#6b472f"/>
+  <path d="M62 60 C72 56 80 65 76 76 C68 82 57 76 62 60 Z" fill="#6b472f"/>
+  <!-- Cabeza y cuernos -->
+  <path d="M84 36 C81 28 75 28 74 33" fill="none" stroke="#e4d6be" stroke-width="5" stroke-linecap="round"/>
+  <path d="M84 36 C81 28 75 28 74 33" fill="none" stroke="#1e1813" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M101 36 C104 28 110 28 111 33" fill="none" stroke="#e4d6be" stroke-width="5" stroke-linecap="round"/>
+  <path d="M101 36 C104 28 110 28 111 33" fill="none" stroke="#1e1813" stroke-width="2.2" stroke-linecap="round"/>
+  <rect x="80" y="37" width="29" height="27" rx="11" fill="#f4ecdd" stroke="#1e1813" stroke-width="3.8"/>
+  <!-- Hocico rosado-crema -->
+  <ellipse cx="97" cy="59" rx="12" ry="8" fill="#e7b4a4" stroke="#1e1813" stroke-width="3.2"/>
+  <circle cx="93" cy="58" r="1.7" fill="#3a1f18"/>
+  <circle cx="101" cy="58" r="1.7" fill="#3a1f18"/>
+  <!-- Ojos -->
+  <circle cx="89" cy="47" r="2.5" fill="#1e1813"/>
+  <circle cx="102" cy="47" r="2.5" fill="#1e1813"/>
+</svg>

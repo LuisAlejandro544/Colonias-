@@ -4,8 +4,8 @@
 # `ColonySimulation`), gestiona la pantalla de carga inicial y delega las
 # responsabilidades especializadas a submódulos dedicados:
 # - `GroundCanvas`: renderizado del suelo visible.
-# - `WorldOverlay`: zonas, cultivos y previsualización de arrastre.
-# - `WorldEntitiesRenderer`: props, muros conectables, ítems y colonos.
+# - `WorldOverlay`: zonas, cultivos multi-especie y previsualización de arrastre.
+# - `WorldEntitiesRenderer`: props, muros conectables, fauna terrestre, ítems y colonos.
 # - `WorldCameraInput`: paneo táctil, pinch-zoom y selección rectangular.
 # - `WorldSfx`: pool de efectos de sonido `.ogg`.
 # - `SaveBridge`: normalización y empaquetado de guardado JSON.
@@ -292,7 +292,8 @@ func _initialize_world_async() -> void:
 			_ground_tiles,
 			_prop_tiles,
 			_blocked_tiles,
-			GameSession.initial_colonists
+			GameSession.initial_colonists,
+			GameSession.biome_code
 		)
 	else:
 		var state_copy: Dictionary = SaveBridgeScript.convert_save_dict_for_rust(GameSession.saved_world_state)
@@ -304,11 +305,13 @@ func _initialize_world_async() -> void:
 			_ground_tiles,
 			_prop_tiles,
 			_blocked_tiles,
-			state_copy
+			state_copy,
+			GameSession.biome_code
 		)
 
 	_sync_world_snapshot(true)
 	_sync_colonist_visuals()
+	_sync_animal_visuals()
 	_ground_canvas.queue_redraw()
 	_world_overlay.queue_redraw()
 	_loading_bar.value = 100.0
@@ -325,6 +328,7 @@ func _process(delta: float) -> void:
 		_colony_sim.call("step_simulation", delta * _sim_speed)
 	_sync_world_snapshot(false)
 	_sync_colonist_visuals()
+	_sync_animal_visuals()
 	_ground_canvas.queue_redraw()
 	_world_overlay.queue_redraw()
 
@@ -365,6 +369,13 @@ func _sync_colonist_visuals() -> void:
 		var selected_node := _entities_renderer.get_colonist_node(_selected_colonist_id) as Node2D
 		if selected_node != null:
 			_hud.call("show_colonist_info", selected_node)
+
+
+func _sync_animal_visuals() -> void:
+	var snapshots_var: Variant = _colony_sim.call("get_animals_snapshot")
+	if not (snapshots_var is Array):
+		return
+	_entities_renderer.sync_animals(snapshots_var as Array)
 
 
 func _on_area_committed(mode_code: String, start_tile: Vector2i, end_tile: Vector2i) -> void:

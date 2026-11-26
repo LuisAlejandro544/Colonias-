@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Lingote de cobre fundido reservado en los archivos del juego para futura fundición -->
+  <ellipse cx="64" cy="94" rx="42" ry="13" fill="#18130e" opacity="0.30"/>
+  <!-- Cuerpo trapezoidal en perspectiva isométrica suave -->
+  <polygon points="18,74 36,44 94,40 110,68 92,90 30,92" fill="#c96832" stroke="#1e1813" stroke-width="4.4" stroke-linejoin="round"/>
+  <!-- Cara superior brillante -->
+  <polygon points="36,44 94,40 84,58 28,62" fill="#ec8d4e" stroke="#1e1813" stroke-width="3" stroke-linejoin="round"/>
+  <!-- Cara frontal -->
+  <polygon points="28,62 84,58 92,90 30,92" fill="#d47239"/>
+  <!-- Cara lateral derecha en sombra -->
+  <polygon points="84,58 94,40 110,68 92,90" fill="#9c481e" stroke="#1e1813" stroke-width="2.8" stroke-linejoin="round"/>
+  <!-- Reflejo metálico -->
+  <path d="M42 49 L82 46 M38 70 L74 68" fill="none" stroke="#ffbf86" stroke-width="3.2" stroke-linecap="round"/>
+</svg>

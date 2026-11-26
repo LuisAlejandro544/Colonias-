@@ -113,11 +113,12 @@ func _populate(colonist: Node) -> void:
 	var cname := str(colonist.get("colonist_name"))
 	var leader_tag := " [Líder]" if bool(colonist.get("is_leader")) else ""
 	_title_label.text = "Atributos de %s%s" % [cname, leader_tag]
-	_summary_label.text = "%s  •  Salud: %d / %d  •  Energía: %d%%  •  Ánimo: %d%%" % [
+	_summary_label.text = "%s  •  Salud: %d / %d  •  Energía: %d%%  •  Hidratación: %d%%  •  Ánimo: %d%%" % [
 		str(colonist.get("colonist_role")),
 		int(colonist.get("health_value")),
 		int(colonist.get("max_health_value")),
 		int(colonist.get("energy_value")),
+		int(colonist.get("hydration_value")),
 		int(colonist.get("mood_value")),
 	]
 	_craft_tier_label.text = "Capacidad intelectual (INT %d): %s" % [

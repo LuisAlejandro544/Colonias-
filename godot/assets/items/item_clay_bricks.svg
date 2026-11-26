@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Pila de ladrillos de arcilla cocida (diseño reservado para futura arcilla) -->
+  <ellipse cx="64" cy="99" rx="44" ry="12" fill="#18130e" opacity="0.32"/>
+  <!-- Ladrillo inferior izquierdo -->
+  <polygon points="16,74 36,64 68,72 68,92 48,100 16,92" fill="#a8553b" stroke="#1e1813" stroke-width="3.8" stroke-linejoin="round"/>
+  <polygon points="16,74 36,64 68,72 48,82" fill="#c77153" stroke="#1e1813" stroke-width="2.4" stroke-linejoin="round"/>
+  <polygon points="48,82 68,72 68,92 48,100" fill="#7f3d28"/>
+  <!-- Ladrillo inferior derecho -->
+  <polygon points="60,72 80,62 112,70 112,90 92,98 60,90" fill="#9c4d35" stroke="#1e1813" stroke-width="3.8" stroke-linejoin="round"/>
+  <polygon points="60,72 80,62 112,70 92,80" fill="#bf684b" stroke="#1e1813" stroke-width="2.4" stroke-linejoin="round"/>
+  <polygon points="92,80 112,70 112,90 92,98" fill="#773824"/>
+  <!-- Ladrillo superior cruzado -->
+  <polygon points="34,48 56,36 96,46 96,68 74,78 34,68" fill="#b45c40" stroke="#1e1813" stroke-width="4" stroke-linejoin="round"/>
+  <polygon points="34,48 56,36 96,46 74,58" fill="#d48060" stroke="#1e1813" stroke-width="2.6" stroke-linejoin="round"/>
+  <polygon points="74,58 96,46 96,68 74,78" fill="#853f29"/>
+  <path d="M48 47 L66 51 M62 42 L80 46" stroke="#e4a083" stroke-width="2.4" stroke-linecap="round" opacity="0.8"/>
+</svg>

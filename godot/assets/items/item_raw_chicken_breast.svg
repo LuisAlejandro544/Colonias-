@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Pechuga de pollo cruda: filetes pálidos rosado-durazno -->
+  <ellipse cx="64" cy="96" rx="38" ry="12" fill="#18130e" opacity="0.28"/>
+  <!-- Lóbulo trasero -->
+  <path d="M40 74 C24 62 24 40 44 36 C64 32 82 42 84 58 C85 72 64 84 40 74 Z" fill="#eab3a3" stroke="#1e1813" stroke-width="4" stroke-linejoin="round"/>
+  <!-- Filete principal delantero -->
+  <path d="M36 86 C26 74 34 52 58 46 C82 40 102 52 100 68 C97 84 62 96 36 86 Z" fill="#f5c6b7" stroke="#1e1813" stroke-width="4.2" stroke-linejoin="round"/>
+  <path d="M44 82 C60 88 86 80 94 68 C86 76 62 82 44 82 Z" fill="#df9b89" opacity="0.65"/>
+  <!-- Brillo húmedo y estrías musculares suaves -->
+  <path d="M48 60 Q66 53 84 57" fill="none" stroke="#ffe1d6" stroke-width="3" stroke-linecap="round"/>
+  <path d="M52 70 Q68 65 82 67" fill="none" stroke="#dc9886" stroke-width="2" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Haz dorado de espigas de trigo atado con cuerda -->
+  <ellipse cx="64" cy="98" rx="34" ry="11" fill="#18130e" opacity="0.28"/>
+  <!-- Tallos inferiores -->
+  <path d="M40 94 L58 64 M48 96 L62 64 M56 97 L66 64 M66 97 L70 64 M74 96 L74 64 M84 94 L78 64" stroke="#1e1813" stroke-width="6" stroke-linecap="round"/>
+  <path d="M40 94 L58 64 M48 96 L62 64 M56 97 L66 64 M66 97 L70 64 M74 96 L74 64 M84 94 L78 64" stroke="#d8a948" stroke-width="3.2" stroke-linecap="round"/>
+  <!-- Espigas superiores -->
+  <g stroke="#1e1813" stroke-width="2.6" stroke-linejoin="round" fill="#ecc153">
+    <ellipse cx="44" cy="34" rx="6" ry="14" transform="rotate(-24 44 34)"/>
+    <ellipse cx="56" cy="28" rx="6" ry="15" transform="rotate(-10 56 28)"/>
+    <ellipse cx="69" cy="26" rx="6.2" ry="16" transform="rotate(4 69 26)"/>
+    <ellipse cx="81" cy="31" rx="6" ry="15" transform="rotate(18 81 31)"/>
+    <ellipse cx="90" cy="40" rx="5.5" ry="13" transform="rotate(30 90 40)"/>
+  </g>
+  <!-- Granos marcados -->
+  <path d="M53 22 L59 35 M66 20 L70 36 M79 25 L82 39" stroke="#a67521" stroke-width="2" stroke-linecap="round"/>
+  <!-- Atado central de cuerda -->
+  <path d="M51 64 Q66 69 81 64" fill="none" stroke="#1e1813" stroke-width="8.5" stroke-linecap="round"/>
+  <path d="M51 64 Q66 69 81 64" fill="none" stroke="#b95a38" stroke-width="4.2" stroke-linecap="round"/>
+</svg>

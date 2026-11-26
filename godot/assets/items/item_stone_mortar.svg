@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Mortero tallado de piedra con mano / majadero -->
+  <ellipse cx="64" cy="100" rx="34" ry="11" fill="#18130e" opacity="0.32"/>
+  <!-- Base y cuerpo tallado del cuenco -->
+  <path d="M28 56 C28 90 42 100 64 100 C86 100 100 90 100 56 Z" fill="#888177" stroke="#1e1813" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M64 68 C82 68 95 63 100 56 C100 88 86 100 64 100 Z" fill="#6b655d"/>
+  <!-- Pedestal -->
+  <ellipse cx="64" cy="97" rx="22" ry="6.5" fill="#706a61" stroke="#1e1813" stroke-width="3.2"/>
+  <!-- Majadero de piedra apoyado dentro del mortero -->
+  <path d="M68 58 L88 26 C92 21 101 26 97 33 L79 62 Z" fill="#aba499" stroke="#1e1813" stroke-width="3.8" stroke-linejoin="round"/>
+  <path d="M74 56 L91 29" stroke="#cac3b8" stroke-width="2.4" stroke-linecap="round"/>
+  <!-- Borde y concavidad del mortero -->
+  <ellipse cx="64" cy="56" rx="36" ry="12" fill="#a29b90" stroke="#1e1813" stroke-width="4"/>
+  <ellipse cx="64" cy="56" rx="24" ry="7.5" fill="#4f4a43" stroke="#1e1813" stroke-width="2.6"/>
+  <path d="M48 56 C56 54 72 54 80 56" fill="none" stroke="#6f6960" stroke-width="2.2" stroke-linecap="round"/>
+</svg>

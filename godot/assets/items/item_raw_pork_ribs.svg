@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Costillar de cerdo crudo curvado con puntas de hueso -->
+  <ellipse cx="64" cy="98" rx="40" ry="11" fill="#18130e" opacity="0.28"/>
+  <!-- Puntas inferiores de las costillas -->
+  <g fill="#f1e6d2" stroke="#1e1813" stroke-width="3.2" stroke-linecap="round">
+    <rect x="30" y="72" width="10" height="18" rx="4" transform="rotate(14 35 81)"/>
+    <rect x="49" y="75" width="10" height="19" rx="4" transform="rotate(8 54 84)"/>
+    <rect x="68" y="75" width="10" height="19" rx="4" transform="rotate(-2 73 84)"/>
+    <rect x="86" y="71" width="10" height="18" rx="4" transform="rotate(-12 91 80)"/>
+  </g>
+  <!-- Arco de carne entre costillas -->
+  <path d="M20 62 C32 36 86 34 108 58 L98 78 C78 68 42 70 26 80 Z" fill="#d96763" stroke="#1e1813" stroke-width="4.2" stroke-linejoin="round"/>
+  <!-- Vetas de hueso y relieve entre cada costilla -->
+  <path d="M38 45 L33 74 M57 42 L53 76 M76 43 L73 76 M94 49 L91 73" stroke="#f2c4bc" stroke-width="3.2" stroke-linecap="round"/>
+  <path d="M31 54 C48 45 78 44 96 54" fill="none" stroke="#f79f99" stroke-width="2.4" stroke-linecap="round"/>
+</svg>

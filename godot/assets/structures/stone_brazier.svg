@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Brasero de Piedra y Ladrillos de Piedra 2.5D con fuego vivo -->
+  <ellipse cx="64" cy="108" rx="40" ry="11" fill="#18130e" opacity="0.34"/>
+  <!-- Pedestal octogonal de piedra oscura y banda de ladrillos de piedra -->
+  <polygon points="32,88 96,88 102,104 26,104" fill="#6b655c" stroke="#1e1813" stroke-width="3.8" stroke-linejoin="round"/>
+  <rect x="36" y="72" width="56" height="16" rx="2" fill="#8b8479" stroke="#1e1813" stroke-width="3.6"/>
+  <path d="M54 72 L54 88 M74 72 L74 88" stroke="#4d4841" stroke-width="2.4"/>
+  <path d="M40 76 L50 76 M58 76 L70 76 M78 76 L88 76" stroke="#b5aea2" stroke-width="2" stroke-linecap="round" opacity="0.72"/>
+  <!-- Cuenco superior de hierro/piedra -->
+  <path d="M24 52 L104 52 L92 72 L36 72 Z" fill="#4b4641" stroke="#1e1813" stroke-width="3.8" stroke-linejoin="round"/>
+  <ellipse cx="64" cy="52" rx="40" ry="12" fill="#6b655e" stroke="#1e1813" stroke-width="3.8"/>
+  <ellipse cx="64" cy="52" rx="30" ry="8" fill="#2c1912"/>
+  <!-- Brasas y llama cálida -->
+  <ellipse cx="64" cy="53" rx="24" ry="5.5" fill="#c74318"/>
+  <path d="M46 53 C44 36 56 26 60 16 C65 26 70 22 73 14 C79 27 84 37 82 53 Z" fill="#ef7a24" stroke="#1e1813" stroke-width="2.8" stroke-linejoin="round"/>
+  <path d="M53 53 C53 41 61 32 64 24 C69 34 75 41 75 53 Z" fill="#ffd454"/>
+  <path d="M59 53 C60 45 64 40 65 36 C68 41 70 46 69 53 Z" fill="#fff3b8"/>
+</svg>

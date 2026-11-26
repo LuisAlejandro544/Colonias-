@@ -5,11 +5,12 @@
 //! órdenes, colonos, reloj y eventos de sonido) junto al arranque inicial de la
 //! colonia (`spawn_initial`), la garantía de liderazgo (`ensure_leader_exists`) y
 //! el bucle `step` que coordina crecimiento agrícola, reuniones del líder,
-//! energía/sueño, asignación de tareas y patrulla/descanso.
+//! energía/sueño, hidratación/sed, asignación de tareas y patrulla/descanso.
 
+use crate::animals::{pick_animal_for_biome, AnimalEntity};
 use crate::colony_types::{
     CarpentryBenchState, Colonist, ColonistActivity, ColonistInventory, ColonyOrder, CropCell,
-    GroundItem, ItemKind, StructureKind, ZoneKind,
+    CropKind, GroundItem, ItemKind, OrderKind, StructureKind, WorkshopStationState, ZoneKind,
 };
 use crate::noise::SeededRng;
 use crate::roles::{ColonistRoleProfile, ColonyRole, MAX_ASSIGNED_ROLES};
@@ -37,9 +38,22 @@ const OUTFIT_HEX: &[&str] = &[
 pub(super) const WOOD_PER_WALL: i32 = 2;
 pub(super) const WOOD_PER_CARPENTER_BENCH: i32 = 6;
 pub(super) const DOOR_ITEMS_PER_DOOR: i32 = 1;
+pub(super) const WOOD_PER_WELL: i32 = 4;
+pub(super) const STONE_PER_WELL: i32 = 6;
+pub(super) const BUCKETS_PER_WELL: i32 = 1;
+pub(super) const STONE_PER_MASON_BENCH: i32 = 6;
+pub(super) const STONE_PER_FURNACE: i32 = 4;
+pub(super) const BRICKS_PER_FURNACE: i32 = 6;
+pub(super) const STONE_PER_STONE_WALL: i32 = 1;
+pub(super) const BRICKS_PER_STONE_WALL: i32 = 2;
+pub(super) const BRICKS_PER_STONE_FLOOR: i32 = 2;
+pub(super) const STONE_PER_BRAZIER: i32 = 2;
+pub(super) const BRICKS_PER_BRAZIER: i32 = 3;
+pub(super) const COAL_PER_BRAZIER: i32 = 1;
 
 /// Estado completo de la simulación en Rust (independiente de Godot para unit tests).
 pub struct SimulationCore {
+    pub biome_code: String,
     pub map_width: i32,
     pub map_height: i32,
     pub ground: Vec<i32>,
@@ -51,11 +65,15 @@ pub struct SimulationCore {
     pub items: Vec<GroundItem>,
     pub orders: Vec<ColonyOrder>,
     pub benches: Vec<CarpentryBenchState>,
+    pub workshops: Vec<WorkshopStationState>,
     pub colonists: Vec<Colonist>,
+    pub animals: Vec<AnimalEntity>,
     pub rng: SeededRng,
     pub next_item_id: i32,
     pub next_order_id: i32,
     pub next_bench_id: i32,
+    pub next_workshop_id: i32,
+    pub next_animal_id: i32,
     pub briefing_pending: bool,
     pub storage_approved: bool,
     pub farm_approved: bool,
@@ -95,6 +113,7 @@ impl SimulationCore {
         }
 
         Self {
+            biome_code: "temperate_forest".to_string(),
             map_width: w,
             map_height: h,
             ground: g,
@@ -106,11 +125,15 @@ impl SimulationCore {
             items: Vec::new(),
             orders: Vec::new(),
             benches: Vec::new(),
+            workshops: Vec::new(),
             colonists: Vec::new(),
+            animals: Vec::new(),
             rng: SeededRng::new(seed ^ 0xC010_414A_0001_0002),
             next_item_id: 1,
             next_order_id: 1,
             next_bench_id: 1,
+            next_workshop_id: 1,
+            next_animal_id: 1,
             briefing_pending: false,
             storage_approved: true,
             farm_approved: true,
@@ -122,6 +145,22 @@ impl SimulationCore {
             day_clock: 0.0,
             day_count: 1,
             pending_sfx: Vec::new(),
+        }
+    }
+
+    /// Indica si la colonia se encuentra actualmente en Temporada de Cultivos.
+    /// Ciclo de 6 días: días 1-3 en temporada (100% ganas y crecimiento acelerado),
+    /// días 4-6 fuera de temporada (se puede sembrar, pero con baja motivación).
+    #[inline]
+    pub fn is_crop_season_active(&self) -> bool {
+        ((self.day_count - 1).rem_euclid(6)) < 3
+    }
+
+    pub fn crop_season_label_es(&self) -> &'static str {
+        if self.is_crop_season_active() {
+            "Temporada de Cultivos"
+        } else {
+            "Fuera de Temporada"
         }
     }
 
@@ -194,6 +233,7 @@ impl SimulationCore {
                 mood: (84 + self.rng.range_i32(-6, 10) + if is_leader { 4 } else { 0 })
                     .clamp(50, 100),
                 energy: 86.0 + (i as f32 * 3.0).min(14.0),
+                hydration: 88.0 + (i as f32 * 2.5).min(12.0),
                 wait_timer: 0.3 + self.rng.next_f32() * 1.2,
                 walk_phase: 0.0,
                 work_swing_phase: 0.0,
@@ -226,12 +266,64 @@ impl SimulationCore {
             }
         }
 
-        // Suministro inicial en el claro: semillas de zanahoria y troncos para el campamento.
+        // Suministro inicial en el claro: semillas de los 4 cultivos y troncos para el campamento.
         let center_tx = (self.map_width / 2).clamp(2, self.map_width - 3);
         let center_ty = (self.map_height / 2).clamp(2, self.map_height - 3);
-        self.spawn_item(ItemKind::CarrotSeed, center_tx - 1, center_ty, 16, false);
+        self.spawn_item(ItemKind::CarrotSeed, center_tx - 1, center_ty, 14, false);
+        self.spawn_item(ItemKind::PotatoSeed, center_tx - 1, center_ty + 1, 12, false);
+        self.spawn_item(ItemKind::WheatSeed, center_tx, center_ty + 1, 12, false);
+        self.spawn_item(ItemKind::BeetSeed, center_tx + 1, center_ty + 1, 12, false);
         self.spawn_item(ItemKind::WoodLogs, center_tx + 1, center_ty, 6, false);
+
+        self.spawn_initial_animals(10);
         self.world_dirty = true;
+    }
+
+    pub fn spawn_initial_animals(&mut self, target_count: i32) {
+        self.animals.clear();
+        let count = target_count.clamp(4, 24);
+        let cx = self.map_width as f32 * 0.5;
+        let cy = self.map_height as f32 * 0.5;
+        let biome = self.biome_code.clone();
+
+        for _ in 0..count {
+            let mut placed = None;
+            for _ in 0..24 {
+                let tx = self.rng.range_i32(2, (self.map_width - 3).max(2));
+                let ty = self.rng.range_i32(2, (self.map_height - 3).max(2));
+                let dx = tx as f32 - cx;
+                let dy = ty as f32 - cy;
+                if (dx * dx + dy * dy).sqrt() < 5.0 {
+                    continue;
+                }
+                if !Self::tile_blocked(self.map_width, self.map_height, &self.blocked, tx, ty) {
+                    placed = Some((tx, ty));
+                    break;
+                }
+            }
+            let Some((ax, ay)) = placed else {
+                continue;
+            };
+            let kind = pick_animal_for_biome(&mut self.rng, &biome);
+            let id = self.next_animal_id;
+            self.next_animal_id += 1;
+            let fx = ax as f32 + 0.5;
+            let fy = ay as f32 + 0.5;
+            self.animals.push(AnimalEntity {
+                id,
+                kind,
+                x: fx,
+                y: fy,
+                target_x: fx,
+                target_y: fy,
+                facing_x: if self.rng.next_f32() < 0.5 { 1.0 } else { -1.0 },
+                facing_y: 0.0,
+                speed: kind.base_speed(),
+                wait_timer: 0.4 + self.rng.next_f32() * 2.0,
+                walk_phase: self.rng.next_f32() * 6.0,
+                marked_for_hunt: false,
+            });
+        }
     }
 
     pub fn ensure_leader_exists(&mut self) {
@@ -274,13 +366,16 @@ impl SimulationCore {
             return;
         }
 
+        let prev_clock = self.day_clock;
         self.day_clock += dt;
         if self.day_clock >= 90.0 {
             self.day_clock -= 90.0;
             self.day_count += 1;
         }
+        let thirst_mood_tick = (prev_clock * 0.25).floor() != (self.day_clock * 0.25).floor();
 
         self.step_crops_growth(dt);
+        self.step_animals(dt);
         self.update_leader_briefing(dt);
 
         for c_idx in 0..self.colonists.len() {
@@ -297,6 +392,9 @@ impl SimulationCore {
                 self.colonists[c_idx].inventory.stow_main_hand();
                 self.colonists[c_idx].energy =
                     (self.colonists[c_idx].energy + 14.0 * dt).min(100.0);
+                let sleep_thirst = 0.14 * self.colonists[c_idx].stats.energy_drain_mult();
+                self.colonists[c_idx].hydration =
+                    (self.colonists[c_idx].hydration - sleep_thirst * dt).max(0.0);
                 if self.colonists[c_idx].energy >= 96.0 {
                     self.colonists[c_idx].activity = ColonistActivity::Resting;
                     self.colonists[c_idx].wait_timer = 0.2;
@@ -312,8 +410,12 @@ impl SimulationCore {
                 | ColonistActivity::Mining
                 | ColonistActivity::Building
                 | ColonistActivity::Carpentry
+                | ColonistActivity::Masonry
+                | ColonistActivity::Smelting
                 | ColonistActivity::Farming
-                | ColonistActivity::Botanizing => 2.0,
+                | ColonistActivity::Botanizing
+                | ColonistActivity::WateringCrops
+                | ColonistActivity::Hunting => 2.0,
                 ColonistActivity::MovingToTask
                 | ColonistActivity::Hauling
                 | ColonistActivity::Wandering
@@ -323,6 +425,35 @@ impl SimulationCore {
             let drain_rate = base_drain * self.colonists[c_idx].stats.energy_drain_mult();
             self.colonists[c_idx].energy =
                 (self.colonists[c_idx].energy - drain_rate * dt).max(0.0);
+
+            if !matches!(
+                self.colonists[c_idx].activity,
+                ColonistActivity::DrinkingWell | ColonistActivity::DrinkingRiver
+            ) {
+                let base_thirst = match self.colonists[c_idx].activity {
+                    ColonistActivity::Chopping
+                    | ColonistActivity::Mining
+                    | ColonistActivity::Building
+                    | ColonistActivity::Carpentry
+                    | ColonistActivity::Masonry
+                    | ColonistActivity::Smelting
+                    | ColonistActivity::Farming
+                    | ColonistActivity::Botanizing
+                    | ColonistActivity::WateringCrops
+                    | ColonistActivity::Hunting => 1.25,
+                    ColonistActivity::MovingToTask
+                    | ColonistActivity::Hauling
+                    | ColonistActivity::Wandering
+                    | ColonistActivity::Scouting => 0.72,
+                    _ => 0.30,
+                };
+                let thirst_rate = base_thirst * self.colonists[c_idx].stats.energy_drain_mult();
+                self.colonists[c_idx].hydration =
+                    (self.colonists[c_idx].hydration - thirst_rate * dt).max(0.0);
+            }
+            if self.colonists[c_idx].hydration <= 0.0 && thirst_mood_tick {
+                self.colonists[c_idx].mood = (self.colonists[c_idx].mood - 1).max(15);
+            }
 
             if self.colonists[c_idx].energy <= 16.0
                 && !self.meeting_active
@@ -334,8 +465,28 @@ impl SimulationCore {
                 continue;
             }
 
+            if self.colonists[c_idx].hydration <= 18.0
+                && !self.meeting_active
+                && self.colonists[c_idx].carrying_kind.is_none()
+                && self.colonists[c_idx]
+                    .active_task
+                    .as_ref()
+                    .is_none_or(|t| t.kind != OrderKind::DrinkWater)
+                && self.try_interrupt_for_drink(c_idx)
+            {
+                continue;
+            }
+
             if self.colonists[c_idx].active_task.is_some() {
                 self.execute_active_task(c_idx, dt);
+                continue;
+            }
+
+            if self.colonists[c_idx].hydration <= 36.0
+                && !self.meeting_active
+                && self.colonists[c_idx].carrying_kind.is_none()
+                && self.try_start_drink_task(c_idx)
+            {
                 continue;
             }
 
@@ -443,11 +594,70 @@ impl SimulationCore {
             }
         }
     }
+
+    fn step_animals(&mut self, dt: f32) {
+        let w = self.map_width;
+        let h = self.map_height;
+        for a in &mut self.animals {
+            if a.wait_timer > 0.0 {
+                a.wait_timer -= dt;
+                continue;
+            }
+            let dx = a.target_x - a.x;
+            let dy = a.target_y - a.y;
+            let dist = (dx * dx + dy * dy).sqrt();
+            if dist < 0.10 {
+                let mut picked = false;
+                for _ in 0..8 {
+                    let ox = self.rng.range_i32(-5, 5);
+                    let oy = self.rng.range_i32(-5, 5);
+                    let nx = (a.x.round() as i32 + ox).clamp(2, w - 3);
+                    let ny = (a.y.round() as i32 + oy).clamp(2, h - 3);
+                    if !Self::tile_blocked(w, h, &self.blocked, nx, ny) {
+                        a.target_x = nx as f32 + 0.5;
+                        a.target_y = ny as f32 + 0.5;
+                        picked = true;
+                        break;
+                    }
+                }
+                a.wait_timer = if !picked {
+                    1.2
+                } else if self.rng.next_f32() < 0.60 {
+                    1.2 + self.rng.next_f32() * 2.5
+                } else {
+                    0.2
+                };
+                continue;
+            }
+
+            let nx = dx / dist;
+            let ny = dy / dist;
+            let step = (a.speed * dt).min(dist);
+            let next_x = a.x + nx * step;
+            let next_y = a.y + ny * step;
+            let tx = next_x.floor() as i32;
+            let ty = next_y.floor() as i32;
+            if Self::tile_blocked(w, h, &self.blocked, tx, ty) {
+                a.target_x = a.x;
+                a.target_y = a.y;
+                a.wait_timer = 0.8;
+            } else {
+                a.x = next_x;
+                a.y = next_y;
+                if nx.abs() > 0.05 {
+                    a.facing_x = nx;
+                }
+                a.facing_y = ny;
+                a.walk_phase += dt * a.speed * 5.2;
+            }
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::animals::AnimalKind;
     use crate::colony_types::OrderStatus;
 
     fn empty_core(seed: u64, w: i32, h: i32) -> SimulationCore {
@@ -714,5 +924,337 @@ mod tests {
         }
         assert_eq!(core.structures[door_idx], StructureKind::WoodDoor as i32);
         assert_eq!(core.blocked[door_idx], 0);
+    }
+
+    #[test]
+    fn mining_copper_and_coal_boulders_drops_expected_ores() {
+        let mut core = empty_core(606, 24, 24);
+        core.spawn_initial(2);
+        core.colonists[0].role_profile.assigned = vec![ColonyRole::Miner];
+        core.colonists[1].role_profile.assigned = vec![ColonyRole::ColonyLeader];
+
+        let copper_idx = (12 * 24 + 14) as usize;
+        let coal_idx = (12 * 24 + 15) as usize;
+        core.props[copper_idx] = 7; // CopperBoulder
+        core.blocked[copper_idx] = 1;
+        core.props[coal_idx] = 8; // CoalBoulder
+        core.blocked[coal_idx] = 1;
+
+        core.designate_area("mine", 14, 12, 15, 12);
+        core.approve_all_pending();
+
+        for _ in 0..320 {
+            core.step(0.05);
+        }
+
+        let (inv, _) = core.compute_inventory();
+        assert!(inv.copper >= 3);
+        assert!(inv.coal >= 3);
+        assert!(inv.stone >= 2);
+    }
+
+    #[test]
+    fn crop_season_boosts_growth_and_new_crops_harvest_properly() {
+        let mut core_in = empty_core(707, 24, 24);
+        core_in.day_count = 1; // En temporada
+        assert!(core_in.is_crop_season_active());
+        core_in.spawn_initial(3);
+        core_in.designate_area("farm_potato", 12, 10, 12, 10);
+        core_in.designate_area("farm_wheat", 13, 10, 13, 10);
+        core_in.designate_area("farm_beet", 14, 10, 14, 10);
+
+        for _ in 0..820 {
+            core_in.step(0.05);
+        }
+
+        let (inv, _) = core_in.compute_inventory();
+        assert!(inv.potatoes >= 2);
+        assert!(inv.wheat >= 2);
+        assert!(inv.beets >= 2);
+
+        // Fuera de temporada (día 4): se puede sembrar y cosechar, pero con menor motivación y ritmo.
+        let mut core_out = empty_core(708, 24, 24);
+        core_out.day_count = 4;
+        assert!(!core_out.is_crop_season_active());
+        core_out.spawn_initial(3);
+        core_out.designate_area("farm_potato", 12, 10, 12, 10);
+        for _ in 0..1150 {
+            core_out.step(0.05);
+        }
+        let (inv_out, _) = core_out.compute_inventory();
+        assert!(inv_out.potatoes >= 1);
+    }
+
+    #[test]
+    fn hunting_animal_drops_specific_meat_cuts_and_bones() {
+        let mut core = empty_core(808, 24, 24);
+        core.spawn_initial(2);
+        core.colonists[0].role_profile.assigned = vec![ColonyRole::Scout];
+        core.colonists[1].role_profile.assigned = vec![ColonyRole::ColonyLeader];
+
+        core.animals.clear();
+        core.animals.push(AnimalEntity {
+            id: 99,
+            kind: AnimalKind::Chicken,
+            x: 13.5,
+            y: 12.5,
+            target_x: 13.5,
+            target_y: 12.5,
+            facing_x: 1.0,
+            facing_y: 0.0,
+            speed: 0.0,
+            wait_timer: 99.0,
+            walk_phase: 0.0,
+            marked_for_hunt: false,
+        });
+
+        let marked = core.designate_area("hunt", 13, 12, 13, 12);
+        assert_eq!(marked, 1);
+        core.approve_all_pending();
+
+        for _ in 0..220 {
+            core.step(0.05);
+        }
+
+        assert!(core.animals.is_empty());
+        let (inv, _) = core.compute_inventory();
+        assert!(inv.meat_cuts >= 4);
+        assert!(inv.animal_bones >= 1);
+    }
+
+    #[test]
+    fn wood_cup_crafts_and_water_well_builds_with_bucket_wood_and_stone() {
+        use crate::colony_types::CarpentryRecipe;
+
+        let mut core = empty_core(909, 24, 24);
+        core.spawn_initial(2);
+        core.colonists[0].role_profile.assigned =
+            vec![ColonyRole::Constructor, ColonyRole::Carpenter];
+        core.colonists[0].stats.set(StatKind::Intelligence, 2);
+        core.colonists[1].role_profile.assigned = vec![ColonyRole::ColonyLeader];
+
+        // Mesa de carpintero ya construida para probar la receta de Vaso de madera.
+        let bench_idx = (12 * 24 + 10) as usize;
+        core.structures[bench_idx] = StructureKind::CarpenterBench as i32;
+        core.blocked[bench_idx] = 1;
+        core.benches.push(CarpentryBenchState {
+            id: 1,
+            x: 10,
+            y: 12,
+            queue: vec![CarpentryRecipe::Cup],
+        });
+        core.spawn_item(ItemKind::WoodPlank, 10, 13, 1, false);
+
+        // Materiales para Pozo de Agua: 1 cubo + 4 troncos + 6 piedras.
+        core.spawn_item(ItemKind::WoodBucket, 13, 12, 1, false);
+        core.spawn_item(ItemKind::StoneChunk, 13, 13, 6, false);
+        core.designate_area("build_well", 14, 12, 14, 12);
+        core.approve_all_pending();
+
+        for _ in 0..240 {
+            core.step(0.05);
+        }
+
+        let well_idx = (12 * 24 + 14) as usize;
+        assert_eq!(core.structures[well_idx], StructureKind::WaterWell as i32);
+        assert_eq!(core.blocked[well_idx], 1);
+        let (inv, _) = core.compute_inventory();
+        assert_eq!(inv.wood_cups, 2);
+        assert_eq!(inv.wood_buckets, 0);
+    }
+
+    #[test]
+    fn thirsty_colonist_prefers_well_over_river_and_stays_happy() {
+        let mut core = empty_core(910, 24, 24);
+        core.spawn_initial(2);
+        // Río cercano y pozo construido.
+        let river_idx = (12 * 24 + 17) as usize;
+        core.ground[river_idx] = 5; // GroundKind::River
+        core.blocked[river_idx] = 1;
+        let well_idx = (12 * 24 + 14) as usize;
+        core.structures[well_idx] = StructureKind::WaterWell as i32;
+        core.blocked[well_idx] = 1;
+
+        core.colonists[0].hydration = 20.0;
+        let initial_mood = core.colonists[0].mood;
+
+        for _ in 0..160 {
+            core.step(0.05);
+        }
+
+        assert!(core.colonists[0].hydration >= 90.0);
+        assert!(core.colonists[0].mood >= initial_mood);
+    }
+
+    #[test]
+    fn thirsty_colonist_without_well_drinks_from_nearest_river_and_loses_mood_even_with_buckets() {
+        let mut core = empty_core(911, 24, 24);
+        core.spawn_initial(2);
+        let river_idx = (12 * 24 + 15) as usize;
+        core.ground[river_idx] = 5; // GroundKind::River
+        core.blocked[river_idx] = 1;
+
+        // Aunque haya cubos de madera en el suelo, el colono no acepta beber agua cruda del río en cubos.
+        core.spawn_item(ItemKind::WoodBucket, 12, 12, 3, false);
+        core.colonists[0].hydration = 18.0;
+        core.colonists[0].mood = 82;
+
+        for _ in 0..160 {
+            core.step(0.05);
+        }
+
+        assert!(core.colonists[0].hydration >= 75.0);
+        assert!(core.colonists[0].mood < 82);
+    }
+
+    #[test]
+    fn watering_with_bucket_accelerates_crops_out_and_in_season() {
+        use crate::colony_types::{CropStage, ZoneKind};
+
+        let mut core = empty_core(912, 24, 24);
+        core.day_count = 4; // Fuera de temporada
+        assert!(!core.is_crop_season_active());
+        core.spawn_initial(2);
+        core.colonists[0].role_profile.assigned = vec![ColonyRole::Botanist];
+        core.colonists[1].role_profile.assigned = vec![ColonyRole::ColonyLeader];
+
+        let well_idx = (12 * 24 + 14) as usize;
+        core.structures[well_idx] = StructureKind::WaterWell as i32;
+        core.blocked[well_idx] = 1;
+        core.spawn_item(ItemKind::WoodBucket, 12, 12, 1, false);
+
+        let crop_idx = (12 * 24 + 11) as usize;
+        core.zones[crop_idx] = ZoneKind::Farm as i32;
+        core.crops.push(CropCell {
+            x: 11,
+            y: 12,
+            crop_kind: CropKind::Carrot,
+            stage: CropStage::Seeded,
+            progress: 0.0,
+            tend_cooldown: 99.0,
+            watered_timer: 0.0,
+        });
+
+        for _ in 0..160 {
+            core.step(0.05);
+        }
+
+        assert!(core.crops[0].watered_timer > 0.0);
+        let (inv, _) = core.compute_inventory();
+        assert_eq!(inv.wood_buckets, 1);
+    }
+
+    #[test]
+    fn mason_crafts_bricks_stone_items_and_smelts_copper_ingots() {
+        use crate::colony_types::MasonryRecipe;
+
+        let mut core = empty_core(913, 24, 24);
+        core.spawn_initial(2);
+        core.colonists[0].role_profile.assigned =
+            vec![ColonyRole::Constructor, ColonyRole::Mason];
+        core.colonists[0].stats.set(StatKind::Intelligence, 4);
+        core.colonists[1].role_profile.assigned = vec![ColonyRole::ColonyLeader];
+
+        // Piedra suficiente para mesa de masón, ladrillos, mortero, horno y mena+carbón para fundir.
+        core.spawn_item(ItemKind::StoneChunk, 12, 12, 24, false);
+        core.spawn_item(ItemKind::CopperOre, 12, 13, 4, false);
+        core.spawn_item(ItemKind::Coal, 13, 13, 3, false);
+
+        core.designate_area("build_mason_bench", 14, 12, 14, 12);
+        core.approve_all_pending();
+        for _ in 0..200 {
+            core.step(0.05);
+        }
+        assert_eq!(core.workshops.len(), 1);
+        let mason_id = core.workshops[0].id;
+
+        assert!(core.queue_masonry_recipe(mason_id, MasonryRecipe::Bricks).is_ok());
+        assert!(core.queue_masonry_recipe(mason_id, MasonryRecipe::Bricks).is_ok());
+        assert!(core.queue_masonry_recipe(mason_id, MasonryRecipe::Mortar).is_ok());
+        for _ in 0..320 {
+            core.step(0.05);
+        }
+
+        let (inv_mid, _) = core.compute_inventory();
+        assert_eq!(inv_mid.stone_bricks, 8);
+        assert_eq!(inv_mid.stone_mortars, 1);
+
+        core.designate_area("build_furnace", 15, 12, 15, 12);
+        core.approve_all_pending();
+        for _ in 0..200 {
+            core.step(0.05);
+        }
+        let furnace_id = core.workshops[1].id;
+        assert!(core
+            .queue_masonry_recipe(furnace_id, MasonryRecipe::CopperIngot)
+            .is_ok());
+        for _ in 0..200 {
+            core.step(0.05);
+        }
+
+        let (inv_end, _) = core.compute_inventory();
+        assert_eq!(inv_end.copper_ingots, 1);
+    }
+
+    #[test]
+    fn mining_mountain_blocks_yields_stone_copper_and_coal() {
+        let mut core = empty_core(914, 24, 24);
+        core.spawn_initial(2);
+        core.colonists[0].role_profile.assigned = vec![ColonyRole::Miner];
+        core.colonists[1].role_profile.assigned = vec![ColonyRole::ColonyLeader];
+
+        let m_stone = (12 * 24 + 14) as usize;
+        let m_copper = (12 * 24 + 15) as usize;
+        let m_coal = (12 * 24 + 16) as usize;
+        core.props[m_stone] = 9;
+        core.blocked[m_stone] = 1;
+        core.props[m_copper] = 10;
+        core.blocked[m_copper] = 1;
+        core.props[m_coal] = 11;
+        core.blocked[m_coal] = 1;
+
+        core.designate_area("mine", 14, 12, 16, 12);
+        core.approve_all_pending();
+        for _ in 0..420 {
+            core.step(0.05);
+        }
+
+        let (inv, _) = core.compute_inventory();
+        assert!(inv.stone >= 6);
+        assert!(inv.copper >= 3);
+        assert!(inv.coal >= 3);
+    }
+
+    #[test]
+    fn stone_bricks_build_wall_floor_brazier_and_furnace() {
+        let mut core = empty_core(915, 24, 24);
+        core.spawn_initial(2);
+        core.colonists[0].role_profile.assigned = vec![ColonyRole::Constructor];
+        core.colonists[1].role_profile.assigned = vec![ColonyRole::ColonyLeader];
+
+        // Exacto para 1 muro (1P + 2L), 1 suelo (2L), 1 brasero (2P + 3L + 1C) y 1 horno (4P + 6L)
+        core.spawn_item(ItemKind::StoneChunk, 11, 12, 7, false);
+        core.spawn_item(ItemKind::StoneBricks, 11, 13, 13, false);
+        core.spawn_item(ItemKind::Coal, 12, 13, 1, false);
+
+        core.designate_area("build_stone_wall", 14, 12, 14, 12);
+        core.designate_area("build_stone_floor", 15, 12, 15, 12);
+        core.designate_area("build_stone_brazier", 16, 12, 16, 12);
+        core.designate_area("build_furnace", 17, 12, 17, 12);
+        core.approve_all_pending();
+
+        for _ in 0..500 {
+            core.step(0.05);
+        }
+
+        assert_eq!(core.structures[(12 * 24 + 14) as usize], StructureKind::StoneWall as i32);
+        assert_eq!(core.structures[(12 * 24 + 15) as usize], StructureKind::StoneFloor as i32);
+        assert_eq!(core.structures[(12 * 24 + 16) as usize], StructureKind::StoneBrazier as i32);
+        assert_eq!(core.structures[(12 * 24 + 17) as usize], StructureKind::StoneFurnace as i32);
+
+        let (inv, _) = core.compute_inventory();
+        assert_eq!(inv.stone, 0);
+        assert_eq!(inv.stone_bricks, 0);
+        assert_eq!(inv.coal, 0);
     }
 }

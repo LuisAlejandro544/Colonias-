@@ -1,11 +1,11 @@
 //! Curva de experiencia, multiplicadores y rendimientos por nivel (1 al 10) de cada rol.
 //!
 //! # Lógica del módulo
-//! Separa las fórmulas de progresión y balanceo de los 8 roles oficiales de
+//! Separa las fórmulas de progresión y balanceo de los 10 roles oficiales de
 //! **Colonia Centinela**:
 //! - Experiencia requerida por nivel (`xp_required_for_next_level`).
 //! - Bonificadores reales de velocidad, capacidad de carga, rendimiento de tala/minería,
-//!   cosecha agrícola, impulso botánico, patrulla de explorador y agilidad de reuniones.
+//!   cosecha agrícola, impulso botánico, carpintería, cantería/horno, patrulla y liderazgo.
 //! - Resumen legible en español (`effect_summary_es`) para el popup de Trabajos.
 
 use super::{ColonyRole, MAX_ROLE_LEVEL};
@@ -130,6 +130,11 @@ pub fn carpentry_speed_mult(level: i32) -> f32 {
     0.82 + (level.clamp(1, MAX_ROLE_LEVEL) - 1) as f32 * 0.12
 }
 
+#[inline]
+pub fn masonry_speed_mult(level: i32) -> f32 {
+    0.82 + (level.clamp(1, MAX_ROLE_LEVEL) - 1) as f32 * 0.12
+}
+
 /// Texto breve en español con los bonos reales del nivel actual de un rol.
 pub fn effect_summary_es(role: ColonyRole, level: i32) -> String {
     let lv = level.clamp(1, MAX_ROLE_LEVEL);
@@ -198,6 +203,12 @@ pub fn effect_summary_es(role: ColonyRole, level: i32) -> String {
                 carpentry_speed_mult(lv)
             )
         }
+        ColonyRole::Mason => {
+            format!(
+                "Vel. cantería y horno x{:.2} • Ladrillos, piezas y cobre",
+                masonry_speed_mult(lv)
+            )
+        }
     }
 }
 
@@ -221,5 +232,6 @@ mod tests {
         assert!(scout_radius(10) > scout_radius(1));
         assert!(leader_meeting_speed_mult(10) > leader_meeting_speed_mult(1));
         assert!(carpentry_speed_mult(10) > carpentry_speed_mult(1));
+        assert!(masonry_speed_mult(10) > masonry_speed_mult(1));
     }
 }

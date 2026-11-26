@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Tramo frontal continuo de montaña/piedra natural (borde sur del macizo) -->
+  <rect x="0" y="0" width="128" height="72" fill="#847e74"/>
+  <polygon points="0,0 72,0 56,36 0,30" fill="#948e83"/>
+  <polygon points="72,0 128,0 128,44 86,52 56,36" fill="#777167"/>
+  <polygon points="0,30 56,36 44,72 0,72" fill="#8b847a"/>
+  <polygon points="56,36 86,52 128,44 128,72 44,72" fill="#726c63"/>
+  <path d="M14 20 L52 24 L78 12 M34 50 L70 52 L106 38" fill="none" stroke="#524d45" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M16 10 L46 14 M82 26 L112 22" fill="none" stroke="#aba498" stroke-width="2.4" stroke-linecap="round" opacity="0.68"/>
+  <!-- Frente escarpado continuo -->
+  <rect x="0" y="72" width="128" height="56" fill="#5b554e"/>
+  <polygon points="0,72 44,72 34,128 0,128" fill="#655f57"/>
+  <polygon points="44,72 92,72 80,128 34,128" fill="#544f48"/>
+  <polygon points="92,72 128,72 128,128 80,128" fill="#49453e"/>
+  <path d="M22 86 L28 118 M58 82 L64 116 M102 88 L96 120 M0 102 L42 98 M68 98 L128 104" fill="none" stroke="#39352f" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M0 72 L36 70 L74 74 L128 72" fill="none" stroke="#1e1813" stroke-width="3.6" stroke-linejoin="round"/>
+</svg>

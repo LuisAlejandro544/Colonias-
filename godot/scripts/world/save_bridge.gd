@@ -2,8 +2,9 @@
 #
 # Lógica: Normaliza explícitamente los tipos numéricos parseados por `JSON.parse()`
 # (`int(...)`, `float(...)`, `PackedInt32Array`) para cumplir las conversiones
-# estrictas de `gdext` al restaurar una partida, y arma el diccionario completo
-# de guardado para la ranura activa.
+# estrictas de `gdext` al restaurar una partida (incluyendo `crop_kind`,
+# `watered_timer`, `hydration`, `target_id`, `workshops` y la fauna libre `animals`),
+# y arma el diccionario de guardado.
 
 class_name SaveBridge
 extends RefCounted
@@ -29,9 +30,11 @@ static func convert_save_dict_for_rust(raw: Dictionary) -> Dictionary:
 				crops_clean.append({
 					"x": int(entry.get("x", 0)),
 					"y": int(entry.get("y", 0)),
+					"crop_kind": str(entry.get("crop_kind", "carrot")),
 					"stage": int(entry.get("stage", 0)),
 					"progress": float(entry.get("progress", 0.0)),
 					"tend_cooldown": float(entry.get("tend_cooldown", 0.0)),
+					"watered_timer": float(entry.get("watered_timer", 0.0)),
 				})
 		out["crops"] = crops_clean
 
@@ -58,6 +61,7 @@ static func convert_save_dict_for_rust(raw: Dictionary) -> Dictionary:
 					"kind": int(entry.get("kind", 1)),
 					"x": int(entry.get("x", 0)),
 					"y": int(entry.get("y", 0)),
+					"target_id": int(entry.get("target_id", 0)),
 					"status": int(entry.get("status", 0)),
 				})
 		out["orders"] = orders_clean
@@ -80,6 +84,25 @@ static func convert_save_dict_for_rust(raw: Dictionary) -> Dictionary:
 				})
 		out["benches"] = benches_clean
 
+	var ws_raw = out.get("workshops", [])
+	if ws_raw is Array:
+		var ws_clean: Array = []
+		for entry in ws_raw:
+			if entry is Dictionary:
+				var q_clean: Array = []
+				var q_raw = entry.get("queue", [])
+				if q_raw is Array:
+					for r_code in q_raw:
+						q_clean.append(str(r_code))
+				ws_clean.append({
+					"id": int(entry.get("id", 1)),
+					"kind": str(entry.get("kind", "mason")),
+					"x": int(entry.get("x", 0)),
+					"y": int(entry.get("y", 0)),
+					"queue": q_clean,
+				})
+		out["workshops"] = ws_clean
+
 	var cols_raw = out.get("colonists", [])
 	if cols_raw is Array:
 		var cols_clean: Array = []
@@ -96,6 +119,7 @@ static func convert_save_dict_for_rust(raw: Dictionary) -> Dictionary:
 					"max_health": int(entry.get("max_health", 100)),
 					"mood": int(entry.get("mood", 80)),
 					"energy": float(entry.get("energy", 92.0)),
+					"hydration": float(entry.get("hydration", 90.0)),
 					"body_style": int(entry.get("body_style", 0)),
 					"hair_style": int(entry.get("hair_style", 0)),
 					"skin_color": str(entry.get("skin_color", "#e4b892")),
@@ -138,6 +162,21 @@ static func convert_save_dict_for_rust(raw: Dictionary) -> Dictionary:
 				cols_clean.append(col_dict)
 		out["colonists"] = cols_clean
 
+	if out.has("animals") and out.get("animals") is Array:
+		var animals_clean: Array = []
+		for entry in out.get("animals"):
+			if entry is Dictionary:
+				animals_clean.append({
+					"id": int(entry.get("id", 1)),
+					"kind": str(entry.get("kind", "pig")),
+					"x": float(entry.get("x", 32.0)),
+					"y": float(entry.get("y", 32.0)),
+					"facing_x": float(entry.get("facing_x", 1.0)),
+					"facing_y": float(entry.get("facing_y", 0.0)),
+					"marked_for_hunt": bool(entry.get("marked_for_hunt", false)),
+				})
+		out["animals"] = animals_clean
+
 	return out
 
 
@@ -149,6 +188,7 @@ static func build_save_payload(state: Dictionary) -> Dictionary:
 		"map_size": GameSession.map_size,
 		"day": int(state.get("day", GameSession.day_count)),
 		"colonists": state.get("colonists", []),
+		"animals": state.get("animals", []),
 		"props": Array(state.get("props", PackedInt32Array())),
 		"blocked": Array(state.get("blocked", PackedInt32Array())),
 		"zones": Array(state.get("zones", PackedInt32Array())),
@@ -157,4 +197,5 @@ static func build_save_payload(state: Dictionary) -> Dictionary:
 		"items": state.get("items", []),
 		"orders": state.get("orders", []),
 		"benches": state.get("benches", []),
+		"workshops": state.get("workshops", []),
 	}

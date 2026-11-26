@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Remolacha etapa 2: brotes jóvenes con tallos rojizos -->
+  <rect x="0" y="0" width="128" height="128" fill="#4f3925"/>
+  <path d="M0 18 Q32 15 64 18 Q96 21 128 18 L128 34 Q96 37 64 34 Q32 31 0 34 Z" fill="#3a2819"/>
+  <path d="M0 58 Q32 55 64 58 Q96 61 128 58 L128 74 Q96 77 64 74 Q32 71 0 74 Z" fill="#3a2819"/>
+  <path d="M0 98 Q32 95 64 98 Q96 101 128 98 L128 114 Q96 117 64 114 Q32 111 0 114 Z" fill="#3a2819"/>
+  <g stroke="#1e1813" stroke-width="2.2" stroke-linejoin="round">
+    <path d="M36 29 C28 24 26 16 32 18 C34 12 38 12 36 29 C40 12 45 14 44 21 C48 21 47 28 36 29 Z" fill="#6aa548"/>
+    <path d="M36 29 L33 21 M36 29 L40 21" stroke="#b33859" stroke-width="2" stroke-linecap="round"/>
+    <path d="M90 29 C82 24 80 16 86 18 C88 12 92 12 90 29 C94 12 99 14 98 21 C102 21 101 28 90 29 Z" fill="#6aa548"/>
+    <path d="M90 29 L87 21 M90 29 L94 21" stroke="#b33859" stroke-width="2" stroke-linecap="round"/>
+    <path d="M38 69 C30 64 28 56 34 58 C36 52 40 52 38 69 C42 52 47 54 46 61 C50 61 49 68 38 69 Z" fill="#6aa548"/>
+    <path d="M38 69 L35 61 M38 69 L42 61" stroke="#b33859" stroke-width="2" stroke-linecap="round"/>
+    <path d="M92 69 C84 64 82 56 88 58 C90 52 94 52 92 69 C96 52 101 54 100 61 C104 61 103 68 92 69 Z" fill="#6aa548"/>
+    <path d="M92 69 L89 61 M92 69 L96 61" stroke="#b33859" stroke-width="2" stroke-linecap="round"/>
+    <path d="M64 109 C56 104 54 96 60 98 C62 92 66 92 64 109 C68 92 73 94 72 101 C76 101 75 108 64 109 Z" fill="#6aa548"/>
+    <path d="M64 109 L61 101 M64 109 L68 101" stroke="#b33859" stroke-width="2" stroke-linecap="round"/>
+  </g>
+</svg>

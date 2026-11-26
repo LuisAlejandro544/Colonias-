@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Vaso / jarra tallada de madera vacía (sin agua) -->
+  <ellipse cx="62" cy="102" rx="28" ry="9" fill="#18130e" opacity="0.32"/>
+  <!-- Asa lateral de madera -->
+  <path d="M84 52 C106 52 106 86 82 86" fill="none" stroke="#1e1813" stroke-width="11" stroke-linecap="round"/>
+  <path d="M84 52 C106 52 106 86 82 86" fill="none" stroke="#8b5c34" stroke-width="5.5" stroke-linecap="round"/>
+  <!-- Cuerpo cilíndrico de madera -->
+  <path d="M36 42 L40 96 C41 103 83 103 84 96 L88 42 Z" fill="#a87549" stroke="#1e1813" stroke-width="4" stroke-linejoin="round"/>
+  <!-- Duelas verticales -->
+  <path d="M51 48 L52 99 M62 49 L62 100 M73 48 L72 99" stroke="#6d4627" stroke-width="2.6" stroke-linecap="round"/>
+  <!-- Aro inferior sutil -->
+  <path d="M39 83 C49 88 75 88 85 83 L84 90 C74 95 50 95 40 90 Z" fill="#6b4426" stroke="#1e1813" stroke-width="2.6" stroke-linejoin="round"/>
+  <!-- Boca superior vacía (interior oscuro de madera tallada) -->
+  <ellipse cx="62" cy="42" rx="26" ry="9.5" fill="#d1a06c" stroke="#1e1813" stroke-width="4"/>
+  <ellipse cx="62" cy="42" rx="19" ry="6" fill="#4d311c" stroke="#1e1813" stroke-width="2.4"/>
+  <path d="M48 43 C54 45.5 70 45.5 76 43" fill="none" stroke="#331f10" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M51 40.5 C57 38.8 67 38.8 73 40.5" fill="none" stroke="#6d4729" stroke-width="1.8" stroke-linecap="round"/>
+</svg>

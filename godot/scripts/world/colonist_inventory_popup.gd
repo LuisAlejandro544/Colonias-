@@ -189,9 +189,10 @@ func refresh_colonist(colonist: Node, tool_icons: Dictionary, item_icons: Dictio
 		return
 	var leader_tag := " [Líder]" if bool(colonist.get("is_leader")) else ""
 	_title_label.text = "Inventario de %s%s" % [str(colonist.get("colonist_name")), leader_tag]
-	_subtitle_label.text = "%s  •  Energía: %d%%  •  Salud: %d%%  •  Ánimo: %d%%" % [
+	_subtitle_label.text = "%s  •  Energía: %d%%  •  Hidratación: %d%%  •  Salud: %d%%  •  Ánimo: %d%%" % [
 		str(colonist.get("colonist_role")),
 		int(colonist.get("energy_value")),
+		int(colonist.get("hydration_value")),
 		int(colonist.get("health_value")),
 		int(colonist.get("mood_value")),
 	]

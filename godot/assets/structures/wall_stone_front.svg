@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Tramo frontal continuo de pared de piedra y ladrillos de piedra -->
+  <rect x="0" y="0" width="128" height="72" fill="#9d968b"/>
+  <path d="M0 24 L128 24 M0 48 L128 48" stroke="#6d675e" stroke-width="2.6"/>
+  <path d="M42 0 L42 24 M86 0 L86 24 M24 24 L24 48 M68 24 L68 48 M108 24 L108 48 M46 48 L46 72 M90 48 L90 72" stroke="#6d675e" stroke-width="2.4"/>
+  <rect x="44" y="26" width="22" height="20" fill="#afa89c" opacity="0.72"/>
+  <rect x="0" y="72" width="128" height="34" fill="#787268"/>
+  <rect x="33" y="73" width="30" height="15" fill="#888176"/>
+  <rect x="97" y="73" width="29" height="15" fill="#6f6960"/>
+  <rect x="17" y="90" width="30" height="15" fill="#857e73"/>
+  <rect x="81" y="90" width="30" height="15" fill="#6d675e"/>
+  <path d="M0 89 L128 89 M32 72 L32 89 M64 72 L64 89 M96 72 L96 89 M16 89 L16 106 M48 89 L48 106 M80 89 L80 106 M112 89 L112 106" stroke="#454039" stroke-width="2.4"/>
+  <rect x="0" y="106" width="128" height="22" fill="#59544c"/>
+  <path d="M42 106 L42 128 M86 106 L86 128" stroke="#3b3731" stroke-width="2.4"/>
+  <line x1="0" y1="72" x2="128" y2="72" stroke="#1e1813" stroke-width="3.6"/>
+</svg>

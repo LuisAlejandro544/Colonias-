@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Trozos de carbón mineral con facetas oscuras y brillo antracita -->
+  <ellipse cx="64" cy="98" rx="38" ry="13" fill="#18130e" opacity="0.30"/>
+  <polygon points="24,84 30,52 54,36 82,42 94,68 82,90 44,92" fill="#2b2827" stroke="#1e1813" stroke-width="4.4" stroke-linejoin="round"/>
+  <polygon points="54,36 82,42 68,62 42,56" fill="#464240"/>
+  <polygon points="68,62 94,68 82,90 44,92 56,74" fill="#1d1b1a"/>
+  <polygon points="72,82 86,58 106,64 104,88 84,94" fill="#322f2d" stroke="#1e1813" stroke-width="3.8" stroke-linejoin="round"/>
+  <polygon points="86,58 106,64 96,74 78,70" fill="#4f4b48"/>
+  <path d="M40 54 L56 44 M84 64 L96 67" fill="none" stroke="#6c6662" stroke-width="2.4" stroke-linecap="round"/>
+</svg>

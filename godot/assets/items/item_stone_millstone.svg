@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Piedra de molino tallada con surcos radiales y manija -->
+  <ellipse cx="64" cy="96" rx="44" ry="16" fill="#18130e" opacity="0.32"/>
+  <!-- Canto lateral del disco de piedra -->
+  <path d="M20 62 L20 78 C20 96 108 96 108 78 L108 62 Z" fill="#6f6960" stroke="#1e1813" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M64 78 L64 92 M38 74 L38 89 M90 74 L90 89" stroke="#4f4a43" stroke-width="2.6" stroke-linecap="round"/>
+  <!-- Cara superior del disco -->
+  <ellipse cx="64" cy="62" rx="44" ry="20" fill="#9a9388" stroke="#1e1813" stroke-width="4"/>
+  <!-- Surcos radiales de molienda -->
+  <path d="M64 44 L64 52 M64 72 L64 80 M24 62 L42 62 M86 62 L104 62 M34 50 L48 56 M80 68 L94 74 M94 50 L80 56 M48 68 L34 74" stroke="#6d675e" stroke-width="2.6" stroke-linecap="round"/>
+  <!-- Eje central cuadrado -->
+  <polygon points="56,57 64,53 72,57 72,65 64,69 56,65" fill="#3a352f" stroke="#1e1813" stroke-width="3" stroke-linejoin="round"/>
+  <!-- Mango vertical de madera -->
+  <rect x="82" y="34" width="10" height="22" rx="3" fill="#9c6a3f" stroke="#1e1813" stroke-width="3"/>
+  <ellipse cx="87" cy="34" rx="5.5" ry="2.8" fill="#c79563" stroke="#1e1813" stroke-width="2.4"/>
+</svg>

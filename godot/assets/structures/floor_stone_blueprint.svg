@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Plano guía azulado de Suelo de Ladrillos -->
+  <rect x="2" y="2" width="124" height="124" fill="#689ad2" fill-opacity="0.18" stroke="#a6d2ff" stroke-width="2.8" stroke-dasharray="10 6"/>
+  <path d="M4 32 L124 32 M4 64 L124 64 M4 96 L124 96 M64 4 L64 32 M32 32 L32 64 M96 32 L96 64 M64 64 L64 96 M32 96 L32 124 M96 96 L96 124" stroke="#c7e3ff" stroke-width="2" stroke-dasharray="6 5" opacity="0.72"/>
+</svg>

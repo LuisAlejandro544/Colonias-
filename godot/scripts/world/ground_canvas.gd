@@ -1,4 +1,4 @@
-# Lienzo optimizado del suelo terrestre (pasto, tierra fértil, tierra batida, grava y piedra).
+# Lienzo optimizado del suelo terrestre (pasto, tierra fértil, tierra batida, grava, piedra y río).
 #
 # Lógica: Dibuja únicamente las casillas visibles dentro del rectángulo de cámara
 # usando las texturas vectoriales `.svg` con variación orgánica sutil de tono y
@@ -26,6 +26,7 @@ func configure(w: int, h: int, tiles: PackedInt32Array, cam: Camera2D) -> void:
 	_textures.append(load("res://assets/ground/ground_dirt.svg") as Texture2D)
 	_textures.append(load("res://assets/ground/ground_gravel.svg") as Texture2D)
 	_textures.append(load("res://assets/ground/ground_stone.svg") as Texture2D)
+	_textures.append(load("res://assets/ground/ground_river.svg") as Texture2D)
 	queue_redraw()
 
 

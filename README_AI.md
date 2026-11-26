@@ -16,19 +16,19 @@ Menús Godot (scripts/ui/*.gd)
    │  configuran GameSession y leen/escriben SaveManager / SettingsManager
    ▼
 Escena del Mundo (godot/scripts/world/colony_world.gd)
-   ├── Llama a WorldGenerator (rust/src/world_gen.rs) -> terreno + obstáculos (semilla/bioma aleatorios ocultos)
-   ├── Llama a ColonySimulation (rust/src/colonist_sim.rs + roles.rs + stats.rs) -> 9 roles (máx. 5), niveles 1..=10, 5 atributos (INT/FUE/DES/RES/CAR), líder, reuniones, A*, cultivos, muros/puertas/mesas, carpintería, ítems, energía/sueño, inventario y sfx_events
-   ├── WorldOverlay (world_overlay.gd) -> zonas, etapas de zanahorias, marcas y selección táctil
-   ├── WorldHud (world_hud.gd) + popups -> barra superior, selector inferior, menú de construcción, Trabajos, Atributos, Inventario y Mesa de Carpintero
-   └── SaveBridge (save_bridge.gd) + renderizadores -> suelo SVG, props/muros/puertas/mesas/ítems Y-sorted, ColonistVisual y SFX .ogg
+   ├── Llama a WorldGenerator (rust/src/world_gen.rs) -> terreno, ríos con vados + rocas y montañas conectables de piedra/cobre/carbón (semilla/bioma aleatorios ocultos)
+   ├── Llama a ColonySimulation (rust/src/colonist_sim.rs + animals.rs + roles.rs + stats.rs) -> 10 roles (máx. 5, incl. Masón), niveles 1..=10, 5 atributos, sed/hidratación, riego agrícola con cubo, fauna por bioma, Temporada de Cultivos, 4 cultivos, líder, A*, muros/puertas/suelos/braseros/pozos/mesas/horno e inventario
+   ├── WorldOverlay (world_overlay.gd) -> zonas, cultivos + indicador húmedo de riego, marcas y selección táctil
+   ├── WorldHud (world_hud.gd) + popups -> barra superior, selector inferior, menú de construcción, Trabajos, Atributos, Inventario y Talleres (`get_workshop_at`)
+   └── SaveBridge (save_bridge.gd) + renderizadores -> suelo/río SVG, montañas y muros conectables, estructuras/fauna/ítems Y-sorted (`item_stone_bricks.svg` en piedra + `item_clay_bricks.svg` reservado), ColonistVisual (vaso lleno al beber, cubo al regar) y SFX .ogg
 ```
 
 ## 3. Cómo añadir nuevas mecánicas limpiamente
 
-- **Nuevo bioma, cultivo o estructura:**
-  1. Agrega las variantes en `rust/src/world_gen.rs` o `rust/src/colony_types.rs` y la lógica en `rust/src/colonist_sim/`.
+- **Nuevo bioma, cultivo, mineral o animal:**
+  1. Agrega las variantes en `rust/src/world_gen.rs`, `rust/src/animals.rs` o `rust/src/colony_types.rs` y la lógica en `rust/src/colonist_sim/`.
   2. Crea los `.svg` correspondientes en `godot/assets/` (sin pixel art, contorno `#1e1813`) y revísalos renderizándolos a `.png`.
-  3. Registra las texturas y el mapeo en `godot/scripts/world/world_entities_renderer.gd`, `world_hud.gd` o `world_overlay.gd` y mantén la conversión de guardado en `save_bridge.gd` (incluyendo `assigned_roles`, `role_levels`, `role_xp`, `stats`, `stat_xp`, `max_health`, `benches` y `tend_cooldown`, sin exponer semilla ni parámetros de terreno al jugador).
+  3. Registra las texturas y el mapeo en `godot/scripts/world/world_entities_renderer.gd`, `colonist_visual.gd`, `world_hud.gd`, `ground_canvas.gd` o `world_overlay.gd` y mantén la conversión de guardado en `save_bridge.gd` (incluyendo `assigned_roles`, `role_levels`, `role_xp`, `stats`, `stat_xp`, `max_health`, `hydration`, `watered_timer`, `benches`, `workshops`, `animals`, `crop_kind`, `target_id` y `tend_cooldown`, sin exponer semilla ni parámetros de terreno al jugador).
 - **Nuevas herramientas, roles, atributos, recetas, armaduras/cascos o necesidades:**
   1. Extiende `rust/src/tools.rs`, `rust/src/roles.rs`, `rust/src/stats.rs`, `ColonistInventory` en `rust/src/colony_types.rs` o crea un submódulo dedicado en `rust/src/` y expón métodos limpios en `ColonySimulation`.
   2. Añade pruebas unitarias `#[cfg(test)]` en Rust para la lógica pura.

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Corona superior continua de montaña/piedra natural (conecta con bloques vecinos) -->
+  <rect x="0" y="0" width="128" height="128" fill="#827c72"/>
+  <polygon points="0,0 64,0 50,46 0,38" fill="#928b80"/>
+  <polygon points="64,0 128,0 128,54 88,62 50,46" fill="#777167"/>
+  <polygon points="0,38 50,46 42,96 0,104" fill="#898278"/>
+  <polygon points="50,46 88,62 128,54 128,128 74,128 42,96" fill="#736d64"/>
+  <polygon points="0,104 42,96 74,128 0,128" fill="#807a70"/>
+  <!-- Fisuras naturales de meseta rocosa -->
+  <path d="M14 22 L48 30 L76 16 M28 76 L64 82 L104 66 M18 112 L54 106 L84 118" fill="none" stroke="#534e46" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M18 12 L48 18 M74 36 L108 32 M16 62 L44 60 M60 100 L94 94" fill="none" stroke="#aaa397" stroke-width="2.4" stroke-linecap="round" opacity="0.68"/>
+</svg>

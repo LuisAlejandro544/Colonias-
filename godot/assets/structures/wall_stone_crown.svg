@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Corona superior continua de pared de piedra y ladrillos de piedra (conecta bloques vecinos) -->
+  <rect x="0" y="0" width="128" height="128" fill="#9d968b"/>
+  <path d="M0 24 L128 24 M0 48 L128 48 M0 72 L128 72 M0 96 L128 96 M0 120 L128 120" stroke="#6d675e" stroke-width="2.4"/>
+  <path d="M42 0 L42 24 M86 0 L86 24 M24 24 L24 48 M68 24 L68 48 M108 24 L108 48 M46 48 L46 72 M90 48 L90 72 M20 72 L20 96 M74 72 L74 96 M40 96 L40 120 M96 96 L96 120" stroke="#6d675e" stroke-width="2.4"/>
+  <rect x="44" y="26" width="22" height="20" fill="#afa89c" opacity="0.72"/>
+  <rect x="76" y="74" width="48" height="20" fill="#888176" opacity="0.65"/>
+</svg>

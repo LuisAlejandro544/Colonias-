@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Pozo de Agua 2.5D estilo RimWorld: brocal de piedra, agua profunda, postes, cubo y techo de madera -->
+  <ellipse cx="64" cy="108" rx="48" ry="13" fill="#18130e" opacity="0.34"/>
+  <!-- Cuerpo cilíndrico de mampostería -->
+  <path d="M22 76 L22 98 C22 112 106 112 106 98 L106 76 Z" fill="#7d776f" stroke="#1e1813" stroke-width="4" stroke-linejoin="round"/>
+  <!-- Líneas de sillares de piedra -->
+  <path d="M23 89 C42 97 86 97 105 89" fill="none" stroke="#4f4a44" stroke-width="2.6"/>
+  <path d="M44 78 L44 92 M64 81 L64 95 M84 78 L84 92 M34 91 L34 104 M54 94 L54 107 M74 94 L74 107 M94 91 L94 104" stroke="#4f4a44" stroke-width="2.4" stroke-linecap="round"/>
+  <!-- Brocal superior e interior profundo del pozo -->
+  <ellipse cx="64" cy="76" rx="42" ry="16" fill="#9a938a" stroke="#1e1813" stroke-width="4"/>
+  <ellipse cx="64" cy="76" rx="28" ry="10.5" fill="#1b3e54" stroke="#1e1813" stroke-width="3.2"/>
+  <ellipse cx="64" cy="78" rx="22" ry="7.5" fill="#2c6786" opacity="0.85"/>
+  <path d="M48 77 C56 75 72 75 80 77" fill="none" stroke="#84c3df" stroke-width="2.2" stroke-linecap="round" opacity="0.8"/>
+
+  <!-- Postes laterales de madera -->
+  <rect x="26" y="34" width="10" height="44" rx="2" fill="#7a4e2b" stroke="#1e1813" stroke-width="3.2"/>
+  <rect x="92" y="34" width="10" height="44" rx="2" fill="#7a4e2b" stroke="#1e1813" stroke-width="3.2"/>
+  <!-- Eje superior y cuerda con pequeño cubo de madera -->
+  <rect x="30" y="42" width="68" height="7" rx="2" fill="#9b6a3f" stroke="#1e1813" stroke-width="2.8"/>
+  <line x1="64" y1="49" x2="64" y2="66" stroke="#c8a878" stroke-width="2.8"/>
+  <path d="M56 64 L58 75 C59 77 69 77 70 75 L72 64 Z" fill="#9b6a3f" stroke="#1e1813" stroke-width="2.5" stroke-linejoin="round"/>
+
+  <!-- Tejadillo inclinado de tablones -->
+  <polygon points="14,38 64,12 114,38 106,44 64,22 22,44" fill="#9e6b3f" stroke="#1e1813" stroke-width="3.6" stroke-linejoin="round"/>
+  <polygon points="22,38 64,16 106,38" fill="#ba8352" stroke="#1e1813" stroke-width="2.8" stroke-linejoin="round"/>
+  <line x1="64" y1="16" x2="64" y2="38" stroke="#6c4526" stroke-width="2.2"/>
+</svg>

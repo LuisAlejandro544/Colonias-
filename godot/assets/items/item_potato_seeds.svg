@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Saco de arpillera con brotes/semillas de papa -->
+  <ellipse cx="62" cy="98" rx="36" ry="13" fill="#18130e" opacity="0.30"/>
+  <path d="M30 88 C24 68 30 46 42 40 L82 40 C94 46 100 68 94 88 C86 98 38 98 30 88 Z" fill="#bfa070" stroke="#1e1813" stroke-width="4.4" stroke-linejoin="round"/>
+  <path d="M74 44 C86 52 90 70 86 88 C78 94 64 95 56 94 C72 86 78 66 74 44 Z" fill="#a38458"/>
+  <ellipse cx="62" cy="40" rx="22" ry="11" fill="#4f3924" stroke="#1e1813" stroke-width="3.8"/>
+  <ellipse cx="56" cy="40" rx="5.5" ry="3.8" fill="#cfa25c" stroke="#1e1813" stroke-width="1.6"/>
+  <ellipse cx="68" cy="40" rx="5.2" ry="3.4" fill="#bd8e4a" stroke="#1e1813" stroke-width="1.6"/>
+  <path d="M38 42 Q62 52 86 42" fill="none" stroke="#d9be8c" stroke-width="7" stroke-linecap="round"/>
+  <path d="M38 42 Q62 52 86 42" fill="none" stroke="#1e1813" stroke-width="2.6" stroke-linecap="round"/>
+  <!-- Emblema de papa en el saco -->
+  <ellipse cx="62" cy="70" rx="13" ry="9.5" transform="rotate(-12 62 70)" fill="#d6a357" stroke="#1e1813" stroke-width="2.6"/>
+  <circle cx="58" cy="69" r="1.4" fill="#68471f"/>
+  <circle cx="67" cy="71" r="1.4" fill="#68471f"/>
+  <!-- Tubérculo de semilla en el piso -->
+  <ellipse cx="101" cy="91" rx="7.5" ry="5.5" transform="rotate(-16 101 91)" fill="#cfa058" stroke="#1e1813" stroke-width="2.4"/>
+  <path d="M101 86 L104 80" stroke="#68a143" stroke-width="2.4" stroke-linecap="round"/>
+</svg>

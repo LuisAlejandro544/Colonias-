@@ -1,9 +1,8 @@
-# Popup modular de fabricación en la Mesa de Carpintero.
+# Popup modular de fabricación en Talleres (Mesa de Carpintero, Mesa de Masón y Horno).
 #
-# Lógica: Se abre al tocar una Mesa de Carpintero construida en el mapa.
-# Permite revisar carpinteros disponibles y su Inteligencia (`INT`), encolar
-# recetas de carpintería (tablones, cubo, puerta y arcón de madera) con su
-# requisito mínimo de Inteligencia, y cancelar piezas pendientes en la cola.
+# Lógica: Se abre al tocar una estación construida en el mapa. Permite revisar
+# especialistas disponibles y su Inteligencia (`INT`), encolar recetas con uno o
+# dos ingredientes según `INT` mínima, y cancelar piezas pendientes en la cola.
 
 class_name CarpenterBenchPopup
 extends ColorRect
@@ -13,10 +12,13 @@ signal queue_changed
 var _bench_id: int = -1
 var _bench_x: int = 0
 var _bench_y: int = 0
+var _station_kind: String = "carpenter"
 var _colony_sim: Node = null
 var _item_icons: Dictionary = {}
 
 var _title_label: Label
+var _sub_label: Label
+var _rec_title_label: Label
 var _status_label: Label
 var _feedback_label: Label
 var _recipes_box: VBoxContainer
@@ -58,11 +60,11 @@ func _build_ui() -> void:
 	UiTheme.style_title(_title_label, 27)
 	head_txt.add_child(_title_label)
 
-	var sub := Label.new()
-	sub.text = "Procesa troncos en tablones y fabrica cubos, puertas y arcones según la Inteligencia del carpintero."
-	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	UiTheme.style_subtitle(sub, 15)
-	head_txt.add_child(sub)
+	_sub_label = Label.new()
+	_sub_label.text = "Procesa troncos en tablones y fabrica vasos, cubos, puertas y arcones según la Inteligencia del carpintero."
+	_sub_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiTheme.style_subtitle(_sub_label, 15)
+	head_txt.add_child(_sub_label)
 
 	var close_btn := Button.new()
 	close_btn.text = "Cerrar"
@@ -105,10 +107,10 @@ func _build_ui() -> void:
 	left_v.add_theme_constant_override("separation", 8)
 	columns.add_child(left_v)
 
-	var rec_title := Label.new()
-	rec_title.text = "Recetas de Carpintería"
-	UiTheme.style_title(rec_title, 19)
-	left_v.add_child(rec_title)
+	_rec_title_label = Label.new()
+	_rec_title_label.text = "Recetas de Carpintería"
+	UiTheme.style_title(_rec_title_label, 19)
+	left_v.add_child(_rec_title_label)
 
 	var rec_scroll := ScrollContainer.new()
 	rec_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -153,6 +155,7 @@ func open_for_bench(bench_snap: Dictionary, colony_sim: Node, item_icons: Dictio
 	_bench_id = int(bench_snap.get("id", -1))
 	_bench_x = int(bench_snap.get("x", 0))
 	_bench_y = int(bench_snap.get("y", 0))
+	_station_kind = str(bench_snap.get("station_kind", "carpenter"))
 	_feedback_label.text = ""
 	visible = true
 	_populate(bench_snap)
@@ -161,7 +164,7 @@ func open_for_bench(bench_snap: Dictionary, colony_sim: Node, item_icons: Dictio
 func refresh_if_visible() -> void:
 	if not visible or _colony_sim == null:
 		return
-	var snap_var: Variant = _colony_sim.call("get_carpentry_bench_at", _bench_x, _bench_y)
+	var snap_var: Variant = _colony_sim.call("get_workshop_at", _bench_x, _bench_y)
 	if snap_var is Dictionary and bool((snap_var as Dictionary).get("found", false)):
 		_populate(snap_var as Dictionary)
 
@@ -171,19 +174,38 @@ func close_popup() -> void:
 
 
 func _populate(snap: Dictionary) -> void:
-	_title_label.text = "Mesa de Carpintero #%d (%d, %d)" % [
+	_station_kind = str(snap.get("station_kind", _station_kind))
+	var station_label := str(snap.get("station_label", "Mesa de Carpintero"))
+	_title_label.text = "%s #%d (%d, %d)" % [
+		station_label,
 		int(snap.get("id", _bench_id)),
 		_bench_x,
 		_bench_y,
 	]
 
+	var role_plural := "Carpinteros"
+	var role_singular := "Carpintero"
+	if _station_kind == "mason":
+		role_plural = "Masones"
+		role_singular = "Masón"
+		_sub_label.text = "Labra bloques de piedra para fabricar ladrillos, morteros, ruedas de molino y estatuillas."
+		_rec_title_label.text = "Recetas de Cantería"
+	elif _station_kind == "furnace":
+		role_plural = "Masones"
+		role_singular = "Masón"
+		_sub_label.text = "Alimenta el horno de piedra y ladrillo con carbón para fundir menas de cobre en lingotes."
+		_rec_title_label.text = "Recetas de Fundición"
+	else:
+		_sub_label.text = "Procesa troncos en tablones y fabrica vasos, cubos, puertas y arcones según la Inteligencia del carpintero."
+		_rec_title_label.text = "Recetas de Carpintería"
+
 	var inv: Dictionary = snap.get("inventory", {})
-	var carpenters: Array = snap.get("carpenters", [])
+	var specialists: Array = snap.get("carpenters", [])
 	var max_int := int(snap.get("max_carpenter_int", 0))
-	var carp_summary := "Sin carpinteros asignados (asígnalo en Trabajos)"
-	if not carpenters.is_empty():
+	var spec_summary := "Sin %s asignados (asígnalo en Trabajos)" % role_plural.to_lower()
+	if not specialists.is_empty():
 		var parts: Array[String] = []
-		for c_var in carpenters:
+		for c_var in specialists:
 			if c_var is Dictionary:
 				var cd: Dictionary = c_var
 				parts.append("%s (INT %d • Nv.%d)" % [
@@ -191,16 +213,30 @@ func _populate(snap: Dictionary) -> void:
 					int(cd.get("intelligence", 1)),
 					int(cd.get("level", 1)),
 				])
-		carp_summary = "Carpinteros: %s (Máx INT %d)" % [", ".join(parts), max_int]
+		spec_summary = "%s: %s (Máx INT %d)" % [role_plural, ", ".join(parts), max_int]
 
-	_status_label.text = "%s\nDisponible: %d troncos • %d tablones • %d cubos • %d puertas • %d arcones" % [
-		carp_summary,
-		int(inv.get("wood", 0)),
-		int(inv.get("wood_planks", 0)),
-		int(inv.get("wood_buckets", 0)),
-		int(inv.get("wood_doors", 0)),
-		int(inv.get("wood_crates", 0)),
-	]
+	if _station_kind == "mason" or _station_kind == "furnace":
+		_status_label.text = "%s\nDisponible: %d piedra • %d ladrillos • %d cobre • %d carbón • %d lingotes • %d morteros • %d molinos • %d estatuillas" % [
+			spec_summary,
+			int(inv.get("stone", 0)),
+			int(inv.get("stone_bricks", 0)),
+			int(inv.get("copper", 0)),
+			int(inv.get("coal", 0)),
+			int(inv.get("copper_ingots", 0)),
+			int(inv.get("stone_mortars", 0)),
+			int(inv.get("stone_millstones", 0)),
+			int(inv.get("stone_statuettes", 0)),
+		]
+	else:
+		_status_label.text = "%s\nDisponible: %d troncos • %d tablones • %d vasos • %d cubos • %d puertas • %d arcones" % [
+			spec_summary,
+			int(inv.get("wood", 0)),
+			int(inv.get("wood_planks", 0)),
+			int(inv.get("wood_cups", 0)),
+			int(inv.get("wood_buckets", 0)),
+			int(inv.get("wood_doors", 0)),
+			int(inv.get("wood_crates", 0)),
+		]
 
 	for ch in _recipes_box.get_children():
 		_recipes_box.remove_child(ch)
@@ -217,6 +253,9 @@ func _populate(snap: Dictionary) -> void:
 		var min_int := int(r.get("min_intelligence", 1))
 		var in_label := str(r.get("input_label", ""))
 		var in_amt := int(r.get("input_amount", 1))
+		var in2_label := str(r.get("input2_label", ""))
+		var in2_amt := int(r.get("input2_amount", 0))
+		var avail_in2 := int(r.get("available_input2", 0))
 		var out_code := str(r.get("output_code", ""))
 		var out_amt := int(r.get("output_amount", 1))
 		var avail_in := int(r.get("available_input", 0))
@@ -261,8 +300,11 @@ func _populate(snap: Dictionary) -> void:
 		txt_v.add_child(desc_r)
 
 		var req_lbl := Label.new()
-		var int_status := "Habilitado (INT %d+)" % min_int if int_ok else "Falta Carpintero con INT %d+" % min_int
-		req_lbl.text = "Costo: %d %s (Hay: %d)  •  %s" % [in_amt, in_label, avail_in, int_status]
+		var int_status := "Habilitado (INT %d+)" % min_int if int_ok else "Falta %s con INT %d+" % [role_singular, min_int]
+		var cost_txt := "Costo: %d %s (Hay: %d)" % [in_amt, in_label, avail_in]
+		if in2_amt > 0:
+			cost_txt += " + %d %s (Hay: %d)" % [in2_amt, in2_label, avail_in2]
+		req_lbl.text = "%s  •  %s" % [cost_txt, int_status]
 		req_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		req_lbl.add_theme_color_override(
 			"font_color",
@@ -279,7 +321,7 @@ func _populate(snap: Dictionary) -> void:
 			UiTheme.trigger_touch_feedback()
 			if _colony_sim == null:
 				return
-			var res_var: Variant = _colony_sim.call("queue_carpentry_recipe", _bench_id, code)
+			var res_var: Variant = _colony_sim.call("queue_workshop_recipe", _station_kind, _bench_id, code)
 			if res_var is Dictionary:
 				var res: Dictionary = res_var
 				var ok := bool(res.get("ok", false))
@@ -302,7 +344,7 @@ func _populate(snap: Dictionary) -> void:
 	var queue_arr: Array = snap.get("queue", [])
 	if queue_arr.is_empty():
 		var empty_lbl := Label.new()
-		empty_lbl.text = "La cola está vacía.\nElige una pieza a la izquierda para que tus carpinteros la fabriquen."
+		empty_lbl.text = "La cola está vacía.\nElige una pieza a la izquierda para que tus colonos la procesen."
 		empty_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		UiTheme.style_subtitle(empty_lbl, 15)
 		_queue_box.add_child(empty_lbl)
@@ -337,7 +379,7 @@ func _populate(snap: Dictionary) -> void:
 			cancel_btn.pressed.connect(func():
 				UiTheme.trigger_touch_feedback()
 				if _colony_sim != null:
-					_colony_sim.call("cancel_carpentry_queue_item", _bench_id, q_idx)
+					_colony_sim.call("cancel_workshop_queue_item", _station_kind, _bench_id, q_idx)
 				refresh_if_visible()
 				queue_changed.emit()
 			)

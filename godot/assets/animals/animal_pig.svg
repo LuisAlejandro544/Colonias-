@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Cerdito en vista centinela cálida -->
+  <ellipse cx="64" cy="98" rx="34" ry="11" fill="#18130e" opacity="0.28"/>
+  <!-- Cola rizada -->
+  <path d="M27 65 C18 62 18 52 24 53 C28 54 26 60 22 59" fill="none" stroke="#1e1813" stroke-width="3.6" stroke-linecap="round"/>
+  <path d="M27 65 C18 62 18 52 24 53 C28 54 26 60 22 59" fill="none" stroke="#eb9d92" stroke-width="1.6" stroke-linecap="round"/>
+  <!-- Patas traseras y delanteras -->
+  <rect x="37" y="80" width="11" height="17" rx="4" fill="#d9877c" stroke="#1e1813" stroke-width="3.2"/>
+  <rect x="74" y="80" width="11" height="17" rx="4" fill="#d9877c" stroke="#1e1813" stroke-width="3.2"/>
+  <!-- Cuerpo rosado -->
+  <ellipse cx="58" cy="67" rx="31" ry="22" fill="#f0a89d" stroke="#1e1813" stroke-width="4"/>
+  <ellipse cx="55" cy="59" rx="22" ry="11" fill="#f8c2b9" opacity="0.65"/>
+  <!-- Patas frontales -->
+  <rect x="44" y="82" width="11" height="17" rx="4" fill="#ebb0a6" stroke="#1e1813" stroke-width="3.2"/>
+  <rect x="80" y="82" width="11" height="17" rx="4" fill="#ebb0a6" stroke="#1e1813" stroke-width="3.2"/>
+  <!-- Cabeza y oreja -->
+  <circle cx="88" cy="60" r="18" fill="#f2afa4" stroke="#1e1813" stroke-width="3.8"/>
+  <path d="M77 45 L72 32 L87 40 Z" fill="#e59387" stroke="#1e1813" stroke-width="3.2" stroke-linejoin="round"/>
+  <!-- Hocico -->
+  <ellipse cx="105" cy="64" rx="9" ry="7.5" fill="#e38679" stroke="#1e1813" stroke-width="3.2"/>
+  <circle cx="103" cy="63" r="1.6" fill="#3a1c17"/>
+  <circle cx="108" cy="63" r="1.6" fill="#3a1c17"/>
+  <!-- Ojo -->
+  <circle cx="91" cy="55" r="2.8" fill="#1e1813"/>
+  <circle cx="92" cy="54" r="0.9" fill="#ffffff"/>
+</svg>

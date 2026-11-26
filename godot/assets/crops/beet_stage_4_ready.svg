@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Remolacha etapa 4: bulbos carmesí sobresaliendo de los surcos -->
+  <rect x="0" y="0" width="128" height="128" fill="#4f3925"/>
+  <path d="M0 18 Q32 15 64 18 Q96 21 128 18 L128 34 Q96 37 64 34 Q32 31 0 34 Z" fill="#3a2819"/>
+  <path d="M0 58 Q32 55 64 58 Q96 61 128 58 L128 74 Q96 77 64 74 Q32 71 0 74 Z" fill="#3a2819"/>
+  <path d="M0 98 Q32 95 64 98 Q96 101 128 98 L128 114 Q96 117 64 114 Q32 111 0 114 Z" fill="#3a2819"/>
+  <g stroke="#1e1813" stroke-width="2.2" stroke-linejoin="round">
+    <!-- Planta 1 -->
+    <ellipse cx="36" cy="32" rx="10" ry="6.5" fill="#9c244b"/>
+    <path d="M36 26 C24 22 23 11 32 12 C34 5 41 5 42 12 C50 10 51 20 42 26 Z" fill="#539540"/>
+    <path d="M36 26 L31 16 M36 26 L37 11 M36 26 L42 16" stroke="#b9385d" stroke-width="2.2" stroke-linecap="round"/>
+    <!-- Planta 2 -->
+    <ellipse cx="90" cy="32" rx="10" ry="6.5" fill="#9c244b"/>
+    <path d="M90 26 C78 22 77 11 86 12 C88 5 95 5 96 12 C104 10 105 20 96 26 Z" fill="#539540"/>
+    <path d="M90 26 L85 16 M90 26 L91 11 M90 26 L96 16" stroke="#b9385d" stroke-width="2.2" stroke-linecap="round"/>
+    <!-- Planta 3 -->
+    <ellipse cx="38" cy="72" rx="10" ry="6.5" fill="#a62851"/>
+    <path d="M38 66 C26 62 25 51 34 52 C36 45 43 45 44 52 C52 50 53 60 44 66 Z" fill="#5aa044"/>
+    <path d="M38 66 L33 56 M38 66 L39 51 M38 66 L44 56" stroke="#b9385d" stroke-width="2.2" stroke-linecap="round"/>
+    <!-- Planta 4 -->
+    <ellipse cx="92" cy="72" rx="10" ry="6.5" fill="#a62851"/>
+    <path d="M92 66 C80 62 79 51 88 52 C90 45 97 45 98 52 C106 50 107 60 98 66 Z" fill="#5aa044"/>
+    <path d="M92 66 L87 56 M92 66 L93 51 M92 66 L98 56" stroke="#b9385d" stroke-width="2.2" stroke-linecap="round"/>
+    <!-- Planta 5 -->
+    <ellipse cx="64" cy="112" rx="10.5" ry="6.5" fill="#a62851"/>
+    <path d="M64 106 C52 102 51 91 60 92 C62 85 69 85 70 92 C78 90 79 100 70 106 Z" fill="#5aa044"/>
+    <path d="M64 106 L59 96 M64 106 L65 91 M64 106 L70 96" stroke="#b9385d" stroke-width="2.2" stroke-linecap="round"/>
+  </g>
+</svg>

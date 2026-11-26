@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Corona continua de montaña con vetas de cobre -->
+  <rect x="0" y="0" width="128" height="128" fill="#7a7369"/>
+  <polygon points="0,0 64,0 50,46 0,38" fill="#898277"/>
+  <polygon points="64,0 128,0 128,54 88,62 50,46" fill="#6f685f"/>
+  <polygon points="0,38 50,46 42,96 0,104" fill="#817a70"/>
+  <polygon points="50,46 88,62 128,54 128,128 74,128 42,96" fill="#6b645b"/>
+  <path d="M14 22 L48 30 L76 16 M28 76 L64 82 L104 66 M18 112 L54 106 L84 118" fill="none" stroke="#4b463f" stroke-width="2.6" stroke-linecap="round"/>
+  <!-- Vetas de cobre y pátina -->
+  <polygon points="18,22 44,18 48,36 22,40" fill="#d97538" stroke="#4f2612" stroke-width="2.4" stroke-linejoin="round"/>
+  <polygon points="24,25 39,22 40,29 26,32" fill="#f5a56c"/>
+  <polygon points="74,42 104,36 108,56 78,60" fill="#df7f42" stroke="#4f2612" stroke-width="2.4" stroke-linejoin="round"/>
+  <polygon points="81,46 98,42 99,49 83,52" fill="#f7b382"/>
+  <polygon points="32,84 58,78 64,98 38,104" fill="#d47034" stroke="#4f2612" stroke-width="2.4" stroke-linejoin="round"/>
+  <polygon points="39,87 54,84 55,91 41,94" fill="#f29d63"/>
+  <polygon points="84,88 104,84 108,100 88,104" fill="#5b9b77" stroke="#284635" stroke-width="2" stroke-linejoin="round"/>
+</svg>

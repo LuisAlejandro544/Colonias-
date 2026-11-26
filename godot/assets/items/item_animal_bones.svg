@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Huesos limpios de animal reservados para futuras sopas y caldos -->
+  <ellipse cx="64" cy="98" rx="38" ry="12" fill="#18130e" opacity="0.28"/>
+  <!-- Hueso trasero diagonal -->
+  <g transform="rotate(-32 64 64)">
+    <circle cx="28" cy="57" r="8" fill="#e6dcc6" stroke="#1e1813" stroke-width="3.6"/>
+    <circle cx="28" cy="71" r="8" fill="#e6dcc6" stroke="#1e1813" stroke-width="3.6"/>
+    <circle cx="100" cy="57" r="8" fill="#e6dcc6" stroke="#1e1813" stroke-width="3.6"/>
+    <circle cx="100" cy="71" r="8" fill="#e6dcc6" stroke="#1e1813" stroke-width="3.6"/>
+    <rect x="28" y="57" width="72" height="14" fill="#efe6d3" stroke="#1e1813" stroke-width="3.6"/>
+    <circle cx="29" cy="57" r="5" fill="#efe6d3"/>
+    <circle cx="29" cy="71" r="5" fill="#efe6d3"/>
+    <circle cx="99" cy="57" r="5" fill="#efe6d3"/>
+    <circle cx="99" cy="71" r="5" fill="#efe6d3"/>
+  </g>
+  <!-- Hueso delantero cruzado -->
+  <g transform="rotate(26 64 68)">
+    <circle cx="26" cy="61" r="8.5" fill="#f3ebd9" stroke="#1e1813" stroke-width="3.8"/>
+    <circle cx="26" cy="75" r="8.5" fill="#f3ebd9" stroke="#1e1813" stroke-width="3.8"/>
+    <circle cx="102" cy="61" r="8.5" fill="#f3ebd9" stroke="#1e1813" stroke-width="3.8"/>
+    <circle cx="102" cy="75" r="8.5" fill="#f3ebd9" stroke="#1e1813" stroke-width="3.8"/>
+    <rect x="26" y="61" width="76" height="14" fill="#f7f0e2" stroke="#1e1813" stroke-width="3.8"/>
+    <circle cx="27" cy="61" r="5.5" fill="#f7f0e2"/>
+    <circle cx="27" cy="75" r="5.5" fill="#f7f0e2"/>
+    <circle cx="101" cy="61" r="5.5" fill="#f7f0e2"/>
+    <circle cx="101" cy="75" r="5.5" fill="#f7f0e2"/>
+    <path d="M40 65 H86" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" opacity="0.7"/>
+  </g>
+</svg>

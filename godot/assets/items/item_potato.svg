@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Grupo de 3 papas doradas recién cosechadas -->
+  <ellipse cx="64" cy="96" rx="42" ry="13" fill="#18130e" opacity="0.28"/>
+  <!-- Papa trasera derecha -->
+  <ellipse cx="83" cy="64" rx="22" ry="16" transform="rotate(-14 83 64)" fill="#b98948" stroke="#1e1813" stroke-width="4"/>
+  <circle cx="88" cy="60" r="2.2" fill="#6b4a22"/>
+  <circle cx="77" cy="68" r="1.8" fill="#6b4a22"/>
+  <!-- Papa trasera izquierda -->
+  <ellipse cx="45" cy="63" rx="23" ry="17" transform="rotate(18 45 63)" fill="#c79752" stroke="#1e1813" stroke-width="4"/>
+  <path d="M35 56 Q44 51 54 55" fill="none" stroke="#e5bb78" stroke-width="2.4" stroke-linecap="round"/>
+  <circle cx="42" cy="67" r="2" fill="#6b4a22"/>
+  <!-- Papa frontal principal -->
+  <path d="M36 82 C30 68 44 54 66 56 C86 58 96 72 90 84 C83 96 44 96 36 82 Z" fill="#d8a85f" stroke="#1e1813" stroke-width="4.4" stroke-linejoin="round"/>
+  <path d="M46 66 Q63 60 79 66" fill="none" stroke="#f0c988" stroke-width="2.6" stroke-linecap="round"/>
+  <circle cx="54" cy="79" r="2.3" fill="#704d23"/>
+  <circle cx="72" cy="75" r="2" fill="#704d23"/>
+  <circle cx="64" cy="85" r="1.7" fill="#704d23"/>
+</svg>

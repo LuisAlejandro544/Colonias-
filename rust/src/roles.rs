@@ -1,17 +1,11 @@
 //! Sistema modular de roles, límites de asignación y niveles (1 al 10) para colonos.
 //!
 //! # Lógica del módulo
-//! Define los 8 roles oficiales de **Colonia Centinela** (`ColonyRole`) y el perfil
+//! Define los 10 roles oficiales de **Colonia Centinela** (`ColonyRole`) y el perfil
 //! de habilidades de cada colono (`ColonistRoleProfile`), delegando las curvas de
 //! experiencia y bonificadores por nivel al submódulo `roles/balance.rs`:
-//! - `Leñador`: tala árboles con Hacha de cobre y obtiene troncos.
-//! - `Minero`: pica rocas de granito y vetas de hierro/cobre con Pico de cobre.
-//! - `Transportador`: acarrea recursos del piso hacia el almacén (su nivel cambia velocidad y capacidad de carga).
-//! - `Constructor`: levanta planos y paredes de madera con Pala de cobre.
-//! - `Agricultor`: ara tierra cultivable y cosecha zanahorias maduras con Azada de cobre.
-//! - `Botánico`: siembra semillas de zanahoria y cuida plantas en crecimiento para acelerar su maduración.
-//! - `Explorador`: patrulla un radio mayor alrededor de la colonia con Espada de cobre.
-//! - `Líder de Colonia`: convoca reuniones para aprobar órdenes más rápido y coordina al equipo.
+//! - `Leñador`, `Minero`, `Transportador`, `Constructor`, `Agricultor`, `Botánico`,
+//!   `Explorador`, `Líder de Colonia`, `Carpintero` y `Masón`.
 
 mod balance;
 
@@ -25,7 +19,7 @@ pub const MAX_ASSIGNED_ROLES: usize = 5;
 /// Nivel máximo alcanzable en cualquier rol.
 pub const MAX_ROLE_LEVEL: i32 = 10;
 
-/// Los 9 roles disponibles en la colonia.
+/// Los 10 roles disponibles en la colonia.
 #[repr(i32)]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub enum ColonyRole {
@@ -38,11 +32,12 @@ pub enum ColonyRole {
     Scout = 6,
     ColonyLeader = 7,
     Carpenter = 8,
+    Mason = 9,
 }
 
 impl ColonyRole {
     /// Lista ordenada de todos los roles disponibles.
-    pub const ALL: [Self; 9] = [
+    pub const ALL: [Self; 10] = [
         Self::Lumberjack,
         Self::Miner,
         Self::Hauler,
@@ -52,9 +47,10 @@ impl ColonyRole {
         Self::Scout,
         Self::ColonyLeader,
         Self::Carpenter,
+        Self::Mason,
     ];
 
-    /// Índice fijo (`0..9`) compatible con 32 y 64 bits.
+    /// Índice fijo (`0..10`) compatible con 32 y 64 bits.
     #[inline]
     pub const fn index(self) -> usize {
         self as usize
@@ -72,6 +68,7 @@ impl ColonyRole {
             Self::Scout => "scout",
             Self::ColonyLeader => "colony_leader",
             Self::Carpenter => "carpenter",
+            Self::Mason => "mason",
         }
     }
 
@@ -87,6 +84,7 @@ impl ColonyRole {
             Self::Scout => "Explorador",
             Self::ColonyLeader => "Líder de Colonia",
             Self::Carpenter => "Carpintero",
+            Self::Mason => "Masón",
         }
     }
 
@@ -94,14 +92,15 @@ impl ColonyRole {
     pub const fn description_es(self) -> &'static str {
         match self {
             Self::Lumberjack => "Tala árboles con hacha de cobre. Su nivel acelera el corte y aumenta los troncos obtenidos.",
-            Self::Miner => "Pica rocas y vetas minerales. Su nivel acelera la excavación y mejora la extracción de piedra y mena.",
+            Self::Miner => "Pica rocas, montañas y vetas minerales. Su nivel acelera la excavación y mejora la extracción de piedra y mena.",
             Self::Hauler => "Recoge ítems del suelo y los guarda en el almacén. Su nivel sube la cantidad transportada por viaje y su rapidez.",
-            Self::Constructor => "Construye muros, puertas y mesas desde planos. Su nivel acelera la edificación.",
-            Self::Farmer => "Ara la tierra y cosecha zanahorias maduras. Su nivel acelera la labranza y aumenta la cosecha.",
-            Self::Botanist => "Siembra semillas y cuida cultivos en crecimiento para acelerar su maduración.",
+            Self::Constructor => "Construye muros de madera/ladrillo, puertas, mesas, hornos y pozos desde planos. Su nivel acelera la edificación.",
+            Self::Farmer => "Ara la tierra y cosecha cultivos maduros. Su nivel acelera la labranza y aumenta la cosecha.",
+            Self::Botanist => "Siembra semillas, riega con cubos y cuida cultivos en crecimiento para acelerar su maduración.",
             Self::Scout => "Patrulla e inspecciona un perímetro más amplio. Su nivel incrementa la velocidad de patrulla y el alcance.",
             Self::ColonyLeader => "Reúne al equipo para aprobar órdenes. Su nivel hace más ágiles las reuniones y la coordinación.",
-            Self::Carpenter => "Trabaja en la mesa de carpintero para transformar troncos en tablones, cubos, puertas y arcones según su Inteligencia.",
+            Self::Carpenter => "Trabaja en la mesa de carpintero para transformar troncos en tablones, cubos, vasos, puertas y arcones según su Inteligencia.",
+            Self::Mason => "Labra piedra en ladrillos, morteros, piedras de molino y estatuillas en la Mesa de Masón, y funde cobre con carbón en el Horno.",
         }
     }
 
@@ -117,6 +116,7 @@ impl ColonyRole {
             "scout" => Some(Self::Scout),
             "colony_leader" => Some(Self::ColonyLeader),
             "carpenter" => Some(Self::Carpenter),
+            "mason" => Some(Self::Mason),
             _ => None,
         }
     }
@@ -133,6 +133,7 @@ impl ColonyRole {
             "Explorador" => Some(Self::Scout),
             "Líder de Colonia" => Some(Self::ColonyLeader),
             "Carpintero" => Some(Self::Carpenter),
+            "Masón" => Some(Self::Mason),
             _ => None,
         }
     }
@@ -149,6 +150,7 @@ impl ColonyRole {
             Self::Scout => CopperTool::CopperSword,
             Self::ColonyLeader => CopperTool::CopperSword,
             Self::Carpenter => CopperTool::CopperAxe,
+            Self::Mason => CopperTool::CopperPickaxe,
         }
     }
 }
@@ -170,14 +172,14 @@ impl Default for RoleProgress {
 #[derive(Clone, Debug)]
 pub struct ColonistRoleProfile {
     pub assigned: Vec<ColonyRole>,
-    pub skills: [RoleProgress; 9],
+    pub skills: [RoleProgress; 10],
 }
 
 impl Default for ColonistRoleProfile {
     fn default() -> Self {
         Self {
             assigned: Vec::new(),
-            skills: [RoleProgress::default(); 9],
+            skills: [RoleProgress::default(); 10],
         }
     }
 }
@@ -197,9 +199,9 @@ impl ColonistRoleProfile {
             ],
             1 => &[
                 ColonyRole::Miner,
+                ColonyRole::Mason,
                 ColonyRole::Botanist,
                 ColonyRole::Hauler,
-                ColonyRole::Scout,
             ],
             2 => &[
                 ColonyRole::Farmer,
@@ -208,10 +210,10 @@ impl ColonistRoleProfile {
                 ColonyRole::Hauler,
             ],
             3 => &[
+                ColonyRole::Mason,
                 ColonyRole::Constructor,
-                ColonyRole::Lumberjack,
                 ColonyRole::Miner,
-                ColonyRole::Carpenter,
+                ColonyRole::Lumberjack,
             ],
             4 => &[
                 ColonyRole::Scout,
@@ -222,7 +224,7 @@ impl ColonistRoleProfile {
             _ => &[
                 ColonyRole::Botanist,
                 ColonyRole::Miner,
-                ColonyRole::Farmer,
+                ColonyRole::Mason,
                 ColonyRole::Carpenter,
             ],
         };
@@ -432,6 +434,11 @@ impl ColonistRoleProfile {
     pub fn carpentry_speed_mult(&self) -> f32 {
         carpentry_speed_mult(self.level_of(ColonyRole::Carpenter))
     }
+
+    #[inline]
+    pub fn masonry_speed_mult(&self) -> f32 {
+        masonry_speed_mult(self.level_of(ColonyRole::Mason))
+    }
 }
 
 #[cfg(test)]
@@ -439,8 +446,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn all_nine_roles_roundtrip_code_and_label() {
-        assert_eq!(ColonyRole::ALL.len(), 9);
+    fn all_ten_roles_roundtrip_code_and_label() {
+        assert_eq!(ColonyRole::ALL.len(), 10);
         for role in ColonyRole::ALL {
             assert_eq!(ColonyRole::from_code(role.code()), Some(role));
             assert_eq!(ColonyRole::from_label_es(role.label_es()), Some(role));

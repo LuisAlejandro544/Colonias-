@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Panceta de cerdo cruda en lonja rectangular veteada con capas de grasa -->
+  <ellipse cx="64" cy="96" rx="42" ry="12" fill="#18130e" opacity="0.28"/>
+  <!-- Bloque de panceta -->
+  <polygon points="18,74 34,42 106,46 92,84 22,84" fill="#d96b67" stroke="#1e1813" stroke-width="4.2" stroke-linejoin="round"/>
+  <!-- Cara superior rosada pálida -->
+  <polygon points="34,42 106,46 96,62 24,58" fill="#f3c4bc" stroke="#1e1813" stroke-width="3" stroke-linejoin="round"/>
+  <!-- Capas alternadas de grasa crema y carne -->
+  <path d="M23 64 L95 68 L93 74 L21 70 Z" fill="#f5e3d6"/>
+  <path d="M21 76 L92 79 L91 83 L22 83 Z" fill="#ebcfc1"/>
+  <path d="M27 59 L95 63" stroke="#b54442" stroke-width="2.2"/>
+  <path d="M36 49 L94 52" fill="none" stroke="#fff2eb" stroke-width="2.4" stroke-linecap="round"/>
+</svg>

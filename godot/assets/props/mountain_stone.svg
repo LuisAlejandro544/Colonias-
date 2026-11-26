@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Bloque aislado de montaña/piedra natural 2.5D estilo RimWorld (borde a borde 0..128) -->
+  <rect x="0" y="0" width="128" height="128" fill="#59544c"/>
+  <!-- Corona superior rocosa iluminada -->
+  <rect x="0" y="0" width="128" height="72" fill="#847e74"/>
+  <polygon points="0,0 74,0 56,36 0,28" fill="#958f84"/>
+  <polygon points="74,0 128,0 128,44 86,52 56,36" fill="#787268"/>
+  <polygon points="0,28 56,36 44,72 0,72" fill="#8b847a"/>
+  <polygon points="56,36 86,52 128,44 128,72 44,72" fill="#726c63"/>
+  <!-- Grietas y relieves en corona -->
+  <path d="M18 16 L54 22 L70 10 M34 46 L68 50 L96 36 M88 54 L112 62" fill="none" stroke="#4f4a43" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M14 10 L44 14 M64 26 L94 20 M16 58 L38 56" fill="none" stroke="#aca599" stroke-width="2.4" stroke-linecap="round" opacity="0.72"/>
+  <!-- Frente vertical de roca escarpada -->
+  <rect x="0" y="72" width="128" height="56" fill="#5b554e"/>
+  <polygon points="0,72 44,72 34,128 0,128" fill="#666058"/>
+  <polygon points="44,72 92,72 80,128 34,128" fill="#544f48"/>
+  <polygon points="92,72 128,72 128,128 80,128" fill="#49453e"/>
+  <path d="M22 86 L28 118 M58 82 L64 116 M102 88 L96 120 M12 104 L42 100 M68 98 L108 104" fill="none" stroke="#39352f" stroke-width="2.6" stroke-linecap="round"/>
+  <!-- Arista nítida entre cumbre y pared frontal -->
+  <path d="M0 72 L36 70 L74 74 L128 71" fill="none" stroke="#1e1813" stroke-width="3.6" stroke-linejoin="round"/>
+  <!-- Contorno exterior limpio -->
+  <rect x="2" y="2" width="124" height="124" fill="none" stroke="#1e1813" stroke-width="4"/>
+</svg>

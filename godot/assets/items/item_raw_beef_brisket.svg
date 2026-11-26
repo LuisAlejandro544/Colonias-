@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Pecho de res crudo (brisket) con gruesa capa de grasa superior -->
+  <ellipse cx="64" cy="96" rx="42" ry="12" fill="#18130e" opacity="0.30"/>
+  <!-- Cuerpo principal rojo profundo -->
+  <path d="M18 72 L24 44 L92 38 L110 62 L98 88 L26 88 Z" fill="#9a2730" stroke="#1e1813" stroke-width="4.2" stroke-linejoin="round"/>
+  <!-- Capa gruesa de grasa blanca-marfil superior -->
+  <path d="M24 44 L92 38 L104 52 L22 58 Z" fill="#f2e3ce" stroke="#1e1813" stroke-width="3" stroke-linejoin="round"/>
+  <!-- Vetas musculares diagonales y marmoleo -->
+  <path d="M22 65 L103 60 M24 76 L99 72" fill="none" stroke="#e9cfb8" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M32 61 L50 83 M54 59 L70 83 M76 57 L90 81" fill="none" stroke="#70181f" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M34 46 L86 42" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" opacity="0.7"/>
+</svg>

@@ -1,11 +1,9 @@
 # Coordinador modular de la interfaz superpuesta (HUD) del mundo 2D en vista centinela.
 #
-# Lógica: Muestra la barra superior (colonia, día, estado del Líder de Colonia,
-# inventario global incluyendo carpintería, velocidad y zoom), la barra inferior
-# de acciones (Observar, Talar, Minar, Construir, Trabajos y Cancelar) y las
-# notificaciones toast, delegando los paneles y popups complejos a módulos
-# dedicados: `BuildMenuPopup`, `ColonistInspectorPanel`, `ColonistInventoryPopup`,
-# `ColonistStatsPopup`, `CarpenterBenchPopup`, `JobsPopup` y `PauseMenuPopup`.
+# Lógica: Muestra la barra superior (colonia, día, Temporada de Cultivos, estado
+# del Líder de Colonia, inventario global incluyendo carbón, cultivos, carnes,
+# huesos, vasos, ladrillos, lingotes y objetos de masón), la barra inferior de
+# acciones y las notificaciones toast, delegando los popups a sus módulos dedicados.
 
 class_name WorldHud
 extends CanvasLayer
@@ -72,12 +70,34 @@ func _preload_icons() -> void:
 		"stone_chunk": load("res://assets/items/item_stone_chunk.svg") as Texture2D,
 		"iron_ore": load("res://assets/items/item_iron_ore.svg") as Texture2D,
 		"copper_ore": load("res://assets/items/item_copper_ore.svg") as Texture2D,
+		"coal": load("res://assets/items/item_coal.svg") as Texture2D,
+		"copper_ingot": load("res://assets/items/item_copper_ingot.svg") as Texture2D,
 		"carrot_seed": load("res://assets/items/item_carrot_seeds.svg") as Texture2D,
 		"carrot": load("res://assets/items/item_carrot.svg") as Texture2D,
+		"potato_seed": load("res://assets/items/item_potato_seeds.svg") as Texture2D,
+		"potato": load("res://assets/items/item_potato.svg") as Texture2D,
+		"wheat_seed": load("res://assets/items/item_wheat_seeds.svg") as Texture2D,
+		"wheat": load("res://assets/items/item_wheat.svg") as Texture2D,
+		"beet_seed": load("res://assets/items/item_beet_seeds.svg") as Texture2D,
+		"beet": load("res://assets/items/item_beet.svg") as Texture2D,
+		"raw_chicken_breast": load("res://assets/items/item_raw_chicken_breast.svg") as Texture2D,
+		"raw_chicken_thigh": load("res://assets/items/item_raw_chicken_thigh.svg") as Texture2D,
+		"raw_pork_belly": load("res://assets/items/item_raw_pork_belly.svg") as Texture2D,
+		"raw_pork_ribs": load("res://assets/items/item_raw_pork_ribs.svg") as Texture2D,
+		"raw_mutton_shoulder": load("res://assets/items/item_raw_mutton_shoulder.svg") as Texture2D,
+		"raw_mutton_leg": load("res://assets/items/item_raw_mutton_leg.svg") as Texture2D,
+		"raw_beef_sirloin": load("res://assets/items/item_raw_beef_sirloin.svg") as Texture2D,
+		"raw_beef_brisket": load("res://assets/items/item_raw_beef_brisket.svg") as Texture2D,
+		"animal_bones": load("res://assets/items/item_animal_bones.svg") as Texture2D,
 		"wood_plank": load("res://assets/items/item_wood_planks.svg") as Texture2D,
 		"wood_bucket": load("res://assets/items/item_wood_bucket.svg") as Texture2D,
+		"wood_cup": load("res://assets/items/item_wood_cup_empty.svg") as Texture2D,
 		"wood_door_item": load("res://assets/items/item_wood_door.svg") as Texture2D,
 		"wood_crate": load("res://assets/items/item_wood_crate.svg") as Texture2D,
+		"stone_bricks": load("res://assets/items/item_stone_bricks.svg") as Texture2D,
+		"stone_mortar": load("res://assets/items/item_stone_mortar.svg") as Texture2D,
+		"stone_millstone": load("res://assets/items/item_stone_millstone.svg") as Texture2D,
+		"stone_statuette": load("res://assets/items/item_stone_statuette.svg") as Texture2D,
 	}
 
 
@@ -115,7 +135,7 @@ func _build_hud() -> void:
 	_toast_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
 	_toast_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_toast_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_toast_label.offset_top = 128
+	_toast_label.offset_top = 148
 	_toast_label.add_theme_color_override("font_color", Color("#f6eccf"))
 	_toast_label.add_theme_font_size_override("font_size", UiTheme.scaled_px(19))
 	root.add_child(_toast_label)
@@ -185,7 +205,7 @@ func _build_top_bar(root: Control) -> void:
 	title_line.add_child(_leader_label)
 
 	_stats_label = Label.new()
-	_stats_label.text = "Día %d • %d colonos" % [
+	_stats_label.text = "Día %d • Temporada de Cultivos • %d colonos" % [
 		GameSession.day_count,
 		GameSession.initial_colonists,
 	]
@@ -194,7 +214,7 @@ func _build_top_bar(root: Control) -> void:
 	info_v.add_child(_stats_label)
 
 	_inventory_label = Label.new()
-	_inventory_label.text = "Madera: 0 • Piedra: 0 • Hierro: 0 • Cobre: 0 • Semillas: 0 • Zanahorias: 0\nTablones: 0 • Cubos: 0 • Puertas: 0 • Arcones: 0"
+	_inventory_label.text = "Madera: 0 • Piedra: 0 • Ladrillos: 0 • Hierro: 0 • Cobre: 0 • Ling.Cobre: 0 • Carbón: 0\nZanahoria: 0 • Papa: 0 • Trigo: 0 • Remolacha: 0 • Carnes: 0 • Huesos: 0\nTablones: 0 • Vasos: 0 • Cubos: 0 • Puertas: 0 • Arcones: 0 • Morteros: 0 • Molinos: 0"
 	_inventory_label.add_theme_color_override("font_color", Color("#e5d7be"))
 	_inventory_label.add_theme_font_size_override("font_size", UiTheme.scaled_px(14))
 	info_v.add_child(_inventory_label)
@@ -306,6 +326,7 @@ func _build_bottom_bar(root: Control) -> void:
 		{"code": "observe", "label": "Observar"},
 		{"code": "chop", "label": "Talar"},
 		{"code": "mine", "label": "Minar"},
+		{"code": "hunt", "label": "Cazar"},
 	]:
 		var code: String = td["code"]
 		var btn := Button.new()
@@ -358,7 +379,22 @@ func _set_active_tool_mode(mode_code: String) -> void:
 			variant = "danger" if code == "cancel" else "amber"
 		UiTheme.style_button(_tool_buttons[code], variant, 48, 17)
 
-	var is_build_mode: bool = mode_code in ["storage", "farm", "build_wall", "build_door", "build_carpenter_bench"]
+	var is_build_mode: bool = mode_code in [
+		"storage",
+		"farm",
+		"farm_potato",
+		"farm_wheat",
+		"farm_beet",
+		"build_wall",
+		"build_door",
+		"build_carpenter_bench",
+		"build_well",
+		"build_mason_bench",
+		"build_furnace",
+		"build_stone_wall",
+		"build_stone_floor",
+		"build_stone_brazier",
+	]
 	if _build_menu_btn:
 		UiTheme.style_button(_build_menu_btn, "amber" if is_build_mode else "primary", 48, 17)
 
@@ -371,13 +407,25 @@ func _set_active_tool_mode(mode_code: String) -> void:
 			_mode_hint_label.text = "Talar: arrastra sobre árboles • El líder reunirá al grupo para dar la orden"
 		"mine":
 			_mode_hint_panel.visible = true
-			_mode_hint_label.text = "Minar: arrastra sobre rocas o vetas de hierro • El líder comunicará la orden"
+			_mode_hint_label.text = "Minar: arrastra sobre montañas de piedra, vetas de cobre/carbón o rocas sueltas"
+		"hunt":
+			_mode_hint_panel.visible = true
+			_mode_hint_label.text = "Cazar: arrastra sobre cerditos, pollos, ovejas o vacas para obtener cortes de carne y huesos"
 		"storage":
 			_mode_hint_panel.visible = true
-			_mode_hint_label.text = "Construir Almacén: arrastra donde guardar madera, piedra, menas, piezas y cosechas"
+			_mode_hint_label.text = "Construir Almacén: arrastra donde guardar madera, piedra, ladrillos, menas, carnes y cosechas"
 		"farm":
 			_mode_hint_panel.visible = true
-			_mode_hint_label.text = "Construir Cultivo (Zanahorias): arrastra tierra o pasto para arar y sembrar"
+			_mode_hint_label.text = "Cultivo (Zanahorias): arrastra tierra o pasto • El Botánico riega con cubo para acelerar"
+		"farm_potato":
+			_mode_hint_panel.visible = true
+			_mode_hint_label.text = "Cultivo (Papas): arrastra tierra o pasto • El Botánico riega con cubo para acelerar"
+		"farm_wheat":
+			_mode_hint_panel.visible = true
+			_mode_hint_label.text = "Cultivo (Trigo): arrastra tierra o pasto • El Botánico riega con cubo para acelerar"
+		"farm_beet":
+			_mode_hint_panel.visible = true
+			_mode_hint_label.text = "Cultivo (Remolacha): arrastra tierra o pasto • El Botánico riega con cubo para acelerar"
 		"build_wall":
 			_mode_hint_panel.visible = true
 			_mode_hint_label.text = "Construir Pared de Madera (2 troncos/bloque): arrastra para colocar planos"
@@ -387,9 +435,27 @@ func _set_active_tool_mode(mode_code: String) -> void:
 		"build_carpenter_bench":
 			_mode_hint_panel.visible = true
 			_mode_hint_label.text = "Mesa de Carpintero (6 troncos): toca una casilla para levantar el taller"
+		"build_well":
+			_mode_hint_panel.visible = true
+			_mode_hint_label.text = "Pozo de Agua (1 cubo, 4 troncos, 6 piedras): toca una casilla firme para agua y riego"
+		"build_mason_bench":
+			_mode_hint_panel.visible = true
+			_mode_hint_label.text = "Mesa de Masón (6 bloques de piedra): toca una casilla para labrar ladrillos y piezas"
+		"build_furnace":
+			_mode_hint_panel.visible = true
+			_mode_hint_label.text = "Horno de Piedra y Ladrillo (4 piedra, 6 ladrillos): toca una casilla para fundir cobre"
+		"build_stone_wall":
+			_mode_hint_panel.visible = true
+			_mode_hint_label.text = "Pared de Piedra y Ladrillo (1 piedra, 2 ladrillos/bloque): arrastra para levantar muros"
+		"build_stone_floor":
+			_mode_hint_panel.visible = true
+			_mode_hint_label.text = "Suelo de Ladrillos (2 ladrillos/casilla): arrastra para pavimentar (+18% velocidad)"
+		"build_stone_brazier":
+			_mode_hint_panel.visible = true
+			_mode_hint_label.text = "Brasero de Piedra y Ladrillo (2 piedra, 3 ladrillos, 1 carbón): toca para iluminar"
 		"cancel":
 			_mode_hint_panel.visible = true
-			_mode_hint_label.text = "Cancelar: arrastra sobre áreas, planos o marcas para limpiarlas"
+			_mode_hint_label.text = "Cancelar: arrastra sobre áreas, animales marcados, planos o marcas para limpiarlas"
 		_:
 			_mode_hint_panel.visible = false
 
@@ -398,13 +464,16 @@ func _set_active_tool_mode(mode_code: String) -> void:
 
 func update_world_summary(snap: Dictionary, colonist_count: int) -> void:
 	var day := int(snap.get("day", GameSession.day_count))
+	var season_active := bool(snap.get("crop_season_active", true))
+	var season_label := str(snap.get("crop_season_label", "Temporada de Cultivos" if season_active else "Fuera de Temporada"))
 	var leader_name := str(snap.get("leader_name", "..."))
 	var meeting_active := bool(snap.get("meeting_active", false))
 	var partner := str(snap.get("meeting_partner_name", ""))
 	var pending := int(snap.get("pending_briefing_count", 0))
 
 	GameSession.day_count = day
-	_stats_label.text = "Día %d • %d colonos" % [day, colonist_count]
+	_stats_label.text = "Día %d • %s • %d colonos" % [day, season_label, colonist_count]
+	_stats_label.add_theme_color_override("font_color", Color("#b8d98c") if season_active else UiTheme.TEXT_MUTED)
 
 	if meeting_active:
 		if partner.is_empty():
@@ -422,17 +491,27 @@ func update_world_summary(snap: Dictionary, colonist_count: int) -> void:
 	var inv_var = snap.get("inventory", {})
 	if inv_var is Dictionary:
 		var inv: Dictionary = inv_var
-		_inventory_label.text = "Madera: %d • Piedra: %d • Hierro: %d • Cobre: %d • Semillas: %d • Zanahorias: %d\nTablones: %d • Cubos: %d • Puertas: %d • Arcones: %d" % [
+		_inventory_label.text = "Madera: %d • Piedra: %d • Ladrillos: %d • Hierro: %d • Cobre: %d • Ling.Cobre: %d • Carbón: %d\nZanahoria: %d • Papa: %d • Trigo: %d • Remolacha: %d • Carnes: %d • Huesos: %d\nTablones: %d • Vasos: %d • Cubos: %d • Puertas: %d • Arcones: %d • Morteros: %d • Molinos: %d" % [
 			int(inv.get("wood", 0)),
 			int(inv.get("stone", 0)),
+			int(inv.get("stone_bricks", 0)),
 			int(inv.get("iron", 0)),
 			int(inv.get("copper", 0)),
-			int(inv.get("carrot_seeds", 0)),
+			int(inv.get("copper_ingots", 0)),
+			int(inv.get("coal", 0)),
 			int(inv.get("carrots", 0)),
+			int(inv.get("potatoes", 0)),
+			int(inv.get("wheat", 0)),
+			int(inv.get("beets", 0)),
+			int(inv.get("meat_cuts", 0)),
+			int(inv.get("animal_bones", 0)),
 			int(inv.get("wood_planks", 0)),
+			int(inv.get("wood_cups", 0)),
 			int(inv.get("wood_buckets", 0)),
 			int(inv.get("wood_doors", 0)),
 			int(inv.get("wood_crates", 0)),
+			int(inv.get("stone_mortars", 0)),
+			int(inv.get("stone_millstones", 0)),
 		]
 
 
@@ -455,7 +534,7 @@ func show_colonist_info(colonist: Node) -> void:
 func open_carpenter_bench(tile_x: int, tile_y: int, colony_sim: Node) -> bool:
 	if _bench_popup == null or colony_sim == null:
 		return false
-	var bench_var: Variant = colony_sim.call("get_carpentry_bench_at", tile_x, tile_y)
+	var bench_var: Variant = colony_sim.call("get_workshop_at", tile_x, tile_y)
 	if bench_var is Dictionary and bool((bench_var as Dictionary).get("found", false)):
 		_bench_popup.call("open_for_bench", bench_var as Dictionary, colony_sim, _item_icons)
 		return true

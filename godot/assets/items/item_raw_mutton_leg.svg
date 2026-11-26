@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Pierna de oveja cruda con jarrete óseo -->
+  <ellipse cx="64" cy="98" rx="38" ry="11" fill="#18130e" opacity="0.28"/>
+  <!-- Hueso saliente -->
+  <g stroke="#1e1813" stroke-width="3.6" stroke-linejoin="round">
+    <circle cx="99" cy="40" r="6.5" fill="#efe6d3"/>
+    <circle cx="105" cy="48" r="6.5" fill="#efe6d3"/>
+    <path d="M72 56 L96 42 L101 49 L77 63 Z" fill="#efe6d3"/>
+  </g>
+  <circle cx="98" cy="41" r="4.5" fill="#efe6d3"/>
+  <circle cx="104" cy="48" r="4.5" fill="#efe6d3"/>
+  <!-- Pieza grande de pierna -->
+  <path d="M22 76 C16 56 32 38 56 38 C74 38 86 48 88 60 C90 74 70 88 46 88 C32 88 25 84 22 76 Z" fill="#bf454e" stroke="#1e1813" stroke-width="4.2" stroke-linejoin="round"/>
+  <!-- Capa de grasa lateral -->
+  <path d="M26 70 C24 54 38 42 58 42 C46 47 36 58 34 74 C29 74 27 72 26 70 Z" fill="#f3e5d2"/>
+  <path d="M44 54 Q62 49 76 55 M40 70 Q58 68 74 64" fill="none" stroke="#e27a80" stroke-width="2.4" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Suelo de río natural fluido estilo RimWorld cálido -->
+  <rect width="128" height="128" fill="#3a748e"/>
+  <path d="M0 24 Q32 16 64 24 T128 24 L128 60 Q96 68 64 60 T0 60 Z" fill="#31657d" opacity="0.58"/>
+  <path d="M0 84 Q32 76 64 84 T128 84 L128 116 Q96 122 64 116 T0 116 Z" fill="#2d5d74" opacity="0.46"/>
+  <!-- Ondas y reflejos suaves de corriente -->
+  <path d="M12 34 C28 29 44 29 60 34" fill="none" stroke="#6aaec7" stroke-width="3.2" stroke-linecap="round" opacity="0.72"/>
+  <path d="M70 50 C88 45 104 45 118 50" fill="none" stroke="#7ec0d8" stroke-width="2.8" stroke-linecap="round" opacity="0.65"/>
+  <path d="M18 76 C36 71 54 71 72 76" fill="none" stroke="#7ec0d8" stroke-width="3" stroke-linecap="round" opacity="0.68"/>
+  <path d="M68 102 C86 97 102 97 118 102" fill="none" stroke="#6aaec7" stroke-width="2.8" stroke-linecap="round" opacity="0.62"/>
+  <ellipse cx="44" cy="94" rx="14" ry="4" fill="#5293ad" opacity="0.45"/>
+</svg>

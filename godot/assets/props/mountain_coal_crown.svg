@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Corona continua de montaña con vetas de carbón -->
+  <rect x="0" y="0" width="128" height="128" fill="#74706a"/>
+  <polygon points="0,0 64,0 50,46 0,38" fill="#837e77"/>
+  <polygon points="64,0 128,0 128,54 88,62 50,46" fill="#69655f"/>
+  <polygon points="0,38 50,46 42,96 0,104" fill="#7b7670"/>
+  <polygon points="50,46 88,62 128,54 128,128 74,128 42,96" fill="#65615b"/>
+  <path d="M14 22 L48 30 L76 16 M28 76 L64 82 L104 66 M18 112 L54 106 L84 118" fill="none" stroke="#45423e" stroke-width="2.6" stroke-linecap="round"/>
+  <!-- Vetas de carbón -->
+  <polygon points="18,22 46,18 50,36 22,40" fill="#262423" stroke="#151312" stroke-width="2.4" stroke-linejoin="round"/>
+  <polygon points="24,25 41,22 42,29 26,32" fill="#464341"/>
+  <polygon points="74,40 104,36 108,56 78,60" fill="#232120" stroke="#151312" stroke-width="2.4" stroke-linejoin="round"/>
+  <polygon points="81,44 98,42 99,49 83,51" fill="#43403e"/>
+  <polygon points="30,84 58,78 64,98 36,104" fill="#292726" stroke="#151312" stroke-width="2.4" stroke-linejoin="round"/>
+  <polygon points="37,87 53,84 54,91 39,94" fill="#494644"/>
+  <polygon points="82,90 106,84 110,104 86,108" fill="#22201f" stroke="#151312" stroke-width="2.2" stroke-linejoin="round"/>
+</svg>

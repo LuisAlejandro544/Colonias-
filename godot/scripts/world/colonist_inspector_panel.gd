@@ -2,8 +2,8 @@
 #
 # Lógica: Muestra en la esquina inferior izquierda el nombre, jerarquía,
 # roles activos (x/5), actividad actual, herramientas en mano/espalda,
-# energía, salud máxima, ánimo e Inteligencia (`INT`) del colono tocado, junto
-# a los accesos de Inventario, Atributos, Trabajos y Seguir cámara.
+# energía, hidratación, salud máxima, ánimo e Inteligencia (`INT`) del colono
+# tocado, junto a los accesos de Inventario, Atributos, Trabajos y Seguir cámara.
 
 class_name ColonistInspectorPanel
 extends PanelContainer
@@ -138,7 +138,7 @@ func show_colonist(colonist: Node) -> void:
 			joined += str(roles_var[i])
 		roles_txt = joined
 
-	_meta_label.text = "Roles (%d/5): %s\nActividad: %s\nMano: %s  •  Espalda: %s%s\nEnergía: %d%%  •  Salud: %d/%d  •  Ánimo: %d%%  •  INT: %d" % [
+	_meta_label.text = "Roles (%d/5): %s\nActividad: %s\nMano: %s  •  Espalda: %s%s\nEnergía: %d%%  •  Hidratación: %d%%  •  Salud: %d/%d  •  Ánimo: %d%%  •  INT: %d" % [
 		roles_count,
 		roles_txt,
 		str(colonist.get("current_activity")),
@@ -146,6 +146,7 @@ func show_colonist(colonist: Node) -> void:
 		back_txt,
 		carry_line,
 		int(colonist.get("energy_value")),
+		int(colonist.get("hydration_value")),
 		int(colonist.get("health_value")),
 		int(colonist.get("max_health_value")),
 		int(colonist.get("mood_value")),

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Frente continuo de montaña con vetas de cobre -->
+  <rect x="0" y="0" width="128" height="72" fill="#7c756b"/>
+  <polygon points="0,0 72,0 56,36 0,30" fill="#8c857a"/>
+  <polygon points="72,0 128,0 128,44 86,52 56,36" fill="#706960"/>
+  <polygon points="56,36 86,52 128,44 128,72 44,72" fill="#6b655c"/>
+  <path d="M14 20 L52 24 L78 12 M34 50 L70 52 L106 38" fill="none" stroke="#4b463f" stroke-width="2.6" stroke-linecap="round"/>
+  <polygon points="22,22 46,18 50,36 26,40" fill="#d97538" stroke="#4f2612" stroke-width="2.4" stroke-linejoin="round"/>
+  <polygon points="28,25 42,22 43,29 30,32" fill="#f5a56c"/>
+  <polygon points="78,20 104,24 106,40 80,38" fill="#5b9b77" stroke="#284635" stroke-width="2" stroke-linejoin="round"/>
+  <rect x="0" y="72" width="128" height="56" fill="#565049"/>
+  <polygon points="44,72 92,72 80,128 34,128" fill="#4e4942"/>
+  <polygon points="92,72 128,72 128,128 80,128" fill="#45403a"/>
+  <path d="M22 86 L28 118 M60 82 L64 116 M102 88 L96 120" fill="none" stroke="#36322d" stroke-width="2.6" stroke-linecap="round"/>
+  <polygon points="20,86 48,80 54,98 26,104" fill="#d97538" stroke="#4f2612" stroke-width="2.4" stroke-linejoin="round"/>
+  <polygon points="27,89 44,85 45,92 29,96" fill="#f5a56c"/>
+  <polygon points="80,88 106,84 110,104 84,108" fill="#ce6b30" stroke="#4f2612" stroke-width="2.4" stroke-linejoin="round"/>
+  <polygon points="86,92 101,90 102,96 88,99" fill="#f29d63"/>
+  <path d="M0 72 L36 70 L74 74 L128 72" fill="none" stroke="#1e1813" stroke-width="3.6" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Oveja lanuda en vista centinela -->
+  <ellipse cx="64" cy="100" rx="34" ry="11" fill="#18130e" opacity="0.28"/>
+  <!-- Patas oscuras -->
+  <rect x="38" y="81" width="9" height="18" rx="3.5" fill="#3a332d" stroke="#1e1813" stroke-width="3"/>
+  <rect x="74" y="81" width="9" height="18" rx="3.5" fill="#3a332d" stroke="#1e1813" stroke-width="3"/>
+  <rect x="46" y="83" width="9" height="18" rx="3.5" fill="#4e453e" stroke="#1e1813" stroke-width="3"/>
+  <rect x="81" y="83" width="9" height="18" rx="3.5" fill="#4e453e" stroke="#1e1813" stroke-width="3"/>
+  <!-- Vellón de lana -->
+  <path d="M32 68 C24 62 27 49 36 47 C38 36 52 33 61 38 C71 33 84 37 86 48 C95 51 96 64 89 71 C91 81 80 87 70 84 C61 88 49 87 42 82 C32 84 26 76 32 68 Z" fill="#f3ead8" stroke="#1e1813" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M41 53 C47 46 62 45 71 50 C78 52 80 61 74 66" fill="none" stroke="#dfd2ba" stroke-width="3" stroke-linecap="round"/>
+  <!-- Cabeza oscura y oreja -->
+  <ellipse cx="95" cy="59" rx="14" ry="13" fill="#453c35" stroke="#1e1813" stroke-width="3.6"/>
+  <ellipse cx="83" cy="56" rx="7" ry="4" transform="rotate(-24 83 56)" fill="#362e29" stroke="#1e1813" stroke-width="2.8"/>
+  <!-- Copete de lana en la frente -->
+  <circle cx="90" cy="47" r="7" fill="#f3ead8" stroke="#1e1813" stroke-width="2.8"/>
+  <!-- Ojo -->
+  <circle cx="99" cy="57" r="2.6" fill="#1e1813"/>
+  <circle cx="100" cy="56" r="0.9" fill="#ffffff"/>
+</svg>

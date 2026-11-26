@@ -1,9 +1,9 @@
 # Popup modular del Menú de Construcción y Zonas de la colonia.
 #
 # Lógica: Presenta las tarjetas desplazables de construcción y designación de
-# áreas (Zona de Almacenamiento, Zona de Cultivo de Zanahorias, Pared de Madera,
-# Puerta de Madera y Mesa de Carpintero) con su icono, descripción y costo,
-# emitiendo el modo seleccionado hacia `WorldHud`.
+# áreas (Almacén, Cultivos con riego, Muros de madera o piedra/ladrillo, Puerta,
+# Suelo de ladrillos, Pozo, Brasero, Mesa de Carpintero, Mesa de Masón y Horno)
+# con su icono, descripción y costo, emitiendo el modo seleccionado hacia `WorldHud`.
 
 class_name BuildMenuPopup
 extends ColorRect
@@ -49,7 +49,7 @@ func _build_ui() -> void:
 	title_v.add_child(title)
 
 	var sub := Label.new()
-	sub.text = "Elige zonas de acopio o cultivo, muros, puertas y mesas de carpintería."
+	sub.text = "Elige zonas de acopio o cultivo, muros, suelos, pozos, braseros, mesas de trabajo y hornos."
 	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	UiTheme.style_subtitle(sub, 16)
 	title_v.add_child(sub)
@@ -85,9 +85,30 @@ func _build_ui() -> void:
 		{
 			"code": "farm",
 			"title": "Zona de Cultivo (Zanahorias)",
-			"desc": "Área agrícola para arar con azada de cobre, sembrar semillas y cosechar.",
-			"cost": "Usa semillas de zanahoria al sembrar",
+			"desc": "Área agrícola para arar con azada de cobre, sembrar zanahorias y cosechar.",
+			"cost": "Usa semillas de zanahoria al sembrar (mejor en Temporada)",
 			"icon": "res://assets/items/item_carrot.svg",
+		},
+		{
+			"code": "farm_potato",
+			"title": "Zona de Cultivo (Papas)",
+			"desc": "Área agrícola para arar tierra, sembrar semillas de papa y cosechar tubérculos.",
+			"cost": "Usa semillas de papa al sembrar (mejor en Temporada)",
+			"icon": "res://assets/items/item_potato.svg",
+		},
+		{
+			"code": "farm_wheat",
+			"title": "Zona de Cultivo (Trigo)",
+			"desc": "Área agrícola para cultivar espigas de trigo dorado en suelo preparado.",
+			"cost": "Usa semillas de trigo al sembrar (mejor en Temporada)",
+			"icon": "res://assets/items/item_wheat.svg",
+		},
+		{
+			"code": "farm_beet",
+			"title": "Zona de Cultivo (Remolacha)",
+			"desc": "Área agrícola para sembrar y cosechar remolachas frescas en el huerto.",
+			"cost": "Usa semillas de remolacha al sembrar (mejor en Temporada)",
+			"icon": "res://assets/items/item_beet.svg",
 		},
 		{
 			"code": "build_wall",
@@ -106,9 +127,51 @@ func _build_ui() -> void:
 		{
 			"code": "build_carpenter_bench",
 			"title": "Mesa de Carpintero",
-			"desc": "Banco de trabajo para aserrar tablones y fabricar cubos, puertas y arcones según Inteligencia.",
+			"desc": "Banco de trabajo para aserrar tablones y fabricar vasos, cubos, puertas y arcones según Inteligencia.",
 			"cost": "Costo: 6 troncos de madera",
 			"icon": "res://assets/structures/carpenter_bench.svg",
+		},
+		{
+			"code": "build_well",
+			"title": "Pozo de Agua",
+			"desc": "Extrae agua subterránea profunda; los colonos beben de él y llenan cubos para regar cultivos.",
+			"cost": "Costo: 1 cubo de madera, 4 troncos y 6 piedras",
+			"icon": "res://assets/structures/water_well.svg",
+		},
+		{
+			"code": "build_mason_bench",
+			"title": "Mesa de Masón",
+			"desc": "Taller de cantería para labrar piedra en ladrillos, morteros, ruedas de molino y estatuillas.",
+			"cost": "Costo: 6 bloques de piedra",
+			"icon": "res://assets/structures/mason_bench.svg",
+		},
+		{
+			"code": "build_furnace",
+			"title": "Horno de Piedra y Ladrillo",
+			"desc": "Horno cerrado de piedra y ladrillos de piedra que funde menas de cobre con carbón en lingotes.",
+			"cost": "Costo: 4 piedras y 6 ladrillos de piedra",
+			"icon": "res://assets/structures/stone_furnace.svg",
+		},
+		{
+			"code": "build_stone_wall",
+			"title": "Pared de Piedra y Ladrillo",
+			"desc": "Muro sólido conectable de mampostería que refuerza y protege las estancias de la colonia.",
+			"cost": "Costo: 1 piedra y 2 ladrillos de piedra por bloque",
+			"icon": "res://assets/structures/wall_stone.svg",
+		},
+		{
+			"code": "build_stone_floor",
+			"title": "Suelo de Ladrillos",
+			"desc": "Calzada firme de ladrillos de piedra que acelera el paso de los colonos un +18% al caminar encima.",
+			"cost": "Costo: 2 ladrillos de piedra por casilla",
+			"icon": "res://assets/structures/floor_stone.svg",
+		},
+		{
+			"code": "build_stone_brazier",
+			"title": "Brasero de Piedra y Ladrillo",
+			"desc": "Luminaria cálida de piedra, ladrillos y carbón que aporta abrigo y luz en los caminos y talleres.",
+			"cost": "Costo: 2 piedras, 3 ladrillos de piedra y 1 carbón",
+			"icon": "res://assets/structures/stone_brazier.svg",
 		},
 	]
 

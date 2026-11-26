@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">
+  <!-- Roca exterior con vetas brillantes de cobre y pátina verdosa -->
+  <ellipse cx="86" cy="118" rx="52" ry="22" fill="#18130e" opacity="0.28"/>
+  <polygon points="28,96 34,56 66,32 114,38 134,70 124,108 80,118 42,114" fill="#6f6960" stroke="#1e1813" stroke-width="4.5" stroke-linejoin="round"/>
+  <polygon points="66,32 114,38 96,68 54,62" fill="#877f74"/>
+  <polygon points="96,68 134,70 124,108 80,118 86,88" fill="#59534c"/>
+  <path d="M54 62 L96 68 L86 88" fill="none" stroke="#423d37" stroke-width="2.6" stroke-linecap="round"/>
+  <!-- Vetas de cobre incrustadas -->
+  <polygon points="46,78 68,66 80,82 58,96" fill="#d97538" stroke="#4f2612" stroke-width="2.4" stroke-linejoin="round"/>
+  <polygon points="52,77 67,69 73,77 59,86" fill="#f5a56c"/>
+  <polygon points="92,48 116,54 118,72 94,66" fill="#df7f42" stroke="#4f2612" stroke-width="2.4" stroke-linejoin="round"/>
+  <polygon points="97,52 112,56 112,63 99,59" fill="#f7b382"/>
+  <polygon points="78,92 98,88 102,102 82,106" fill="#5b9b77" stroke="#284635" stroke-width="2" stroke-linejoin="round"/>
+</svg>

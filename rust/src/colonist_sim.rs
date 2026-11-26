@@ -42,6 +42,7 @@ impl INode for ColonySimulation {
 impl ColonySimulation {
     /// Inicializa la colonia nueva sobre el terreno generado, eligiendo un líder aleatorio.
     #[func]
+    #[allow(clippy::too_many_arguments)]
     pub fn setup_colony(
         &mut self,
         seed: i64,
@@ -51,6 +52,7 @@ impl ColonySimulation {
         prop_tiles: PackedInt32Array,
         blocked_tiles: PackedInt32Array,
         colonist_count: i32,
+        biome_code: GString,
     ) {
         let mut core = SimulationCore::new(
             seed as u64,
@@ -60,12 +62,17 @@ impl ColonySimulation {
             prop_tiles.to_vec(),
             blocked_tiles.to_vec(),
         );
+        let biome = biome_code.to_string();
+        if !biome.is_empty() {
+            core.biome_code = biome;
+        }
         core.spawn_initial(colonist_count);
         self.core = Some(core);
     }
 
     /// Restaura una colonia guardada desde JSON (`user://saves/slot_N.json`).
     #[func]
+    #[allow(clippy::too_many_arguments)]
     pub fn restore_colony(
         &mut self,
         seed: i64,
@@ -75,6 +82,7 @@ impl ColonySimulation {
         prop_tiles: PackedInt32Array,
         blocked_tiles: PackedInt32Array,
         saved_state: VarDictionary,
+        biome_code: GString,
     ) {
         let core = persistence::restore_colony_core(
             seed as u64,
@@ -84,6 +92,7 @@ impl ColonySimulation {
             prop_tiles.to_vec(),
             blocked_tiles.to_vec(),
             &saved_state,
+            &biome_code.to_string(),
         );
         self.core = Some(core);
     }
@@ -112,6 +121,15 @@ impl ColonySimulation {
             return VarArray::new();
         };
         persistence::colonists_snapshot(core)
+    }
+
+    /// Devuelve el estado actual de la fauna terrestre libre en el mapa.
+    #[func]
+    pub fn get_animals_snapshot(&self) -> VarArray {
+        let Some(core) = &self.core else {
+            return VarArray::new();
+        };
+        persistence::animals_snapshot(core)
     }
 
     /// Devuelve el detalle completo de los 9 roles y niveles (1..=10) de un colono para el panel de Trabajos.
@@ -215,6 +233,74 @@ impl ColonySimulation {
         core.cancel_carpentry_queue_item(bench_id, queue_index as usize)
     }
 
+    /// Consulta cualquier estación de trabajo (Carpintero, Masón u Horno) cercana a la casilla.
+    #[func]
+    pub fn get_workshop_at(&self, tile_x: i32, tile_y: i32) -> VarDictionary {
+        let Some(core) = &self.core else {
+            let mut d = VarDictionary::new();
+            d.set("found", &false.to_variant());
+            return d;
+        };
+        persistence::workshop_station_snapshot(core, tile_x, tile_y)
+    }
+
+    /// Añade una receta en una estación de Carpintería, Masón u Horno.
+    #[func]
+    pub fn queue_workshop_recipe(
+        &mut self,
+        station_kind: GString,
+        station_id: i32,
+        recipe_code: GString,
+    ) -> VarDictionary {
+        let kind_s = station_kind.to_string();
+        if kind_s == "carpenter" {
+            return self.queue_carpentry_recipe(station_id, recipe_code);
+        }
+        let mut res = VarDictionary::new();
+        let Some(core) = &mut self.core else {
+            res.set("ok", &false.to_variant());
+            res.set("message", &GString::from("Simulación no iniciada.").to_variant());
+            return res;
+        };
+        let Some(recipe) = crate::colony_types::MasonryRecipe::from_code(&recipe_code.to_string())
+        else {
+            res.set("ok", &false.to_variant());
+            res.set("message", &GString::from("Receta de cantería u horno desconocida.").to_variant());
+            return res;
+        };
+        match core.queue_masonry_recipe(station_id, recipe) {
+            Ok(()) => {
+                res.set("ok", &true.to_variant());
+                res.set("message", &GString::from("Pieza añadida a la cola.").to_variant());
+            }
+            Err(err) => {
+                res.set("ok", &false.to_variant());
+                res.set("message", &GString::from(err).to_variant());
+            }
+        }
+        res
+    }
+
+    /// Cancela una pieza pendiente en una estación de Carpintería, Masón u Horno.
+    #[func]
+    pub fn cancel_workshop_queue_item(
+        &mut self,
+        station_kind: GString,
+        station_id: i32,
+        queue_index: i32,
+    ) -> bool {
+        if station_kind.to_string() == "carpenter" {
+            return self.cancel_carpentry_queue_item(station_id, queue_index);
+        }
+        let Some(core) = &mut self.core else {
+            return false;
+        };
+        if queue_index < 0 {
+            return false;
+        }
+        core.cancel_masonry_queue_item(station_id, queue_index as usize)
+    }
+
     /// Empaqueta el estado completo para guardar en JSON desde Godot.
     #[func]
     pub fn export_save_state(&mut self) -> VarDictionary {
@@ -230,6 +316,7 @@ impl ColonySimulation {
             core.pending_sfx = prev_sfx;
         }
         state.set("colonists", &self.get_colonists_snapshot().to_variant());
+        state.set("animals", &self.get_animals_snapshot().to_variant());
         state
     }
 }
