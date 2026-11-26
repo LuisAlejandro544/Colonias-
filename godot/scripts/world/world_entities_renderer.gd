@@ -247,7 +247,8 @@ func sync_world_entities(map_width: int, map_height: int, snap: Dictionary) -> v
 	if not props.is_empty():
 		var to_remove: Array[int] = []
 		var mountain_changed := false
-		for idx in _prop_sprites.keys():
+		for idx_var in _prop_sprites.keys():
+			var idx: int = int(idx_var)
 			if idx < props.size() and props[idx] == 0:
 				var sp := _prop_sprites[idx] as Node
 				if sp is _WallTileVisual:
@@ -258,13 +259,14 @@ func sync_world_entities(map_width: int, map_height: int, snap: Dictionary) -> v
 		for idx in to_remove:
 			_prop_sprites.erase(idx)
 		if mountain_changed:
-			for idx in _prop_sprites.keys():
+			for idx_var in _prop_sprites.keys():
+				var idx: int = int(idx_var)
 				var sp := _prop_sprites[idx] as Node
 				if sp is _WallTileVisual and idx < props.size():
-					var p := props[idx]
+					var p: int = props[idx]
 					if _is_mountain_prop(p):
-						var tx := idx % map_width
-						var ty := int(idx / map_width)
+						var tx: int = idx % map_width
+						var ty: int = int(idx / map_width)
 						_configure_mountain_tile(sp as _WallTileVisual, tx, ty, map_width, map_height, props, p)
 
 	# 2. Estructuras (planos, suelos pavimentados, mesas, hornos, braseros y muros conectables)
@@ -284,8 +286,8 @@ func sync_world_entities(map_width: int, map_height: int, snap: Dictionary) -> v
 					node = _structure_sprites[idx] as _WallTileVisual
 				else:
 					node = _WallTileVisual.new()
-					var tx := idx % map_width
-					var ty := int(idx / map_width)
+					var tx: int = idx % map_width
+					var ty: int = int(idx / map_width)
 					node.position = Vector2((tx + 0.5) * TILE_PX, (ty + 0.5) * TILE_PX)
 					add_child(node)
 					_structure_sprites[idx] = node
@@ -294,8 +296,8 @@ func sync_world_entities(map_width: int, map_height: int, snap: Dictionary) -> v
 				node.set_brazier_lit(st == 18)
 
 				if st == 2 or st == 14:
-					var tx := idx % map_width
-					var ty := int(idx / map_width)
+					var tx: int = idx % map_width
+					var ty: int = int(idx / map_width)
 					var n_st := structures[(ty - 1) * map_width + tx] if ty > 0 else 0
 					var s_st := structures[(ty + 1) * map_width + tx] if ty + 1 < map_height else 0
 					var w_st := structures[ty * map_width + (tx - 1)] if tx > 0 else 0
@@ -335,7 +337,8 @@ func sync_world_entities(map_width: int, map_height: int, snap: Dictionary) -> v
 		_update_ground_item_node(node, it)
 
 	var dead_items: Array[int] = []
-	for iid in _item_nodes.keys():
+	for iid_var in _item_nodes.keys():
+		var iid: int = int(iid_var)
 		if not seen_ids.has(iid):
 			var n := _item_nodes[iid] as Node
 			if is_instance_valid(n):
@@ -415,7 +418,8 @@ func sync_animals(snapshots: Array) -> void:
 		node.apply_snapshot(snap, tex)
 
 	var dead_ids: Array[int] = []
-	for aid in _animal_nodes.keys():
+	for aid_var in _animal_nodes.keys():
+		var aid: int = int(aid_var)
 		if not seen.has(aid):
 			var n := _animal_nodes[aid] as Node
 			if is_instance_valid(n):
@@ -428,7 +432,8 @@ func sync_animals(snapshots: Array) -> void:
 func find_colonist_at_world_pos(world_pos: Vector2, max_dist: float = 54.0) -> int:
 	var best_id := -1
 	var best_dist := max_dist
-	for cid in _colonist_nodes.keys():
+	for cid_var in _colonist_nodes.keys():
+		var cid: int = int(cid_var)
 		var c := _colonist_nodes[cid] as Node2D
 		var d := (c.position + Vector2(0, -16)).distance_to(world_pos)
 		if d < best_dist:
@@ -438,7 +443,8 @@ func find_colonist_at_world_pos(world_pos: Vector2, max_dist: float = 54.0) -> i
 
 
 func set_selected_colonist(selected_id: int) -> Node2D:
-	for cid in _colonist_nodes.keys():
+	for cid_var in _colonist_nodes.keys():
+		var cid: int = int(cid_var)
 		(_colonist_nodes[cid] as Node2D).call("set_selected", cid == selected_id)
 	return get_colonist_node(selected_id)
 
