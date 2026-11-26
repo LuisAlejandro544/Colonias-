@@ -163,7 +163,7 @@ impl SimulationCore {
                         }
 
                         // Elegir la primera receta en cola que este colono pueda fabricar por INT y materiales.
-                        let eligible = bench.queue.iter().enumerate().find(|(_, &recipe)| {
+                        let eligible = bench.queue.iter().enumerate().find(|&(_, &recipe)| {
                             if !self.colonists[c_idx]
                                 .stats
                                 .can_craft_complexity(recipe.min_intelligence())
