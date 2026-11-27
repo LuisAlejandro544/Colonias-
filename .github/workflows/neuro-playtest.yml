@@ -1,0 +1,200 @@
+# Flujo manual de playtest automático por neuroevolución (Rust headless)
+# y análisis en modo de razonamiento solo texto con Gemma 4 E2B (`llama.cpp`).
+#
+# Lógica:
+# 1. Solo se activa manualmente (`workflow_dispatch`).
+# 2. Compila únicamente `playtest/` en Rust puro (sin Godot ni Android NDK),
+#    verifica sus tests unitarios y reutiliza `best_brain.json` desde caché si se solicita.
+# 3. Ejecuta el entrenamiento evolutivo en los 3 biomas y genera métricas compactas.
+# 4. Descarga/cachea `llama.cpp` (CPU portable) y únicamente el archivo de pesos
+#    de texto `gemma-4-E2B-it-Q4_K_M.gguf` (sin `mmproj`, desactivando imagen y audio).
+# 5. Lanza `llama-server` local con `--jinja` y `enable_thinking: true`, genera
+#    `gemma_summary.md` en español y publica el resumen en `$GITHUB_STEP_SUMMARY`.
+
+name: Neuroevolution Playtest & Gemma 4 E2B Report (Manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      generations:
+        description: "Número de generaciones evolutivas (1 a 60)"
+        required: false
+        default: "15"
+        type: string
+      population:
+        description: "Cantidad de cerebros por generación (6 a 40)"
+        required: false
+        default: "18"
+        type: string
+      days_per_eval:
+        description: "Días simulados por bioma en cada evaluación (2 a 8)"
+        required: false
+        default: "4"
+        type: string
+      use_cached_brain:
+        description: "Continuar entrenando desde best_brain.json guardado en caché"
+        required: false
+        default: true
+        type: boolean
+      run_gemma_summary:
+        description: "Generar resumen razonado con Gemma 4 E2B (solo texto)"
+        required: false
+        default: true
+        type: boolean
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  neuro-playtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Rust 1.100.0 toolchain
+        uses: dtolnay/rust-toolchain@1.100.0
+
+      - name: Cache Cargo y compilación de playtest
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            playtest/target
+          key: ${{ runner.os }}-playtest-cargo-${{ hashFiles('rust/Cargo.toml', 'playtest/Cargo.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-playtest-cargo-
+
+      - name: Cache del mejor cerebro evolutivo (best_brain.json)
+        id: brain_cache
+        uses: actions/cache@v5
+        with:
+          path: playtest_cache
+          key: neuro-brain-v1-${{ github.run_id }}
+          restore-keys: |
+            neuro-brain-v1-
+
+      - name: Ejecutar tests unitarios de simulación pura y neuroevolución
+        run: |
+          cargo test --manifest-path rust/Cargo.toml --no-default-features --lib
+          cargo test --manifest-path playtest/Cargo.toml
+
+      - name: Compilar y ejecutar neuroevolución headless en los 3 biomas
+        run: |
+          mkdir -p playtest_output playtest_cache
+          EXTRA_ARGS=""
+          if [ "${{ inputs.use_cached_brain }}" = "true" ] && [ -f "playtest_cache/best_brain.json" ]; then
+            echo "Usando cerebro previo desde caché: playtest_cache/best_brain.json"
+            EXTRA_ARGS="--load-brain playtest_cache/best_brain.json"
+          fi
+          cargo run --release --manifest-path playtest/Cargo.toml -- \
+            --generations "${{ inputs.generations }}" \
+            --population "${{ inputs.population }}" \
+            --days "${{ inputs.days_per_eval }}" \
+            --out-dir playtest_output \
+            $EXTRA_ARGS
+          cp playtest_output/best_brain.json playtest_cache/best_brain.json
+
+      - name: Cache de llama.cpp compilado (CPU solo texto)
+        if: ${{ inputs.run_gemma_summary == true }}
+        id: llama_cache
+        uses: actions/cache@v5
+        with:
+          path: llama_cpp_bin
+          key: ${{ runner.os }}-llama-cpp-gemma4-v1
+
+      - name: Compilar llama.cpp si no está en caché
+        if: ${{ inputs.run_gemma_summary == true && steps.llama_cache.outputs.cache-hit != 'true' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake libcurl4-openssl-dev
+          git clone --depth 1 https://github.com/ggml-org/llama.cpp.git /tmp/llama.cpp
+          cmake -S /tmp/llama.cpp -B /tmp/llama.cpp/build \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DLLAMA_BUILD_TESTS=OFF \
+            -DLLAMA_BUILD_EXAMPLES=ON \
+            -DGGML_NATIVE=OFF
+          cmake --build /tmp/llama.cpp/build --target llama-server -j "$(nproc)"
+          mkdir -p llama_cpp_bin
+          cp /tmp/llama.cpp/build/bin/llama-server llama_cpp_bin/llama-server
+          chmod +x llama_cpp_bin/llama-server
+
+      - name: Cache de Gemma 4 E2B (solo texto Q4_K_M, sin mmproj de imagen/voz)
+        if: ${{ inputs.run_gemma_summary == true }}
+        id: gemma_cache
+        uses: actions/cache@v5
+        with:
+          path: gemma4_models
+          key: gemma-4-e2b-it-q4_k_m-textonly-v1
+
+      - name: Descargar Gemma 4 E2B solo texto si no está en caché
+        if: ${{ inputs.run_gemma_summary == true && steps.gemma_cache.outputs.cache-hit != 'true' }}
+        run: |
+          mkdir -p gemma4_models
+          # Descargamos únicamente el modelo de lenguaje en texto GGUF (SIN archivo mmproj),
+          # por lo que llama.cpp no carga encoders de visión ni audio.
+          URL_PRIMARY="https://huggingface.co/unsloth/gemma-4-E2B-it-GGUF/resolve/main/gemma-4-E2B-it-Q4_K_M.gguf"
+          URL_FALLBACK="https://huggingface.co/bartowski/google_gemma-4-E2B-it-GGUF/resolve/main/google_gemma-4-E2B-it-Q4_K_M.gguf"
+          curl -fSL --retry 3 "$URL_PRIMARY" -o gemma4_models/gemma-4-E2B-it-Q4_K_M.gguf || \
+            curl -fSL --retry 3 "$URL_FALLBACK" -o gemma4_models/gemma-4-E2B-it-Q4_K_M.gguf
+
+      - name: Ejecutar Gemma 4 E2B (solo texto + razonamiento) y publicar resumen
+        if: ${{ inputs.run_gemma_summary == true }}
+        run: |
+          chmod +x llama_cpp_bin/llama-server
+          ./llama_cpp_bin/llama-server \
+            -m gemma4_models/gemma-4-E2B-it-Q4_K_M.gguf \
+            --host 127.0.0.1 \
+            --port 8080 \
+            -t "$(nproc)" \
+            -c 4096 \
+            --jinja \
+            --chat-template-kwargs '{"enable_thinking": true}' \
+            > playtest_output/llama_server.log 2>&1 &
+          SERVER_PID=$!
+          trap "kill $SERVER_PID 2>/dev/null || true" EXIT
+
+          echo "Esperando a que llama-server cargue Gemma 4 E2B (solo texto)..."
+          READY=0
+          for _ in $(seq 1 90); do
+            if curl -fsS http://127.0.0.1:8080/health >/dev/null 2>&1; then
+              READY=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "$READY" -ne 1 ]; then
+            cat playtest_output/llama_server.log || true
+            echo "::error::llama-server no respondió a tiempo."
+            exit 1
+          fi
+
+          python3 playtest/scripts/run_gemma_summary.py \
+            playtest/prompts/gemma4_playtest_prompt.txt \
+            playtest_output/gemma_prompt_input.txt \
+            playtest_output/gemma_summary.md
+
+      - name: Publicar resumen sin Gemma si fue desactivado manualmente
+        if: ${{ inputs.run_gemma_summary != true }}
+        run: |
+          {
+            echo "# Reporte de Neuroevolución (sin resumen Gemma)"
+            echo '```text'
+            cat playtest_output/gemma_prompt_input.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Subir artefactos del playtest y resumen
+        uses: actions/upload-artifact@v4
+        with:
+          name: colonia-neuro-playtest-results
+          path: |
+            playtest_output/best_brain.json
+            playtest_output/playtest_report.json
+            playtest_output/gemma_prompt_input.txt
+            playtest_output/gemma_summary.md
+          if-no-files-found: warn

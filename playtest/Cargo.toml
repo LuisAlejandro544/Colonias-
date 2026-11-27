@@ -1,0 +1,21 @@
+# Manifiesto del entrenador neuroevolutivo headless para Colonia Centinela.
+#
+# Lógica: Compila un binario de pruebas automáticas en Rust puro que enlaza
+# únicamente el núcleo lógico `colonia_core` sin GDExtension (`default-features = false`),
+# evitando tocar los binarios Android `.so` del juego.
+
+[package]
+name = "colonia_neuro_playtest"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.100"
+license = "Apache-2.0"
+description = "Entrenador neuroevolutivo headless para detectar bloqueos y evaluar balance en Colonia Centinela."
+
+[dependencies]
+colonia_core = { path = "../rust", default-features = false }
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1

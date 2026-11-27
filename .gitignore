@@ -9,3 +9,8 @@ coverage/
 rust/target/
 godot/.godot/
 godot/bin/
+playtest/target/
+playtest_output/
+playtest_cache/
+gemma4_models/
+llama_cpp_bin/

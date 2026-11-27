@@ -14,16 +14,22 @@ mod core;
 mod designations;
 mod farming;
 mod leader;
+#[cfg(feature = "gdextension")]
 mod persistence;
 mod tasks;
 
+pub use self::core::SimulationCore;
+
+#[cfg(feature = "gdextension")]
 use godot::classes::{INode, Node};
+#[cfg(feature = "gdextension")]
 use godot::prelude::*;
 
-use self::core::SimulationCore;
+#[cfg(feature = "gdextension")]
 use crate::roles::ColonyRole;
 
 /// Nodo GDExtension que administra la simulación completa de la colonia en tiempo real.
+#[cfg(feature = "gdextension")]
 #[derive(GodotClass)]
 #[class(base = Node)]
 pub struct ColonySimulation {
@@ -31,6 +37,7 @@ pub struct ColonySimulation {
     core: Option<SimulationCore>,
 }
 
+#[cfg(feature = "gdextension")]
 #[godot_api]
 impl INode for ColonySimulation {
     fn init(base: Base<Node>) -> Self {
@@ -38,6 +45,7 @@ impl INode for ColonySimulation {
     }
 }
 
+#[cfg(feature = "gdextension")]
 #[godot_api]
 impl ColonySimulation {
     /// Inicializa la colonia nueva sobre el terreno generado, eligiendo un líder aleatorio.

@@ -13,13 +13,18 @@ license = "Apache-2.0"
 description = "Núcleo lógico modular en Rust para Colonia Centinela (Godot 4.7.2 móvil)."
 
 [lib]
-# cdylib genera los binarios `.so` que carga Godot mediante `.gdextension`.
-crate-type = ["cdylib"]
+# cdylib genera los binarios `.so` para Godot; rlib permite enlazar simulación pura en pruebas headless.
+crate-type = ["cdylib", "rlib"]
+
+[features]
+# Activado por defecto para builds Android/Linux de Godot; desactivable para pruebas headless puras.
+default = ["gdextension"]
+gdextension = ["dep:godot"]
 
 [dependencies]
 # Fijamos 0.5.5 con soporte api-4-7 porque 0.5.6 introdujo `rust_variant.rs`
 # con `align(8)` fijo que rompe arquitecturas de 32 bits (`armv7-linux-androideabi`).
-godot = { version = "=0.5.5", features = ["api-4-7"] }
+godot = { version = "=0.5.5", features = ["api-4-7"], optional = true }
 
 [profile.release]
 # Optimización enfocada en rendimiento estable en dispositivos móviles.

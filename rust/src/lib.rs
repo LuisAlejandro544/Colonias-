@@ -12,35 +12,46 @@
 //! - `pathfinding`: búsqueda de rutas A* sobre el mapa dinámico.
 //! - `colonist_sim`: simulación de colonos, líder de colonia, reuniones y persistencia.
 
-mod animals;
-mod colonist_sim;
-mod colony_types;
-mod noise;
-mod pathfinding;
-mod roles;
-mod stats;
-mod tools;
-mod world_gen;
+pub mod animals;
+pub mod colonist_sim;
+pub mod colony_types;
+pub mod noise;
+pub mod pathfinding;
+pub mod roles;
+pub mod stats;
+pub mod tools;
+pub mod world_gen;
 
+pub use colonist_sim::SimulationCore;
+pub use world_gen::{generate_world_data, GeneratedWorld, GroundKind, PropKind};
+
+#[cfg(feature = "gdextension")]
 use godot::classes::{INode, Node};
+#[cfg(feature = "gdextension")]
 use godot::prelude::*;
 
+#[cfg(feature = "gdextension")]
 pub use colonist_sim::ColonySimulation;
+#[cfg(feature = "gdextension")]
 pub use world_gen::WorldGenerator;
 
 /// Estructura principal que implementa el ciclo de vida de la librería GDExtension.
+#[cfg(feature = "gdextension")]
 struct ColoniaExtension;
 
+#[cfg(feature = "gdextension")]
 #[gdextension]
 unsafe impl ExtensionLibrary for ColoniaExtension {}
 
 /// Nodo estructural para validar que Rust responde dentro de Godot 4.7.
+#[cfg(feature = "gdextension")]
 #[derive(GodotClass)]
 #[class(base = Node)]
 pub struct ColoniaBootstrap {
     base: Base<Node>,
 }
 
+#[cfg(feature = "gdextension")]
 #[godot_api]
 impl INode for ColoniaBootstrap {
     fn init(base: Base<Node>) -> Self {
@@ -52,6 +63,7 @@ impl INode for ColoniaBootstrap {
     }
 }
 
+#[cfg(feature = "gdextension")]
 #[godot_api]
 impl ColoniaBootstrap {
     /// Devuelve la versión del núcleo nativo para verificación desde GDScript.

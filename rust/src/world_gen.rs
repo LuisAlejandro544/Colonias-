@@ -8,7 +8,9 @@
 //! de granito/hierro/cobre/carbón y piedras sueltas), garantizando un claro
 //! habitable en el centro del mapa para la colonia inicial.
 
+#[cfg(feature = "gdextension")]
 use godot::classes::{INode, Node};
+#[cfg(feature = "gdextension")]
 use godot::prelude::*;
 
 use crate::noise::{fbm_2d, SeededRng};
@@ -389,12 +391,14 @@ pub fn generate_world_data(seed: u64, width: i32, height: i32, biome_code: &str)
 }
 
 /// Nodo GDExtension expuesto a Godot 4.7 para generar mundos procedurales desde GDScript.
+#[cfg(feature = "gdextension")]
 #[derive(GodotClass)]
 #[class(base = Node)]
 pub struct WorldGenerator {
     base: Base<Node>,
 }
 
+#[cfg(feature = "gdextension")]
 #[godot_api]
 impl INode for WorldGenerator {
     fn init(base: Base<Node>) -> Self {
@@ -402,6 +406,7 @@ impl INode for WorldGenerator {
     }
 }
 
+#[cfg(feature = "gdextension")]
 #[godot_api]
 impl WorldGenerator {
     /// Genera el terreno y los elementos naturales devolviendo un `Dictionary` con
